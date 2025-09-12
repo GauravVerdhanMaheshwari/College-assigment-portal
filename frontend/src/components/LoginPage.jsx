@@ -7,12 +7,20 @@ function Login({
   imageSrc,
   imageAlt,
   aLinkCSS,
-  handleSubmit,
+  API,
   h1CSS,
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const handleSubmit = (name, email, password) => {
+    // Handle login logic here
+    console.log("Name:", name);
+    console.log("Email:", email);
+    console.log("Password:", password);
+    console.log("API Endpoint:", API);
+  };
 
   return (
     <div className="flex flex-row align-middle justify-center">
