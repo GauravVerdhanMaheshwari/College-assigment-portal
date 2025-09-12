@@ -1,9 +1,14 @@
-import { Login, ForgetPassword } from "./pages";
+import {
+  StudentForgetPassword,
+  Login,
+  FacultyLogin,
+  FacultyForgetPassword,
+} from "./pages/index.js";
 
 function App() {
   return (
     <>
-      <ForgetPassword />
+      <Login />
     </>
   );
 }
