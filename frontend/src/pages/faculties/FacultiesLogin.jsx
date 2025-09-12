@@ -1,0 +1,29 @@
+import React from "react";
+import { LoginPage } from "../../components/index";
+
+function FacultiesLogin() {
+  const handleSubmit = (e, name, email, password) => {
+    e.preventDefault();
+    // Handle login logic here
+    console.log("Name:", name);
+    console.log("Email:", email);
+    console.log("Password:", password);
+  };
+
+  return (
+    <>
+      <LoginPage
+        inputCSS="active:border-[#C4B5FD] focus:border-[#C4B5FD]"
+        loginSectionCSS="from-[#C4B5FD] to-[#8B5CF6]"
+        h1CSS="text-[#4C1D95]"
+        aLinkCSS="text-[#95D6F4FF] hover:text-shadow-[0px_0_10px_rgba(62,191,250,0.9)]"
+        buttonCSS="bg-[#4C1D95] hover:bg-[#4C1D95]/70 hover:shadow-[4px_4px_16px_1px_rgba(97,41,186,0.4)]"
+        imageSrc="faculty.png"
+        imageAlt="Faculty login image"
+        handleSubmit={handleSubmit}
+      />
+    </>
+  );
+}
+
+export default FacultiesLogin;
