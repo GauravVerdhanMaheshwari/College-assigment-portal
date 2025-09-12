@@ -2,14 +2,6 @@ import React from "react";
 import { LoginPage } from "../../components/index";
 
 function FacultiesLogin() {
-  const handleSubmit = (e, name, email, password) => {
-    e.preventDefault();
-    // Handle login logic here
-    console.log("Name:", name);
-    console.log("Email:", email);
-    console.log("Password:", password);
-  };
-
   return (
     <>
       <LoginPage
@@ -20,7 +12,7 @@ function FacultiesLogin() {
         buttonCSS="bg-[#4C1D95] hover:bg-[#4C1D95]/70 hover:shadow-[4px_4px_16px_1px_rgba(97,41,186,0.4)]"
         imageSrc="faculty.png"
         imageAlt="Faculty login image"
-        handleSubmit={handleSubmit}
+        API={"faculty"}
       />
     </>
   );
