@@ -1,4 +1,6 @@
-import Login from "./student/Login";
-import ForgetPassword from "./student/ForgetPassword";
+import Login from "./student/StudentLogin";
+import StudentForgetPassword from "./student/StudentForgetPassword";
+import FacultyLogin from "./faculties/FacultiesLogin";
+import FacultyForgetPassword from "./faculties/FacultiesForgetPassword";
 
-export { Login, ForgetPassword };
+export { Login, StudentForgetPassword, FacultyLogin, FacultyForgetPassword };
