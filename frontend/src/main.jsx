@@ -7,6 +7,8 @@ import {
   UserManagerForgetPassword,
   LibraryManagerLogin,
   LibraryManagerForgetPassword,
+  AdminLogin,
+  AdminForgetPassword,
 } from "./pages/index.js";
 import { createRoot } from "react-dom/client";
 import {
@@ -42,6 +44,8 @@ const router = createBrowserRouter(
         path="library-manager-forget-password"
         element={<LibraryManagerForgetPassword />}
       />
+      <Route path="admin-forget-password" element={<AdminForgetPassword />} />
+      <Route path="admin-login" element={<AdminLogin />} />
     </Route>
   )
 );
