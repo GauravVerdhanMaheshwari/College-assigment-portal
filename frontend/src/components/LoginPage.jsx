@@ -25,7 +25,7 @@ function Login({
   return (
     <div className="flex flex-row align-middle justify-center">
       <div
-        className={`w-[44vw] h-[100vh] flex absolute left-0 items-center justify-center bg-gradient-to-b ${loginSectionCSS} rounded-r-[40px] shadow-2xl`}
+        className={`w-[44vw] h-[100vh] flex absolute left-0 items-center justify-center bg-gradient-to-b ${loginSectionCSS} rounded-r-[40px] shadow-[10px_10px_20px_1px_rgba(0,_0,_0,_0.1)]`}
       >
         <form className="flex flex-col" onSubmit={handleSubmit}>
           <h1 className={`text-4xl text-center ${h1CSS} mb-6`}>LOGIN</h1>
