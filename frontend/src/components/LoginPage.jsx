@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
 function Login({
   inputCSS,
@@ -7,6 +8,7 @@ function Login({
   imageSrc,
   imageAlt,
   aLinkCSS,
+  forgetPasswordLink,
   API,
   h1CSS,
 }) {
@@ -56,12 +58,12 @@ function Login({
           >
             ENTER
           </button>
-          <a
-            href="#"
+          <Link
+            to={forgetPasswordLink}
             className={`text-center ${aLinkCSS} mt-3 hover:underline transition-all duration-300 ease-in-out`}
           >
             FORGET YOUR PASSWORD?
-          </a>
+          </Link>
         </form>
       </div>
       <div className="h-[100vh] absolute -z-1 right-0 w-[60vw]">
