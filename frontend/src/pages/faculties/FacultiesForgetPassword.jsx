@@ -1,16 +1,17 @@
 import React from "react";
+import { PasswordPage } from "../../components/index";
 
 function FacultiesForgetPassword() {
   return (
     <PasswordPage
-      loginSectionCSS="from-[#D0E2FF] to-[#A9C9FF]"
-      buttonCSS="bg-[#073B4C] hover:bg-[#062f3a] hover:shadow-[4px_4px_16px_1px_rgba(7,59,76,0.4)]"
+      inputCSS="active:border-[#C4B5FD] focus:border-[#C4B5FD]"
+      loginSectionCSS="from-[#C4B5FD] to-[#8B5CF6]"
+      h1CSS="text-[#4C1D95] text-shadow-[0px_0px_10px_rgba(124,58,237,0.9)]"
+      aLinkCSS="text-[#95D6F4FF] hover:text-shadow-[0px_0_10px_rgba(62,191,250,0.9)]"
+      buttonCSS="bg-[#4C1D95] hover:bg-[#4C1D95]/70 hover:shadow-[4px_4px_16px_1px_rgba(97,41,186,0.4)]"
       imageSrc="faculty.png"
       imageAlt="Faculty login image"
-      h1CSS="text-[#118AB2]"
-      inputCSS="active:border-[#073B4C] focus:border-[#073B4C]"
-      aLinkCSS="text-[#06D6A0] hover:text-[#05c68a] hover:text-shadow-[0_0_10px_rgba(6,214,160,0.5)]"
-      API="faculty"
+      API={"faculty"}
     />
   );
 }
