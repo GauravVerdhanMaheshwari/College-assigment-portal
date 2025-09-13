@@ -45,7 +45,7 @@ function PasswordPage({
           />
           <button
             type="submit"
-            className={`${buttonCSS} w-45 text-lg mb-2 mx-auto text-white py-2 px-3 rounded-2xl hover:rounded-3xl hover:shadow-[4px_4px_16px_1px_rgba(_15,_121,_156,_0.4)] transition-all duration-300 cursor-pointer ease-in-out`}
+            className={`${buttonCSS} w-45 text-lg mb-2 mx-auto text-white py-2 px-3 rounded-2xl hover:rounded-3xl transition-all duration-300 cursor-pointer ease-in-out`}
           >
             SEND REQUEST
           </button>
