@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
-function Login({
+function LoginPage({
   inputCSS,
   loginSectionCSS,
   buttonCSS,
@@ -77,4 +77,4 @@ function Login({
   );
 }
 
-export default Login;
+export default LoginPage;
