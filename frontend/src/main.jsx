@@ -3,6 +3,10 @@ import {
   FacultyLogin,
   StudentForgetPassword,
   FacultyForgetPassword,
+  UserManagerLogin,
+  UserManagerForgetPassword,
+  LibraryManagerLogin,
+  LibraryManagerForgetPassword,
 } from "./pages/index.js";
 import { createRoot } from "react-dom/client";
 import {
@@ -19,6 +23,9 @@ const router = createBrowserRouter(
     <Route path="/" element={<Layout />}>
       <Route index element={<StudentLogin />} />
       <Route path="faculty-login" element={<FacultyLogin />} />
+      <Route path="user-manager-login" element={<UserManagerLogin />} />
+      <Route path="library-manager-login" element={<LibraryManagerLogin />} />
+
       <Route
         path="student-forget-password"
         element={<StudentForgetPassword />}
@@ -26,6 +33,14 @@ const router = createBrowserRouter(
       <Route
         path="faculty-forget-password"
         element={<FacultyForgetPassword />}
+      />
+      <Route
+        path="user-manager-forget-password"
+        element={<UserManagerForgetPassword />}
+      />
+      <Route
+        path="library-manager-forget-password"
+        element={<LibraryManagerForgetPassword />}
       />
     </Route>
   )
