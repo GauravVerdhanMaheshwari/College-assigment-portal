@@ -1,5 +1,5 @@
 import React from "react";
-import PasswordPage from "../../components/index";
+import { PasswordPage } from "../../components/index";
 
 function LibraryManagerForgetPassword() {
   return (
