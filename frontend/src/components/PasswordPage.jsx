@@ -1,10 +1,12 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 function PasswordPage({
   loginSectionCSS,
   buttonCSS,
   aLinkCSS,
   API,
+  loginPageLink,
   imageSrc,
   imageAlt,
   h1CSS,
@@ -49,12 +51,12 @@ function PasswordPage({
           >
             SEND REQUEST
           </button>
-          <a
-            href="#"
+          <Link
+            to={loginPageLink}
             className={`text-center ${aLinkCSS} mt-3 hover:underline transition-all duration-300 ease-in-out`}
           >
             GO BACK
-          </a>
+          </Link>
         </form>
       </div>
       <div className="h-[100vh] absolute -z-1 right-0 w-[60vw]">
