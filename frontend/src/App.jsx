@@ -1,14 +1,17 @@
 import {
-  StudentForgetPassword,
-  Login,
+  StudentLogin,
   FacultyLogin,
+  StudentForgetPassword,
   FacultyForgetPassword,
 } from "./pages/index.js";
 
 function App() {
   return (
     <>
-      <Login />
+      {/* <StudentForgetPassword /> */}
+      {/* <StudentLogin /> */}
+      {/* <FacultyLogin /> */}
+      {/* <FacultyForgetPassword /> */}
     </>
   );
 }
