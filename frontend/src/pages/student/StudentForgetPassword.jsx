@@ -12,6 +12,7 @@ function StudentForgetPassword() {
       inputCSS="active:border-[#118AB2] focus:border-[#118AB2]"
       aLinkCSS="text-[#EF476F] hover:text-[#ec3762] hover:text-shadow-[0_0_10px_rgba(239,71,111,0.5)]"
       API="student"
+      loginPageLink="/"
     />
   );
 }
