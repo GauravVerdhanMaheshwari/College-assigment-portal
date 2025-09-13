@@ -4,14 +4,15 @@ import { PasswordPage } from "../../components/index";
 function UserManagerForgetPassword() {
   return (
     <PasswordPage
-      loginSectionCSS="from-[#E0F2FE] to-[#93C5FD]"
-      buttonCSS="bg-[#38BDF8] hover:bg-[#0A9FE0FF] hover:shadow-[30px_156px_212px_0.4px_rgba(15,121,156,0.4)]"
-      imageSrc="userManager.png"
-      imageAlt="User Manager login image"
-      h1CSS="text-[#0EA5E9]"
       inputCSS="active:border-[#0EA5E9] focus:border-[#1398C4FF]"
-      aLinkCSS="text-[#C4B5FD] hover:text-[#C4B5FD] hover:text-shadow-[0_0_10px_rgba(245, 243, 255, 0.5)]"
+      loginSectionCSS="from-[#C4B5FD] to-[#C4B5FD]"
+      aLinkCSS="text-[#0A9FE0FF] hover:text-[#0A9FE0FF] hover:text-shadow-[0_0_10px_rgba(10,159,224,0.5)]"
+      buttonCSS="bg-[#38BDF8] hover:bg-[#0A9FE0FF] hover:shadow-[4px_4px_16px_1px_rgba(15,121,156,0.4)]"
+      imageSrc="user_manager.png"
+      imageAlt="User Manager login image"
       API="user_manager"
+      h1CSS="text-[#0EA5E9] text-shadow-[0_0_10px_rgba(14,165,233,0.5)]"
+      loginPageLink="/user-manager-login"
     />
   );
 }
