@@ -6,6 +6,8 @@ import UserManagerLogin from "./user_manager/UserManagerLogin";
 import UserManagerForgetPassword from "./user_manager/UserManagerForgetPassword";
 import LibraryManagerLogin from "./library_manager/LibraryManagerLogin";
 import LibraryManagerForgetPassword from "./library_manager/LibraryManagerForgetPassword";
+import AdminForgetPassword from "./admin/AdminForgetPassword";
+import AdminLogin from "./admin/AdminLogin";
 
 export {
   StudentLogin,
@@ -16,4 +18,6 @@ export {
   UserManagerForgetPassword,
   LibraryManagerLogin,
   LibraryManagerForgetPassword,
+  AdminForgetPassword,
+  AdminLogin,
 };
