@@ -1,5 +1,5 @@
 import React from "react";
-import PasswordPage from "../../components/PasswordPage";
+import { PasswordPage } from "../../components/index";
 
 function StudentForgetPassword() {
   return (
