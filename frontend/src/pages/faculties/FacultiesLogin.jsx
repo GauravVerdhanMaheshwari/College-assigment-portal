@@ -12,6 +12,7 @@ function FacultiesLogin() {
         buttonCSS="bg-[#4C1D95] hover:bg-[#4C1D95]/70 hover:shadow-[4px_4px_16px_1px_rgba(97,41,186,0.4)]"
         imageSrc="faculty.png"
         imageAlt="Faculty login image"
+        forgetPasswordLink="/faculty-forget-password"
         API={"faculty"}
       />
     </>
