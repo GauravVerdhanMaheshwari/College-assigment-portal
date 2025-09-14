@@ -21,6 +21,8 @@ app.use(express.json());
 app.use("/students", require("./Routers/studentRoute"));
 // Import and use faculty routes
 app.use("/faculties", require("./Routers/facultiesRoute"));
+// Import and use user manager routes
+app.use("/user-managers", require("./Routers/user_managerRoute"));
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
