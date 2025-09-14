@@ -24,4 +24,6 @@ router.delete(
   studentController.deleteStudentByEnrollmentNumber
 );
 
+router.post("/login", studentController.checkLogin);
+
 module.exports = router;
