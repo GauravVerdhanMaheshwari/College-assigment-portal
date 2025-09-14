@@ -14,6 +14,7 @@ function AdminLogin() {
         aLinkCSS="text-[#3B96FFFF] hover:text-[#55A3FCFF] hover:text-shadow-[0_0_10px_rgba(59,150,255,0.5)]"
         API="admins"
         forgetPasswordLink="/admin-forget-password"
+        pageAbout="Admin"
       />
     </>
   );

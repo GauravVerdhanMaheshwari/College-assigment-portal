@@ -14,6 +14,7 @@ function LibraryManagerLogin() {
         aLinkCSS="text-[#FDE68A] hover:text-[#FFE26DFF] hover:text-shadow-[0_0_10px_rgba(250, 210, 50,0.5)]"
         API="library-managers"
         forgetPasswordLink="/library-manager-forget-password"
+        pageAbout="Library Manager"
       />
     </>
   );

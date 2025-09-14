@@ -11,6 +11,7 @@ function LoginPage({
   forgetPasswordLink,
   API,
   h1CSS,
+  pageAbout,
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -18,8 +19,8 @@ function LoginPage({
   const [loginError, setLoginError] = useState("");
 
   useEffect(() => {
-    document.title = "Login Page";
-  }, []);
+    document.title = `${pageAbout} Login Page`;
+  }, [pageAbout]);
 
   const handleSubmit = (email, password) => {
     fetch(`http://localhost:3000/${API}/login`, {
