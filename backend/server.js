@@ -12,6 +12,8 @@ app.use(express.json());
 
 // Import and use student routes
 app.use("/students", require("./Routers/studentRoute"));
+// Import and use faculty routes
+app.use("/faculties", require("./Routers/facultiesRoute"));
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
