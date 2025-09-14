@@ -1,18 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const libraryManagerController = require("../Controllers/library_managerController");
+const adminController = require("../Controllers/adminController");
 
-// Routes for library manager operations
-router.post("/", libraryManagerController.createLibraryManager);
-router.get("/", libraryManagerController.getAllLibraryManagers);
-router.get("/:id", libraryManagerController.getLibraryManagerById);
-router.get("/email/:email", libraryManagerController.getLibraryManagerByEmail);
-router.put("/:id", libraryManagerController.updateLibraryManagerById);
-router.delete("/:id", libraryManagerController.deleteLibraryManagerById);
-router.delete(
-  "/email/:email",
-  libraryManagerController.deleteLibraryManagerByEmail
-);
-router.post("/login", libraryManagerController.checkLoginCredentials);
+// Routes for admin operations
+router.post("/", adminController.createAdmin);
+router.get("/", adminController.getAllAdmins);
+router.get("/:id", adminController.getAdminById);
+router.put("/:id", adminController.updateAdminById);
+router.delete("/:id", adminController.deleteAdminById);
+router.post("/login", adminController.adminLogin);
 
 module.exports = router;
