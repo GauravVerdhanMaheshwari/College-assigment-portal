@@ -11,5 +11,6 @@ router.put("/:id", facultyController.updateFacultyById);
 router.delete("/:id", facultyController.deleteFacultyById);
 router.put("/email/:email", facultyController.updateFacultyByEmail);
 router.delete("/email/:email", facultyController.deleteFacultyByEmail);
+router.post("/login", facultyController.loginFaculty);
 
 module.exports = router;
