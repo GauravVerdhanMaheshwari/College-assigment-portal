@@ -25,6 +25,8 @@ app.use("/faculties", require("./Routers/facultiesRoute"));
 app.use("/user-managers", require("./Routers/user_managerRoute"));
 // Import and use library manager routes
 app.use("/library-managers", require("./Routers/library_managerRoute"));
+// Import and use admin routes
+app.use("/admins", require("./Routers/adminRoute"));
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
