@@ -15,7 +15,7 @@ function LoginPage({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loginError, setLoginError] = useState(""); // 👈 for showing wrong credentials
+  const [loginError, setLoginError] = useState("");
 
   useEffect(() => {
     document.title = "Login Page";
@@ -27,7 +27,7 @@ function LoginPage({
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name, email, password }), // 👈 also send name
+      body: JSON.stringify({ email, password }),
     })
       .then(async (response) => {
         if (!response.ok) {
@@ -38,7 +38,10 @@ function LoginPage({
       })
       .then((data) => {
         console.log("Login successful:", data);
-        setLoginError(""); // clear error
+        setLoginError("");
+        setName("");
+        setEmail("");
+        setPassword("");
         alert("Login successful");
         // redirect or store token here
       })
