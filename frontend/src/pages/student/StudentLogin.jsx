@@ -10,7 +10,7 @@ function StudentLogin() {
       buttonCSS="bg-[#118AB2] hover:bg-[#0f799c] hover:shadow-[4px_4px_16px_1px_rgba(15,121,156,0.4)]"
       imageSrc="student.png"
       imageAlt="Student login image"
-      API="student"
+      API="students"
       forgetPasswordLink="/student-forget-password"
     />
   );
