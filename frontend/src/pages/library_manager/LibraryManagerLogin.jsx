@@ -12,7 +12,7 @@ function LibraryManagerLogin() {
         h1CSS="text-[#1E3A8A] text-shadow-[0_0_10px_rgba(30,58,138,0.5)]"
         inputCSS="active:border-[#6EE7B7] focus:border-[#5CC198FF]"
         aLinkCSS="text-[#FDE68A] hover:text-[#FFE26DFF] hover:text-shadow-[0_0_10px_rgba(250, 210, 50,0.5)]"
-        API="library_manager"
+        API="library-managers"
         forgetPasswordLink="/library-manager-forget-password"
       />
     </>
