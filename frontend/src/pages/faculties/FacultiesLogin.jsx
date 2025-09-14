@@ -13,7 +13,7 @@ function FacultiesLogin() {
         imageSrc="faculty.png"
         imageAlt="Faculty login image"
         forgetPasswordLink="/faculty-forget-password"
-        API={"faculty"}
+        API={"faculties"}
       />
     </>
   );
