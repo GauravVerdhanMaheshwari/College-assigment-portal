@@ -5,11 +5,7 @@ const mongoose = require("mongoose");
 
 // Connect to MongoDB
 mongoose.connect(
-  "mongodb://localhost:27017/CollegeProjectPaperManagementSystem",
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  }
+  "mongodb://localhost:27017/CollegeProjectPaperManagementSystem"
 );
 
 app.use(express.json());
