@@ -12,7 +12,7 @@ function AdminLogin() {
         h1CSS="text-[#4D7BFAFF] text-shadow-[0_0_10px_rgba(30,58,138,0.5)]"
         inputCSS="active:border-[#3B96FFFF] focus:border-[#55A3FCFF]"
         aLinkCSS="text-[#3B96FFFF] hover:text-[#55A3FCFF] hover:text-shadow-[0_0_10px_rgba(59,150,255,0.5)]"
-        API="admin"
+        API="admins"
         forgetPasswordLink="/admin-forget-password"
       />
     </>
