@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 function LoginPage({
@@ -16,12 +16,37 @@ function LoginPage({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (name, email, password) => {
-    // Handle login logic here
-    console.log("Name:", name);
-    console.log("Email:", email);
-    console.log("Password:", password);
-    console.log("API Endpoint:", API);
+  useEffect(() => {
+    document.title = "Login Page";
+  }, []);
+
+  const handleSubmit = (email, password) => {
+    // // Reset form fields
+    // setName("");
+    // setEmail("");
+    // setPassword("");
+
+    fetch(`http://localhost:3000/${API}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Login failed");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Login successful:", data);
+        alert("Login successful");
+        // Handle successful login (e.g., redirect to dashboard)
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
   };
 
   return (
@@ -55,6 +80,10 @@ function LoginPage({
           <button
             type="submit"
             className={`w-30 text-lg mb-2 mx-auto text-white py-2 px-3 rounded-2xl hover:rounded-3xl transition-all duration-300 cursor-pointer ease-in-out ${buttonCSS}`}
+            onClick={(e) => {
+              e.preventDefault();
+              handleSubmit(email, password);
+            }}
           >
             ENTER
           </button>
