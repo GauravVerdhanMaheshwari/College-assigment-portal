@@ -15,37 +15,36 @@ function LoginPage({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState(""); // 👈 for showing wrong credentials
 
   useEffect(() => {
     document.title = "Login Page";
   }, []);
 
   const handleSubmit = (email, password) => {
-    // // Reset form fields
-    // setName("");
-    // setEmail("");
-    // setPassword("");
-
     fetch(`http://localhost:3000/${API}/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ name, email, password }), // 👈 also send name
     })
-      .then((response) => {
+      .then(async (response) => {
         if (!response.ok) {
-          throw new Error("Login failed");
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || "Invalid credentials");
         }
         return response.json();
       })
       .then((data) => {
         console.log("Login successful:", data);
+        setLoginError(""); // clear error
         alert("Login successful");
-        // Handle successful login (e.g., redirect to dashboard)
+        // redirect or store token here
       })
       .catch((error) => {
         console.error("Error:", error);
+        setLoginError(error.message || "Something went wrong!");
       });
   };
 
@@ -54,26 +53,26 @@ function LoginPage({
       <div
         className={`w-[44vw] h-[100vh] flex absolute left-0 items-center justify-center bg-gradient-to-b ${loginSectionCSS} rounded-r-[40px] shadow-[10px_10px_20px_1px_rgba(0,_0,_0,_0.1)]`}
       >
-        <form className="flex flex-col" onSubmit={handleSubmit}>
+        <form className="flex flex-col">
           <h1 className={`text-4xl text-center ${h1CSS} mb-6`}>LOGIN</h1>
           <input
             type="text"
             placeholder="Enter your name"
-            className={`mb-6 py-3 px-2 w-80 rounded-xl border border-gray-300 bg-[#ffffffa1] shadow-[7px_7px_10px_1px_rgba(0,_0,_0,_0.1)] focus:outline-none focus:shadow-[7px_7px_8px_1px_rgba(0,_0,_0,_0.3)] transition-all duration-300 ease-in-out ${inputCSS}`}
+            className={`mb-6 py-3 px-2 w-80 rounded-xl border border-gray-300 bg-[#ffffffa1] shadow-md focus:outline-none transition-all ${inputCSS}`}
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
           <input
             type="email"
             placeholder="Enter your email"
-            className={`mb-6 py-3 px-2 w-80 rounded-xl border border-gray-300 bg-[#ffffffa1] shadow-[7px_7px_10px_1px_rgba(0,_0,_0,_0.1)] focus:outline-none focus:shadow-[7px_7px_8px_1px_rgba(_0,_0,_0,_0.3)] transition-all duration-300 ease-in-out ${inputCSS}`}
+            className={`mb-6 py-3 px-2 w-80 rounded-xl border border-gray-300 bg-[#ffffffa1] shadow-md focus:outline-none transition-all ${inputCSS}`}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <input
             type="password"
             placeholder="Enter your password"
-            className={`mb-6 py-3 px-2 w-80 rounded-xl border border-gray-300 bg-[#ffffffa1] shadow-[7px_7px_10px_1px_rgba(0,_0,_0,_0.1)] focus:outline-none focus:shadow-[7px_7px_8px_1px_rgba(0,_0,_0,_0.3)] transition-all duration-300 ease-in-out ${inputCSS}`}
+            className={`mb-6 py-3 px-2 w-80 rounded-xl border border-gray-300 bg-[#ffffffa1] shadow-md focus:outline-none transition-all ${inputCSS}`}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -87,9 +86,15 @@ function LoginPage({
           >
             ENTER
           </button>
+
+          {/* 👇 Show error if wrong credentials */}
+          {loginError && (
+            <p className="text-red-500 text-center mt-2">{loginError}</p>
+          )}
+
           <Link
             to={forgetPasswordLink}
-            className={`text-center ${aLinkCSS} mt-3 hover:underline transition-all duration-300 ease-in-out`}
+            className={`text-center ${aLinkCSS} mt-3 hover:underline transition-all`}
           >
             FORGET YOUR PASSWORD?
           </Link>
