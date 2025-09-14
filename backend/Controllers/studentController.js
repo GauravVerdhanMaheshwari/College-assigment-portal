@@ -162,3 +162,18 @@ exports.deleteStudentByEnrollmentNumber = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Check login credentials
+exports.checkLogin = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const student = await Student.findOne({ email, password });
+    if (!student) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+    res.status(200).json({ message: "Login successful", student });
+  } catch (error) {
+    console.log(res.status);
+    res.status(500).json({ message: error.message });
+  }
+};
