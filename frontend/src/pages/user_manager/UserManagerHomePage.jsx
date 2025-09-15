@@ -1,5 +1,5 @@
 import React from "react";
-import { Header, Hero } from "../../components/index";
+import { Header, Hero, List } from "../../components/index";
 import { useNavigate } from "react-router-dom";
 
 function UserManagerHomePage() {
@@ -13,7 +13,7 @@ function UserManagerHomePage() {
   }
 
   return (
-    <div className="w-[100vw] h-[100vh] bg-gradient-to-b from-[#C4B5FD] to-[#8B5CF6]">
+    <div className="w-full h-full bg-gradient-to-b from-[#C4B5FD] to-[#8B5CF6]">
       <div className="flex flex-col h-full">
         <div>
           <Header
@@ -26,6 +26,9 @@ function UserManagerHomePage() {
             heroImg="user_manager_hero.jpg"
             heroBgColor="to-[#A37BFFFF] from-[#C4B5FD]"
           />
+        </div>
+        <div className="flex flex-col p-0 mt-5">
+          <List />
         </div>
       </div>
     </div>
