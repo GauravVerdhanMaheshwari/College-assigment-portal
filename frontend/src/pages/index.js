@@ -9,6 +9,8 @@ import LibraryManagerForgetPassword from "./library_manager/LibraryManagerForget
 import AdminForgetPassword from "./admin/AdminForgetPassword";
 import AdminLogin from "./admin/AdminLogin";
 
+import StudentHomePage from "./student/StudentHomePage";
+
 export {
   StudentLogin,
   StudentForgetPassword,
@@ -20,4 +22,5 @@ export {
   LibraryManagerForgetPassword,
   AdminForgetPassword,
   AdminLogin,
+  StudentHomePage,
 };
