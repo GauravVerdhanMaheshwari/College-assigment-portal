@@ -10,6 +10,7 @@ import {
   AdminLogin,
   AdminForgetPassword,
   StudentHomePage,
+  UserManagerHomePage,
 } from "./pages/index.js";
 import { createRoot } from "react-dom/client";
 import {
@@ -48,6 +49,7 @@ const router = createBrowserRouter(
       <Route path="admin-forget-password" element={<AdminForgetPassword />} />
       <Route path="admin-login" element={<AdminLogin />} />
       <Route path="student" element={<StudentHomePage />} />
+      <Route path="user-manager-home" element={<UserManagerHomePage />} />
     </Route>
   )
 );
