@@ -3,10 +3,10 @@ import React from "react";
 function Header({ headerStyle, textColor, searchPlaceholder = "Search..." }) {
   return (
     <div
-      className={`bg-gradient-to-t ${headerStyle} ${textColor} flex flex-row items-center p-4 shadow-[0px_4px_16px_1px_rgba(0,_0,_0,_0.1)] rounded-b-4xl`}
+      className={`bg-gradient-to-t ${headerStyle} ${textColor} flex flex-row items-center p-4 shadow-[2px_5px_10px_1px_rgba(0,_0,_0,_0.4)] rounded-b-4xl mx-4`}
     >
       <div className="flex flex-row ml-2">
-        <div className="w-12 h-12 my-1 ml-3 mr-5 ">
+        <div className="w-12 h-12 my-1 ml-3 mr-7">
           <div className=" bg-[#464646] rounded-2xl py-1 px-5 m-2"></div>
           <div className="bg-[#464646] rounded-2xl py-1 px-3 m-2"></div>
           <div className="bg-[#464646] rounded-2xl py-1 px-5 m-2"></div>
@@ -19,7 +19,7 @@ function Header({ headerStyle, textColor, searchPlaceholder = "Search..." }) {
           />
         </div>
       </div>
-      <div className="flex-grow flex flex-row justify-end items-center gap-6 mr-4">
+      <div className="flex-grow flex flex-row justify-end items-center gap-6 mr-7">
         <div>
           <h1 className="text-2xl font-semibold">Notification</h1>
         </div>
