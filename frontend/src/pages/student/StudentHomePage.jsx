@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Header } from "./index.js";
+import { Header } from "../../components/index.js";
 
 function StudentHomePage() {
   const [user, setUser] = useState(null);
@@ -21,7 +21,10 @@ function StudentHomePage() {
 
   return (
     <div className="bg-gradient-to-b from-[#FFF6E0] to-[#FFE39E] w-[100vw] h-[100vh]">
-      <Header />
+      <Header
+        textColor="text-[#073B4C]"
+        headerStyle="to-[#FFE9B5] from-[#FFD166]"
+      />
       <div className="p-10">
         <h1 className="text-4xl font-bold text-[#073B4C] mb-6">
           Welcome, {user ? user.name : "Student"}!
