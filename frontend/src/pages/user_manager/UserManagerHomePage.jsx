@@ -23,6 +23,9 @@ function UserManagerHomePage() {
 
         <div className="mb-10">
           <Hero
+            user={user}
+            userRole={"User Manager"}
+            userObjectName="userManager"
             heroImg="user_manager_hero.jpg"
             heroBgColor="to-[#A37BFFFF] from-[#C4B5FD]"
           />
