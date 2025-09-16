@@ -1,16 +1,19 @@
+import React from "react";
+
 function Hero({ user, userRole, userObjectName, heroBgColor, heroImg }) {
   if (!user) return null; // safeguard
 
   const date = new Date();
   const hours = date.getHours();
 
-  let greeting =
-    hours < 12
-      ? "Good Morning"
-      : hours < 18
-      ? "Good Afternoon"
-      : "Good Evening";
-  document.title = `${userRole} Home Page`;
+  let greeting;
+  if (hours < 12) {
+    greeting = "Good Morning";
+  } else if (hours < 18) {
+    greeting = "Good Afternoon";
+  } else {
+    greeting = "Good Evening";
+  }
 
   const time = date.toLocaleTimeString([], {
     hour: "2-digit",
@@ -24,7 +27,10 @@ function Hero({ user, userRole, userObjectName, heroBgColor, heroImg }) {
     >
       <div className="flex flex-col flex-1 items-start ml-10">
         <p className="text-4xl text-white mb-3 font-bold">
-          WELCOME BACK {user[userObjectName].name}!
+          WELCOME BACK {user.name} ({userRole})!
+        </p>
+        <p className="text-xl text-gray-200 italic mb-2">
+          Logged in as: <span className="font-semibold">{userObjectName}</span>
         </p>
         <p className="text-3xl text-white">
           {greeting}, it's {time} on {currentDate}.
