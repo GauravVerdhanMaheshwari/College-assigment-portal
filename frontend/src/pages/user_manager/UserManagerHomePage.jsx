@@ -42,6 +42,7 @@ function UserManagerHomePage() {
     userDetails.course = userDetails.course.toUpperCase();
     userDetails.division = userDetails.division.toUpperCase();
 
+    // keep as before (no change needed for immediate UI update)
     fetch(`http://localhost:3000/${userAPI}/`, {
       method: "POST",
       headers: {
@@ -53,7 +54,9 @@ function UserManagerHomePage() {
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
-        return response.json();
+        const contentType = response.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) return null;
+        return response.json().catch(() => null);
       })
       .then((data) => {
         console.log("Success:", data);
@@ -63,6 +66,57 @@ function UserManagerHomePage() {
         console.error("Error:", error);
         alert(`Failed to add ${newUser}. Please try again.`);
       });
+  };
+
+  const handleEdit = async (user, type) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/${type}/${user._id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(user),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update user");
+      }
+
+      const data = await response.json();
+      alert(`${user.name} updated successfully!`);
+      return data; // return updated user so List can update state
+    } catch (error) {
+      console.error("Error:", error);
+      alert(`Failed to update ${user.name}. Please try again.`);
+      throw error;
+    }
+  };
+
+  const handleDelete = async (user, type) => {
+    const ok = window.confirm(`Are you sure you want to delete ${user.name}?`);
+    if (!ok) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/${type}/${user._id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete user");
+      }
+
+      await response.json();
+      alert(`${user.name} deleted successfully!`);
+      return true; // return success so List can update state
+    } catch (error) {
+      console.error("Error:", error);
+      alert(`Failed to delete ${user.name}. Please try again.`);
+      throw error;
+    }
   };
 
   if (!user) {
@@ -101,6 +155,8 @@ function UserManagerHomePage() {
             ["name", "email", "subject", "course", "year", "division"],
           ]}
           entityEndpoints={["students", "faculties"]}
+          handleDelete={handleDelete}
+          handleEdit={handleEdit}
         />
 
         <div>
