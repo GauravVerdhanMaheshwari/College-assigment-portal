@@ -22,17 +22,19 @@ function List({ entityNames, entityFields, entityKeys, entityEndpoints }) {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-center">User List</h2>
+      <h2 className="text-2xl font-bold text-center text-white text-shadow-[0px_0px_10px_rgba(255,255,255,0.8)]">
+        User List
+      </h2>
 
       {/* Switch buttons */}
       <div className="flex justify-center my-5 gap-6">
         {entityNames.map((name, index) => (
           <button
             key={name}
-            className={`px-6 py-2 rounded-full font-semibold text-white transition-all duration-300 ${
+            className={`px-6 py-2 rounded-full font-semibold text-white transition-all shadow-xl hover:shadow-lg duration-300 ${
               activeEntity === entityEndpoints[index]
-                ? "bg-[#38BDF8] hover:bg-[#0A9FE0FF]"
-                : "bg-gray-400 hover:bg-gray-500"
+                ? "bg-[#38BDF8] hover:bg-[#0A9FE0FF] "
+                : "bg-gray-400 hover:bg-gray-500 "
             }`}
             onClick={() => setActiveEntity(entityEndpoints[index])}
           >
