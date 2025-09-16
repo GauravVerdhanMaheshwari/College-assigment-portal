@@ -1,10 +1,69 @@
 import React from "react";
-import { Header, Hero, List } from "../../components/index";
+import { Header, Hero, List, AddUsers } from "../../components/index";
 import { useNavigate } from "react-router-dom";
 
 function UserManagerHomePage() {
   const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem("user"));
+
+  const handleAddUser = (newUser, userAPI, userDetails) => {
+    if (!userDetails || Object.keys(userDetails).length === 0) {
+      alert("Please fill in the user details.");
+      return;
+    }
+    if (!userAPI) {
+      alert("Invalid user type.");
+      return;
+    }
+    if (userDetails.email && !/\S+@\S+\.\S+/.test(userDetails.email)) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+    if (userDetails.year) {
+      const year = parseInt(userDetails.year, 10);
+      if (isNaN(year) || year < 1 || year > 5) {
+        alert("Please enter a valid year (1-5).");
+        return;
+      }
+      userDetails.year = year;
+    }
+    if (userDetails.enrollmentNumber) {
+      const enrollmentNumber = parseInt(userDetails.enrollmentNumber, 10);
+      if (isNaN(enrollmentNumber) || enrollmentNumber <= 0) {
+        alert("Please enter a valid enrollment number.");
+        return;
+      }
+      userDetails.enrollmentNumber = enrollmentNumber;
+    }
+
+    userDetails.password =
+      userDetails.name + "@" + userDetails.enrollmentNumber + userDetails.year;
+
+    userDetails.course = userDetails.course.toUpperCase();
+    userDetails.division = userDetails.division.toUpperCase();
+
+    fetch(`http://localhost:3000/${userAPI}/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userDetails),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Success:", data);
+        alert(`${newUser} added successfully!`);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        alert(`Failed to add ${newUser}. Please try again.`);
+      });
+  };
 
   if (!user) {
     navigate("/user-manager-login");
@@ -43,6 +102,31 @@ function UserManagerHomePage() {
           ]}
           entityEndpoints={["students", "faculties"]}
         />
+
+        <div>
+          <AddUsers
+            userToAdd={["Students", "Faculties"]}
+            userDataBaseEntry={{
+              Students: [
+                { field: "enrollmentNumber", type: "number" },
+                { field: "name", type: "text" },
+                { field: "email", type: "email" },
+                { field: "course", type: "text" },
+                { field: "division", type: "text" },
+                { field: "year", type: "number" },
+              ],
+              Faculties: [
+                { field: "name", type: "text" },
+                { field: "email", type: "email" },
+                { field: "subject", type: "text" },
+                { field: "course", type: "text" },
+                { field: "year", type: "number" },
+                { field: "division", type: "text" },
+              ],
+            }}
+            handleAddUser={handleAddUser}
+          />
+        </div>
       </div>
     </div>
   );
