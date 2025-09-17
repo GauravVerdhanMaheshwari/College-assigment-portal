@@ -15,6 +15,7 @@ function FacultiesLogin() {
         forgetPasswordLink="/faculty-forget-password"
         API="faculties"
         pageAbout="Faculty"
+        redirectLink="/faculties-home"
       />
     </>
   );
