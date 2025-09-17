@@ -13,6 +13,10 @@ function Header({
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
+  const handleNavigate = (path) => {
+    navigate(path);
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -60,7 +64,7 @@ function Header({
           <img
             src="/user_profile.png"
             alt="Avatar"
-            onClick={() => navigate(profileNavigate)}
+            onClick={() => handleNavigate(profileNavigate)}
             className="w-12 h-12 rounded-full border-2 border-white shadow-md hover:shadow-lg transition-all duration-200 ease-in-out hover:scale-105 cursor-pointer"
           />
         </div>
