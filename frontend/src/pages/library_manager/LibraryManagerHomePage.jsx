@@ -53,7 +53,7 @@ function LibraryManagerHomePage() {
     setTimeout(() => {
       setPapers(dummyPapers);
     }, 500);
-  });
+  }, []);
 
   if (!user) {
     navigate("/library-manager-login");
