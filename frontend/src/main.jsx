@@ -13,6 +13,7 @@ import {
   UserManagerHomePage,
   UserManagerProfile,
   LibraryManagerHomePage,
+  LibraryManagerProfile,
 } from "./pages/index.js";
 import { createRoot } from "react-dom/client";
 import {
@@ -55,6 +56,10 @@ const router = createBrowserRouter(
       <Route path="library-manager-home" element={<LibraryManagerHomePage />} />
 
       <Route path="user-manager-profile" element={<UserManagerProfile />} />
+      <Route
+        path="library-manager-profile"
+        element={<LibraryManagerProfile />}
+      />
     </Route>
   )
 );
