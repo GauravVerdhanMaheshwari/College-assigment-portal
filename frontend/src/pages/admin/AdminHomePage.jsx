@@ -122,6 +122,7 @@ function AdminHomePage() {
             wantSearch={false}
             dummyReports={dummyReports}
             profileNavigate="/admin-profile"
+            loginPage="/admin-login"
           />
         </div>
 
