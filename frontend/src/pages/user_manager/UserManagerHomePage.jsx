@@ -7,6 +7,26 @@ function UserManagerHomePage() {
 
   const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem("user"));
+  const dummyReports = [
+    {
+      id: 1,
+      userName: "John Doe",
+      userEmail: "john@example.com",
+      message: "Reported inappropriate behavior",
+    },
+    {
+      id: 2,
+      userName: "Jane Smith",
+      userEmail: "jane@example.com",
+      message: "Reported missing submission",
+    },
+    {
+      id: 3,
+      userName: "Jane Smith",
+      userEmail: "jane@example.com",
+      message: "Reported missing submission",
+    },
+  ];
 
   const handleAddUser = (newUser, userAPI, userDetails) => {
     if (!userDetails || Object.keys(userDetails).length === 0) {
@@ -138,6 +158,7 @@ function UserManagerHomePage() {
               { name: "Add User", href: "#addUsers" },
             ]}
             wantSearch={false}
+            dummyReports={dummyReports}
             profileNavigate="/user-manager-profile"
           />
         </div>
