@@ -136,6 +136,16 @@ function Header({
           </ul>
         </div>
       )}
+      <div>
+        <button>
+          <a
+            href="/user-manager-login"
+            className="text-white font-semibold px-4 py-3 mr-2 rounded-full hover:bg-red-400 transition-all duration-300 bg-red-500"
+          >
+            Logout
+          </a>
+        </button>
+      </div>
     </div>
   );
 }
