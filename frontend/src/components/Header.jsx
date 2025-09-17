@@ -7,6 +7,7 @@ function Header({
   headerStyle,
   textColor,
   profileNavigate,
+  dummyReports,
   searchPlaceholder = "Search...",
   menuLinks = [],
 }) {
@@ -14,27 +15,6 @@ function Header({
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
-
-  const dummyReports = [
-    {
-      id: 1,
-      userName: "John Doe",
-      userEmail: "john@example.com",
-      message: "Reported inappropriate behavior",
-    },
-    {
-      id: 2,
-      userName: "Jane Smith",
-      userEmail: "jane@example.com",
-      message: "Reported missing submission",
-    },
-    {
-      id: 3,
-      userName: "Jane Smith",
-      userEmail: "jane@example.com",
-      message: "Reported missing submission",
-    },
-  ];
 
   const handleRemoveReport = (id) => {
     console.log("Removed report:", id);
