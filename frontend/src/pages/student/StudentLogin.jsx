@@ -12,7 +12,7 @@ function StudentLogin() {
       imageAlt="Student login image"
       API="students"
       forgetPasswordLink="/student-forget-password"
-      redirectLink="/student"
+      redirectLink="/student-home"
       pageAbout="Student"
     />
   );
