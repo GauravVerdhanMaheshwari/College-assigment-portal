@@ -12,6 +12,7 @@ import {
   StudentHomePage,
   UserManagerHomePage,
   UserManagerProfile,
+  LibraryManagerHomePage,
 } from "./pages/index.js";
 import { createRoot } from "react-dom/client";
 import {
@@ -51,6 +52,7 @@ const router = createBrowserRouter(
       <Route path="admin-login" element={<AdminLogin />} />
       <Route path="student" element={<StudentHomePage />} />
       <Route path="user-manager-home" element={<UserManagerHomePage />} />
+      <Route path="library-manager-home" element={<LibraryManagerHomePage />} />
 
       <Route path="user-manager-profile" element={<UserManagerProfile />} />
     </Route>
