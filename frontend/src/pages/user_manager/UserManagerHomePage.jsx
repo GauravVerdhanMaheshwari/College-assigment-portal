@@ -42,7 +42,6 @@ function UserManagerHomePage() {
     userDetails.course = userDetails.course.toUpperCase();
     userDetails.division = userDetails.division.toUpperCase();
 
-    // keep as before (no change needed for immediate UI update)
     fetch(`http://localhost:3000/${userAPI}/`, {
       method: "POST",
       headers: {
@@ -131,6 +130,13 @@ function UserManagerHomePage() {
           <Header
             textColor="text-[#0EA5E9]"
             headerStyle="to-[#C4B5FD] from-[#A37BFFFF]"
+            menuLinks={[
+              { name: "Home", href: "/user-manager-home" },
+              { name: "User List", href: "#userList" },
+              { name: "Add User", href: "#addUsers" },
+            ]}
+            wantSearch={false}
+            profileNavigate="/user-manager-profile"
           />
         </div>
 
@@ -144,22 +150,31 @@ function UserManagerHomePage() {
           />
         </div>
 
-        <List
-          entityNames={["Students", "Faculties"]}
-          entityFields={[
-            ["Enrollment No", "Name", "Email", "Course", "Division", "Year"],
-            ["Name", "Email", "Subject", "Course", "Year", "Division"],
-          ]}
-          entityKeys={[
-            ["enrollmentNumber", "name", "email", "course", "division", "year"],
-            ["name", "email", "subject", "course", "year", "division"],
-          ]}
-          entityEndpoints={["students", "faculties"]}
-          handleDelete={handleDelete}
-          handleEdit={handleEdit}
-        />
+        <div id="userList">
+          <List
+            entityNames={["Students", "Faculties"]}
+            entityFields={[
+              ["Enrollment No", "Name", "Email", "Course", "Division", "Year"],
+              ["Name", "Email", "Subject", "Course", "Year", "Division"],
+            ]}
+            entityKeys={[
+              [
+                "enrollmentNumber",
+                "name",
+                "email",
+                "course",
+                "division",
+                "year",
+              ],
+              ["name", "email", "subject", "course", "year", "division"],
+            ]}
+            entityEndpoints={["students", "faculties"]}
+            handleDelete={handleDelete}
+            handleEdit={handleEdit}
+          />
+        </div>
 
-        <div>
+        <div id="addUsers">
           <AddUsers
             userToAdd={["Students", "Faculties"]}
             userDataBaseEntry={{
