@@ -104,7 +104,7 @@ exports.checkLoginCredentials = async (req, res) => {
     if (!libraryManager) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
-    res.status(200).json(libraryManager);
+    res.status(200).json({ message: "Login successful", libraryManager });
   } catch (error) {
     res.status(500).json({ error: "Failed to process login" });
   }
