@@ -83,6 +83,7 @@ function AddUsers({ userToAdd, userDataBaseEntry, handleAddUser }) {
           onClick={() => {
             handleAddUser(user, userAPI, userDetails);
             setUserDetails({});
+            location.reload();
           }}
         >
           Add {user}
