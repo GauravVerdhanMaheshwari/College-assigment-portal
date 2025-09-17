@@ -15,6 +15,7 @@ import {
   UserManagerProfile,
   LibraryManagerHomePage,
   LibraryManagerProfile,
+  AdminProfile,
 } from "./pages/index.js";
 import { createRoot } from "react-dom/client";
 import {
@@ -63,6 +64,7 @@ const router = createBrowserRouter(
         path="library-manager-profile"
         element={<LibraryManagerProfile />}
       />
+      <Route path="admin-profile" element={<AdminProfile />} />
     </Route>
   )
 );
