@@ -7,6 +7,7 @@ import Filter from "./Filter.jsx";
 import Search from "./Search.jsx";
 import AddUsers from "./AddUsers.jsx";
 import UserProfile from "./UserProfile.jsx";
+import NotificationPanel from "./NotificationPanel.jsx";
 
 export {
   LoginPage,
@@ -18,4 +19,5 @@ export {
   Search,
   AddUsers,
   UserProfile,
+  NotificationPanel,
 };
