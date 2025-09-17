@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import NotificationPanel from "./NotificationPanel";
 
 function Header({
   wantSearch,
@@ -10,23 +11,51 @@ function Header({
   menuLinks = [],
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
-  const handleNavigate = (path) => {
-    navigate(path);
+  const dummyReports = [
+    {
+      id: 1,
+      userName: "John Doe",
+      userEmail: "john@example.com",
+      message: "Reported inappropriate behavior",
+    },
+    {
+      id: 2,
+      userName: "Jane Smith",
+      userEmail: "jane@example.com",
+      message: "Reported missing submission",
+    },
+    {
+      id: 3,
+      userName: "Jane Smith",
+      userEmail: "jane@example.com",
+      message: "Reported missing submission",
+    },
+  ];
+
+  const handleRemoveReport = (id) => {
+    console.log("Removed report:", id);
   };
+
+  const handleSendEmail = (report) => {
+    console.log("Send email to:", report.userEmail);
+    alert(`Send email to ${report.userName}`);
+  };
+
+  const handleNavigate = (path) => navigate(path);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setIsMenuOpen(false);
+        setIsNotifOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
@@ -34,6 +63,7 @@ function Header({
       className={`bg-gradient-to-t ${headerStyle} ${textColor} flex flex-row items-center p-4 shadow-[2px_5px_10px_1px_rgba(0,_0,_0,_0.4)] rounded-b-4xl mx-4 relative`}
       ref={menuRef}
     >
+      {/* Left Side: Hamburger + Search */}
       <div className="flex flex-row ml-2 items-center">
         <div
           className="w-12 h-12 ml-3 mb-3 mr-7 cursor-pointer flex flex-col justify-center"
@@ -45,21 +75,40 @@ function Header({
         </div>
 
         {wantSearch && (
-          <div className="text-2xl font-semibold">
-            <input
-              type="text"
-              className="border border-gray-300 bg-[#ffffff97] rounded-xl p-2 my-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-xl shadow-md focus:shadow-lg shadow-gray-600 focus:text-black"
-              placeholder={searchPlaceholder}
-            />
-          </div>
+          <input
+            type="text"
+            placeholder={searchPlaceholder}
+            className="border border-gray-300 bg-[#ffffff97] rounded-xl p-2 my-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-xl shadow-md focus:shadow-lg shadow-gray-600 focus:text-black"
+          />
         )}
       </div>
 
-      {/* Right Side */}
-      <div className="flex-grow flex flex-row justify-end items-center gap-6 mr-7">
-        <div>
-          <h1 className="text-2xl font-semibold">Notification</h1>
+      {/* Right Side: Notifications + Profile */}
+      <div className="flex-grow flex flex-row justify-end items-center gap-6 mr-7 relative">
+        <div className="relative">
+          <button
+            onClick={() => setIsNotifOpen((prev) => !prev)}
+            className="text-2xl font-semibold px-3 py-2 rounded-full hover:bg-gray-200 transition relative"
+          >
+            🔔
+            {dummyReports.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                {dummyReports.length}
+              </span>
+            )}
+          </button>
+          {isNotifOpen && (
+            <div className="absolute right-0 top-12 z-50">
+              <NotificationPanel
+                reports={dummyReports}
+                onRemove={handleRemoveReport}
+                onSendEmail={handleSendEmail}
+                theme={{ bgColor: "#f9f9f9", textColor: "#333" }}
+              />
+            </div>
+          )}
         </div>
+
         <div>
           <img
             src="/user_profile.png"
@@ -70,6 +119,7 @@ function Header({
         </div>
       </div>
 
+      {/* Dropdown Menu */}
       {isMenuOpen && (
         <div className="absolute top-20 left-6 bg-white shadow-xl rounded-xl p-4 w-48 z-50">
           <ul className="flex flex-col gap-3">
