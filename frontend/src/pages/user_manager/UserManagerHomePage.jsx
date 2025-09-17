@@ -58,8 +58,7 @@ function UserManagerHomePage() {
       userDetails.enrollmentNumber = enrollmentNumber;
     }
 
-    userDetails.password =
-      userDetails.name + "@" + userDetails.enrollmentNumber + userDetails.year;
+    userDetails.password = userDetails.name + "@" + userDetails.year;
 
     userDetails.course = userDetails.course.toUpperCase();
     userDetails.division = userDetails.division.toUpperCase();
