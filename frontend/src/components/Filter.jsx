@@ -7,9 +7,6 @@ function Filter({ data, entityFields, entityKeys, onFilter }) {
   const [sortOrder, setSortOrder] = useState("asc");
   const [groupField, setGroupField] = useState(""); // no grouping initially
 
-  console.log("Filter data:", data);
-  
-
   useEffect(() => {
     let filteredData = [...data];
 
