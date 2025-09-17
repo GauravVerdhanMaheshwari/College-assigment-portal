@@ -75,6 +75,7 @@ function LibraryManagerHomePage() {
             wantSearch={false}
             dummyReports={dummyReports}
             profileNavigate="/library-manager-profile"
+            loginPage="/library-manager-login"
           />
         </div>
 
