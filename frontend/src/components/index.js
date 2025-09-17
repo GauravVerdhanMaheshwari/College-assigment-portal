@@ -8,6 +8,7 @@ import Search from "./Search.jsx";
 import AddUsers from "./AddUsers.jsx";
 import UserProfile from "./UserProfile.jsx";
 import NotificationPanel from "./NotificationPanel.jsx";
+import PapersList from "./PapersList.jsx";
 
 export {
   LoginPage,
@@ -20,4 +21,5 @@ export {
   AddUsers,
   UserProfile,
   NotificationPanel,
+  PapersList,
 };
