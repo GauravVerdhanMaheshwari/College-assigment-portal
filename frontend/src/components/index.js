@@ -6,6 +6,7 @@ import List from "./List.jsx";
 import Filter from "./Filter.jsx";
 import Search from "./Search.jsx";
 import AddUsers from "./AddUsers.jsx";
+import UserProfile from "./UserProfile.jsx";
 
 export {
   LoginPage,
@@ -16,4 +17,5 @@ export {
   Filter,
   Search,
   AddUsers,
+  UserProfile,
 };
