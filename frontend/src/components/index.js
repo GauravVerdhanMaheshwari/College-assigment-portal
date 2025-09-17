@@ -9,6 +9,9 @@ import AddUsers from "./AddUsers.jsx";
 import UserProfile from "./UserProfile.jsx";
 import NotificationPanel from "./NotificationPanel.jsx";
 import PapersList from "./PapersList.jsx";
+import AssignmentForm from "./AssignmentForm.jsx";
+import AssignmentsList from "./AssignmentsList.jsx";
+import FacultyPapers from "./FacultyPapers.jsx";
 
 export {
   LoginPage,
@@ -22,4 +25,7 @@ export {
   UserProfile,
   NotificationPanel,
   PapersList,
+  AssignmentForm,
+  AssignmentsList,
+  FacultyPapers,
 };
