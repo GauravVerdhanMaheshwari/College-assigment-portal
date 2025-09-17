@@ -3,6 +3,8 @@ import { Header, Hero, List, AddUsers } from "../../components/index";
 import { useNavigate } from "react-router-dom";
 
 function UserManagerHomePage() {
+  document.title = "User Manager Home";
+
   const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem("user"));
 
