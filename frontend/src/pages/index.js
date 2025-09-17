@@ -11,6 +11,7 @@ import AdminLogin from "./admin/AdminLogin";
 
 import StudentHomePage from "./student/StudentHomePage";
 import UserManagerHomePage from "./user_manager/UserManagerHomePage";
+import LibraryManagerHomePage from "./library_manager/LibraryManagerHomePage";
 
 import UserManagerProfile from "./user_manager/UserManagerProfile";
 
@@ -26,6 +27,7 @@ export {
   AdminForgetPassword,
   AdminLogin,
   StudentHomePage,
+  LibraryManagerHomePage,
   UserManagerHomePage,
   UserManagerProfile,
 };
