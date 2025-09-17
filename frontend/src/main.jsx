@@ -10,6 +10,7 @@ import {
   AdminLogin,
   AdminForgetPassword,
   StudentHomePage,
+  AdminHomePage,
   UserManagerHomePage,
   UserManagerProfile,
   LibraryManagerHomePage,
@@ -51,7 +52,9 @@ const router = createBrowserRouter(
       />
       <Route path="admin-forget-password" element={<AdminForgetPassword />} />
       <Route path="admin-login" element={<AdminLogin />} />
-      <Route path="student" element={<StudentHomePage />} />
+
+      <Route path="student-home" element={<StudentHomePage />} />
+      <Route path="admin-home" element={<AdminHomePage />} />
       <Route path="user-manager-home" element={<UserManagerHomePage />} />
       <Route path="library-manager-home" element={<LibraryManagerHomePage />} />
 
