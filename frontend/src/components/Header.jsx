@@ -8,6 +8,7 @@ function Header({
   textColor,
   profileNavigate,
   dummyReports,
+  loginPage,
   searchPlaceholder = "Search...",
   menuLinks = [],
 }) {
@@ -119,7 +120,7 @@ function Header({
       <div>
         <button>
           <a
-            href="/user-manager-login"
+            href={loginPage}
             className="text-white font-semibold px-4 py-3 mr-2 rounded-full hover:bg-red-400 transition-all duration-300 bg-red-500"
           >
             Logout
