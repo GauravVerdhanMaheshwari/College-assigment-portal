@@ -15,6 +15,7 @@ function AdminLogin() {
         API="admins"
         forgetPasswordLink="/admin-forget-password"
         pageAbout="Admin"
+        redirectLink="/admin-home"
       />
     </>
   );
