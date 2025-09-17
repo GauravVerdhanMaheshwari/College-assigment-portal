@@ -160,6 +160,7 @@ function UserManagerHomePage() {
             wantSearch={false}
             dummyReports={dummyReports}
             profileNavigate="/user-manager-profile"
+            loginPage="/user-manager-login"
           />
         </div>
 
