@@ -15,6 +15,7 @@ function LibraryManagerLogin() {
         API="library-managers"
         forgetPasswordLink="/library-manager-forget-password"
         pageAbout="Library Manager"
+        redirectLink="/library-manager-home"
       />
     </>
   );
