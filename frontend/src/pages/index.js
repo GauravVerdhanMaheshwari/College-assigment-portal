@@ -16,6 +16,7 @@ import AdminHomePage from "./admin/AdminHomePage";
 
 import UserManagerProfile from "./user_manager/UserManagerProfile";
 import LibraryManagerProfile from "./library_manager/LibraryManagerProfile";
+import AdminProfile from "./admin/AdminProfile";
 
 export {
   StudentLogin,
@@ -34,4 +35,5 @@ export {
   AdminHomePage,
   UserManagerProfile,
   LibraryManagerProfile,
+  AdminProfile,
 };
