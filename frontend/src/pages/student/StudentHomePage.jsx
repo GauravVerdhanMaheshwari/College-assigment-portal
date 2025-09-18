@@ -11,7 +11,6 @@ function StudentHomePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
-  // searchTerm lifted to pass to lists
   const [searchTerm, setSearchTerm] = useState("");
 
   // Dummy faculty assignments (future)
@@ -48,11 +47,11 @@ function StudentHomePage() {
       requesterEmail: "bob@student.edu",
       paperId: "S1",
       message: "Please allow access to my React Basics submission",
-      status: "pending", // pending | approved | denied
+      status: "pending",
     },
   ]);
 
-  // Student's own submissions (local state)
+  // Student's own submissions
   const [submissions, setSubmissions] = useState([
     {
       id: "S1",
@@ -79,7 +78,6 @@ function StudentHomePage() {
     }
   }, [navigate]);
 
-  // Upload handler (UI-only)
   const handleUpload = (newSubmission) => {
     setSubmissions((prev) => [
       {
@@ -92,14 +90,12 @@ function StudentHomePage() {
     alert("Submission uploaded (UI only).");
   };
 
-  // Toggle public/private
   const togglePublic = (id) => {
     setSubmissions((prev) =>
       prev.map((s) => (s.id === id ? { ...s, public: !s.public } : s))
     );
   };
 
-  // Handle request approval/deny from notifications
   const handleRequestAction = (requestId, action) => {
     setRequests((prev) =>
       prev.map((r) => (r.id === requestId ? { ...r, status: action } : r))
@@ -128,25 +124,21 @@ function StudentHomePage() {
         onSearch={(val) => setSearchTerm(val)}
       />
 
-      {/* Notification panel (small placement) */}
       <div className="p-8">
         <Hero
           user={user}
-          userRole={"Student"}
+          userRole="Student"
           userObjectName="student"
           heroImg="student_hero.png"
           heroBgColor="to-[#FFCE5BFF] from-[#F8B009FF]"
         />
 
+        {/* Submissions */}
         <div id="studentAssignments" className="my-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-[#073B4C]">
               Your Submissions
             </h2>
-            <AssignmentUploadForm
-              onUpload={handleUpload}
-              buttonCSS="bg-[#78350F] hover:bg-[#78350F]/80 text-white shadow-lg"
-            />
           </div>
 
           <StudentAssignmentsList
@@ -158,15 +150,18 @@ function StudentHomePage() {
           />
         </div>
 
+        {/* Future assignments */}
         <div id="futureAssignments" className="my-6">
           <FutureAssignmentsList
             assignments={futureAssignments}
             searchTerm={searchTerm}
             textCSS="text-[#073B4C]"
             buttonCSS="bg-[#78350F] hover:bg-[#78350F]/80 text-white"
+            onUpload={handleUpload}
           />
         </div>
 
+        {/* Peer requests */}
         <div id="peerSubmissions" className="my-6">
           <h2 className="text-2xl font-bold text-[#073B4C] mb-4">
             Peer Access Requests
