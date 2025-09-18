@@ -1,5 +1,4 @@
-import StudentAssignmentsList from "./StudentAssignmentsList.jsx";
-import AssignmentUploadForm from "./AssignmentUploadForm.jsx";
-import FutureAssignmentsList from "./FutureAssignmentsList.jsx";
-
-export { StudentAssignmentsList, AssignmentUploadForm, FutureAssignmentsList };
+export { default as StudentAssignmentsList } from "./StudentAssignmentsList";
+export { default as FutureAssignmentsList } from "./FutureAssignmentsList";
+export { default as AssignmentUploadForm } from "./AssignmentUploadForm";
+export { default as StudentProfile } from "./StudentProfile";
