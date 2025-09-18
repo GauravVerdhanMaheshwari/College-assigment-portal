@@ -1,56 +1,81 @@
 import React from "react";
 
-function NotificationPanel({
+export default function NotificationPanel({
   reports = [],
   onRemove,
   onSendEmail,
+  onApprove,
+  onDeny,
   theme = {},
 }) {
   return (
-    <div
-      className={`w-96 max-h-96 overflow-y-auto p-4 rounded-2xl shadow-2xl`}
-      style={{
-        backgroundColor: theme.bgColor || "white",
-        color: theme.textColor || "#333",
-      }}
-    >
-      <h2 className="text-xl font-bold mb-4">Notifications</h2>
-      {reports.length === 0 ? (
-        <p className="text-gray-500">No reports available</p>
-      ) : (
-        <ul className="flex flex-col gap-4">
-          {reports.map((report) => (
-            <li
-              key={report.id}
-              className="bg-gray-100 p-3 rounded-lg flex flex-col gap-2 shadow hover:shadow-lg transition"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-semibold">{report.userName}</p>
-                  <p className="text-sm text-gray-600">{report.userEmail}</p>
-                  <p className="text-sm mt-1">{report.message}</p>
+    <div className="w-80 bg-white rounded-lg shadow-xl p-4">
+      <h3 className="font-semibold mb-3">Notifications</h3>
+      {reports.length === 0 && (
+        <div className="text-gray-500">No notifications</div>
+      )}
+
+      <div className="space-y-3 max-h-64 overflow-y-auto">
+        {reports.map((r) => (
+          <div key={r.id} className="p-3 bg-gray-50 rounded">
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="font-medium">
+                  {r.requesterName || r.userName}
+                </div>
+                <div className="text-xs text-gray-600">{r.message}</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {r.requesterEmail || r.userEmail}
                 </div>
               </div>
-              <div className="flex gap-3 mt-2">
-                <button
-                  onClick={() => onRemove(report.id)}
-                  className="flex-1 py-2 px-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                >
-                  Remove Report
-                </button>
-                <button
-                  onClick={() => onSendEmail(report)}
-                  className="flex-1 py-2 px-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-                >
-                  Send Email
-                </button>
+
+              <div className="flex flex-col gap-2 ml-2">
+                {r.status === "pending" ? (
+                  <>
+                    <button
+                      onClick={() => onApprove && onApprove(r.id)}
+                      className="text-white bg-green-500 px-3 py-1 rounded text-sm"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => onDeny && onDeny(r.id)}
+                      className="text-white bg-red-500 px-3 py-1 rounded text-sm"
+                    >
+                      Deny
+                    </button>
+                  </>
+                ) : (
+                  <div
+                    className={`text-sm ${
+                      r.status === "approved"
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {r.status}
+                  </div>
+                )}
               </div>
-            </li>
-          ))}
-        </ul>
-      )}
+            </div>
+
+            <div className="mt-2 flex gap-2">
+              <button
+                onClick={() => onSendEmail && onSendEmail(r)}
+                className="text-sm px-3 py-1 border rounded"
+              >
+                Email
+              </button>
+              <button
+                onClick={() => onRemove && onRemove(r.id)}
+                className="text-sm px-3 py-1 border rounded"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
-
-export default NotificationPanel;
