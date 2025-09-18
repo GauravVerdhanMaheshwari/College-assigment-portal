@@ -88,7 +88,7 @@ function FacultiesHomePage() {
             user={user}
             userRole={"Faculty"}
             userObjectName="faculty"
-            heroImg="faculty_hero.png"
+            heroImg="faculty_hero.jpg"
             heroBgColor="from-[#C4B5FD] to-[#8B5CF6]"
           />
         </div>
