@@ -15,7 +15,7 @@ function AdminProfile() {
   // Theme/colors for child component
   const theme = {
     bgGradient: "from-[#A7F3D0] to-[#34D399]",
-    textColor: "#2C4793FF",
+    textColor: "#FFFFFFFF",
     buttonColor: "#3B96FFFF",
     buttonHoverColor: "#55A3FCFF",
     buttonShadow: "4px 4px 16px 1px rgba(7,59,76,0.4)", // hover shadow style
