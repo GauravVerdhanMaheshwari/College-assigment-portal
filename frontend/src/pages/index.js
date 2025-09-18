@@ -18,6 +18,7 @@ import FacultiesHomePage from "./faculties/FacultiesHomePage";
 import UserManagerProfile from "./user_manager/UserManagerProfile";
 import LibraryManagerProfile from "./library_manager/LibraryManagerProfile";
 import AdminProfile from "./admin/AdminProfile";
+import FacultiesProfile from "./faculties/FacultiesProfile";
 
 export {
   StudentLogin,
@@ -38,4 +39,5 @@ export {
   LibraryManagerProfile,
   AdminProfile,
   FacultiesHomePage,
+  FacultiesProfile,
 };
