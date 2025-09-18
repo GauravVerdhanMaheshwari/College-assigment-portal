@@ -18,6 +18,7 @@ import {
   AdminProfile,
   FacultiesHomePage,
   FacultiesProfile,
+  StudentProfile,
 } from "./pages/index.js";
 import { createRoot } from "react-dom/client";
 import {
@@ -69,6 +70,7 @@ const router = createBrowserRouter(
       />
       <Route path="admin-profile" element={<AdminProfile />} />
       <Route path="faculties-profile" element={<FacultiesProfile />} />
+      <Route path="student-profile" element={<StudentProfile />} />
     </Route>
   )
 );
