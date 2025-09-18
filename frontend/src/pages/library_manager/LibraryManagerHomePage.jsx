@@ -61,7 +61,7 @@ function LibraryManagerHomePage() {
   }
 
   return (
-    <div className="w-full h-full bg-gradient-to-b from-[#38BDF8] to-[#8B5CF6]">
+    <div className="w-full h-[110vh] bg-gradient-to-b from-[#38BDF8] to-[#8B5CF6]">
       <div className="flex flex-col h-full">
         {/* Header */}
         <div className="mb-6">
