@@ -15,7 +15,7 @@ function UserProfile({ userDetails, onSave, theme }) {
 
   return (
     <div
-      className="max-w-xl mx-auto p-8 rounded-2xl shadow-2xl transition-all duration-500 hover:shadow-3xl"
+      className="max-w-xl mx-auto p-8 rounded-2xl shadow-[0_4px_30px_-4px_rgba(0,0,0,0.3)] transition-all duration-500 hover:shadow-[0_8px_40px_-4px_rgba(0,0,0,0.4)]"
       style={{
         background: `linear-gradient(to bottom, ${
           theme.bgGradient.split(" ")[0]
