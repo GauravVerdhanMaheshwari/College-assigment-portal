@@ -110,7 +110,7 @@ function StudentHomePage() {
       <Header
         wantSearch={true}
         searchPlaceholder="Search assignments..."
-        textColor="text-[#073B4C]"
+        textColor="text-[#073B4C] text-shadow-[0px_0px_10px_rgba(7,59,76,0.9)]"
         headerStyle="to-[#FFE9B5] from-[#FFD166]"
         profileNavigate="/student-profile"
         dummyReports={requests}
