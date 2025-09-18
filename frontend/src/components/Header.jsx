@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import NotificationPanel from "./NotificationPanel";
 
 function Header({
@@ -7,30 +7,28 @@ function Header({
   headerStyle,
   textColor,
   profileNavigate,
-  dummyReports,
-  loginPage,
+  dummyReports = [],
+  loginPage = "/",
   searchPlaceholder = "Search...",
   menuLinks = [],
+  onSearch,
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
   const menuRef = useRef(null);
   const navigate = useNavigate();
-
-  const handleRemoveReport = (id) => {
-    console.log("Removed report:", id);
-  };
-
-  const handleSendEmail = (report) => {
-    console.log("Send email to:", report.userEmail);
-    alert(`Send email to ${report.userName}`);
-  };
-
-  const handleNavigate = (path) => navigate(path);
+  const location = useLocation();
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+    // close menus when route changes
+    setIsMenuOpen(false);
+    setIsNotifOpen(false);
+  }, [location]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
         setIsMenuOpen(false);
         setIsNotifOpen(false);
       }
@@ -39,16 +37,22 @@ function Header({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleNavigate = (path) => navigate(path);
+
+  const handleSearchChange = (e) => {
+    setSearchValue(e.target.value);
+    if (onSearch) onSearch(e.target.value);
+  };
+
   return (
     <div
-      className={`bg-gradient-to-t ${headerStyle} ${textColor} flex flex-row items-center p-4 shadow-[2px_5px_10px_1px_rgba(0,_0,_0,_0.4)] rounded-b-4xl mx-4 relative`}
+      className={`bg-gradient-to-t ${headerStyle} ${textColor} flex flex-row items-center p-4 shadow-[2px_5px_10px_1px_rgba(0,0,0,0.12)] rounded-b-4xl mx-4 relative`}
       ref={menuRef}
     >
-      {/* Left Side: Hamburger + Search */}
       <div className="flex flex-row ml-2 items-center">
         <div
           className="w-12 h-12 ml-3 mb-3 mr-7 cursor-pointer flex flex-col justify-center"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          onClick={() => setIsMenuOpen((s) => !s)}
         >
           <div className="bg-[#464646] rounded-2xl py-1 px-5 m-1"></div>
           <div className="bg-[#464646] rounded-2xl py-1 px-3 m-1"></div>
@@ -58,18 +62,20 @@ function Header({
         {wantSearch && (
           <input
             type="text"
+            value={searchValue}
+            onChange={handleSearchChange}
             placeholder={searchPlaceholder}
-            className="border border-gray-300 bg-[#ffffff97] rounded-xl p-2 my-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-xl shadow-md focus:shadow-lg shadow-gray-600 focus:text-black"
+            className="border border-gray-300 bg-[#ffffffd9] rounded-xl p-2 my-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#F0C36A] transition-all text-lg shadow-sm"
           />
         )}
       </div>
 
-      {/* Right Side: Notifications + Profile */}
       <div className="flex-grow flex flex-row justify-end items-center gap-6 mr-7 relative">
         <div className="relative">
           <button
-            onClick={() => setIsNotifOpen((prev) => !prev)}
+            onClick={() => setIsNotifOpen((s) => !s)}
             className="text-2xl font-semibold px-3 py-2 rounded-full hover:bg-gray-200 transition relative"
+            title="Notifications"
           >
             🔔
             {dummyReports.length > 0 && (
@@ -78,13 +84,14 @@ function Header({
               </span>
             )}
           </button>
+
           {isNotifOpen && (
             <div className="absolute right-0 top-12 z-50">
               <NotificationPanel
                 reports={dummyReports}
-                onRemove={handleRemoveReport}
-                onSendEmail={handleSendEmail}
-                theme={{ bgColor: "#f9f9f9", textColor: "#333" }}
+                onRemove={(id) => console.log("remove", id)}
+                onSendEmail={(r) => console.log("email", r)}
+                theme={{ bgColor: "#fff", textColor: "#111" }}
               />
             </div>
           )}
@@ -100,15 +107,25 @@ function Header({
         </div>
       </div>
 
-      {/* Dropdown Menu */}
       {isMenuOpen && (
         <div className="absolute top-20 left-6 bg-white shadow-xl rounded-xl p-4 w-48 z-50">
           <ul className="flex flex-col gap-3">
             {menuLinks.map((link, index) => (
               <li key={index}>
                 <a
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (link.href.startsWith("#")) {
+                      const id = link.href.replace("#", "");
+                      const el = document.getElementById(id);
+                      if (el) el.scrollIntoView({ behavior: "smooth" });
+                    } else {
+                      handleNavigate(link.href);
+                    }
+                    setIsMenuOpen(false);
+                  }}
                   href={link.href}
-                  className="block px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-800 font-medium transition"
+                  className="block px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-800 font-medium transition cursor-pointer"
                 >
                   {link.name}
                 </a>
@@ -117,6 +134,7 @@ function Header({
           </ul>
         </div>
       )}
+
       <div>
         <button>
           <a
