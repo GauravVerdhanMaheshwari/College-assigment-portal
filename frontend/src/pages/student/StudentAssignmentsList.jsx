@@ -1,76 +1,46 @@
-import React, { useMemo } from "react";
+import React from "react";
 
-export default function StudentAssignmentsList({
-  submissions = [],
+function StudentAssignmentsList({
+  submissions,
   onTogglePublic,
-  searchTerm = "",
+  searchTerm,
   textCSS,
   buttonCSS,
 }) {
-  // filter by search
-  const filtered = useMemo(() => {
-    const q = (searchTerm || "").toLowerCase();
-    if (!q) return submissions;
-    return submissions.filter(
-      (s) =>
-        (s.title || "").toLowerCase().includes(q) ||
-        (s.fileName || "").toLowerCase().includes(q) ||
-        (s.course || "").toLowerCase().includes(q) ||
-        (s.division || "").toLowerCase().includes(q)
-    );
-  }, [submissions, searchTerm]);
+  const filtered = submissions.filter((s) =>
+    s.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="grid gap-4">
-      {filtered.length === 0 && (
-        <div className="text-gray-600">No submissions found.</div>
+    <div>
+      {filtered.length === 0 ? (
+        <p className={`${textCSS} italic`}>No submissions found.</p>
+      ) : (
+        <ul className="space-y-4">
+          {filtered.map((s) => (
+            <li
+              key={s.id}
+              className="p-4 bg-white shadow-lg rounded-lg flex justify-between items-center"
+            >
+              <div>
+                <h3 className={`font-semibold ${textCSS}`}>{s.title}</h3>
+                <p className="text-sm text-gray-500">{s.fileName}</p>
+                <p className="text-xs text-gray-400">
+                  Uploaded: {s.uploadedAt}
+                </p>
+              </div>
+              <button
+                onClick={() => onTogglePublic(s.id)}
+                className={`px-4 py-2 rounded transition ${buttonCSS}`}
+              >
+                {s.public ? "Make Private" : "Make Public"}
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
-
-      {filtered.map((s) => (
-        <div
-          key={s.id}
-          className="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition"
-        >
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-lg font-semibold">{s.title}</h3>
-              <p className="text-sm text-gray-600">{s.fileName}</p>
-              <p className="text-sm text-gray-500">Uploaded: {s.uploadedAt}</p>
-              <p className="text-sm text-gray-500">
-                Class: {s.division} · Course: {s.course} · Year: {s.year}
-              </p>
-            </div>
-
-            <div className="flex flex-col items-end gap-3">
-              <div className="text-sm">
-                <span
-                  className={`px-3 py-1 rounded-full text-white ${
-                    s.public ? "bg-green-600" : "bg-gray-400"
-                  }`}
-                >
-                  {s.public ? "Public" : "Private"}
-                </span>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  className={`px-3 py-1 rounded ${buttonCSS}`}
-                  onClick={() => alert(`Download (UI only): ${s.fileName}`)}
-                >
-                  ⬇ Download
-                </button>
-
-                <button
-                  className={`px-3 py-1 rounded ${buttonCSS}`}
-                  onClick={() => onTogglePublic(s.id)}
-                >
-                  {s.public ? "Make Private" : "Make Public"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
+
+export default StudentAssignmentsList;
