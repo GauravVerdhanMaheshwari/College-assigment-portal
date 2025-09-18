@@ -17,6 +17,7 @@ import {
   LibraryManagerProfile,
   AdminProfile,
   FacultiesHomePage,
+  FacultiesProfile,
 } from "./pages/index.js";
 import { createRoot } from "react-dom/client";
 import {
@@ -32,7 +33,7 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<Layout />}>
       <Route index element={<StudentLogin />} />
-      <Route path="faculty-login" element={<FacultyLogin />} />
+      <Route path="faculties-login" element={<FacultyLogin />} />
       <Route path="user-manager-login" element={<UserManagerLogin />} />
       <Route path="library-manager-login" element={<LibraryManagerLogin />} />
 
@@ -67,6 +68,7 @@ const router = createBrowserRouter(
         element={<LibraryManagerProfile />}
       />
       <Route path="admin-profile" element={<AdminProfile />} />
+      <Route path="faculties-profile" element={<FacultiesProfile />} />
     </Route>
   )
 );
