@@ -43,7 +43,7 @@ const router = createBrowserRouter(
         element={<StudentForgetPassword />}
       />
       <Route
-        path="faculty-forget-password"
+        path="faculties-forget-password"
         element={<FacultyForgetPassword />}
       />
       <Route

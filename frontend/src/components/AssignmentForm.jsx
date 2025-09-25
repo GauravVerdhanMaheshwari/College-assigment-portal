@@ -38,44 +38,47 @@ function AssignmentForm({ textCSS, buttonCSS }) {
           placeholder="Topic"
           value={assignment.topic}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition duration-200 ease-in-out active:shadow-sm"
         />
         <input
           name="subject"
           placeholder="Subject"
           value={assignment.subject}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition duration-200 ease-in-out active:shadow-sm"
         />
         <input
           name="assignedBy"
           placeholder="Assigned By"
           value={assignment.assignedBy}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition duration-200 ease-in-out active:shadow-sm"
         />
         <input
           name="assignedTo"
           placeholder="Assigned To (Class)"
           value={assignment.assignedTo}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition duration-200 ease-in-out active:shadow-sm"
         />
         <input
           type="date"
           name="dueDate"
           value={assignment.dueDate}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition duration-200 ease-in-out active:shadow-sm"
         />
         <textarea
           name="description"
           placeholder="Description"
           value={assignment.description}
           onChange={handleChange}
-          className="border p-2 rounded"
+          className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition duration-200 ease-in-out active:shadow-sm"
         />
-        <button onClick={handleSubmit} className={`px-4 py-2 rounded ${buttonCSS}`}>
+        <button
+          onClick={handleSubmit}
+          className={`px-4 py-2 rounded ${buttonCSS}`}
+        >
           Add Assignment
         </button>
       </div>

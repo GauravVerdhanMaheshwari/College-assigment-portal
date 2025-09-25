@@ -26,7 +26,7 @@ function UserProfile({ userDetails, onSave, theme }) {
         className="text-3xl font-bold mb-8 drop-shadow-lg transition-all duration-500"
         style={{ color: theme.textColor }}
       >
-        User Profile
+        Edit Profile
       </h1>
 
       {/* Name */}
@@ -39,7 +39,7 @@ function UserProfile({ userDetails, onSave, theme }) {
           name="name"
           value={user.name}
           onChange={handleChange}
-          className="w-full p-3 rounded-xl border border-gray-300 bg-white/20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-transparent backdrop-blur-sm transition-all duration-300"
+          className="w-full p-3 rounded-xl border border-gray-300 bg-[#ffffff68] text-black placeholder-white focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-transparent backdrop-blur-sm transition-all duration-300 shadow-[0_0px_29px_10px_rgba(50,50,50,0.2)] hover:shadow-[0_4px_40px_15px_rgba(50,50,50,0.3)] active:shadow-[0_2px_20px_7px_rgba(50,50,50,0.25)]"
           placeholder="Enter name"
         />
       </div>
@@ -54,7 +54,7 @@ function UserProfile({ userDetails, onSave, theme }) {
           name="email"
           value={user.email}
           onChange={handleChange}
-          className="w-full p-3 rounded-xl border border-gray-300 bg-white/20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-transparent backdrop-blur-sm transition-all duration-300"
+          className="w-full p-3 rounded-xl border border-gray-300 bg-[#ffffff68] text-black placeholder-white focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-transparent backdrop-blur-sm transition-all duration-300 shadow-[0_0px_29px_10px_rgba(50,50,50,0.2)] hover:shadow-[0_4px_40px_15px_rgba(50,50,50,0.3)] active:shadow-[0_2px_20px_7px_rgba(50,50,50,0.25)]"
           placeholder="Enter email"
         />
       </div>
@@ -69,7 +69,7 @@ function UserProfile({ userDetails, onSave, theme }) {
           name="password"
           value={user.password}
           onChange={handleChange}
-          className="w-full p-3 rounded-xl border border-gray-300 bg-white/20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-transparent backdrop-blur-sm transition-all duration-300"
+          className="w-full p-3 rounded-xl border border-gray-300 bg-[#ffffff68] text-black placeholder-white focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-transparent backdrop-blur-sm transition-all duration-300 shadow-[0_0px_29px_10px_rgba(50,50,50,0.2)] hover:shadow-[0_4px_40px_15px_rgba(50,50,50,0.3)] active:shadow-[0_2px_20px_7px_rgba(50,50,50,0.25)]"
           placeholder="Enter password"
         />
         <button
