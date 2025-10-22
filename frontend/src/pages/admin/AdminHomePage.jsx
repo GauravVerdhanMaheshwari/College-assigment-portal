@@ -100,8 +100,8 @@ function AdminHomePage() {
     }
   };
 
-  if (!user) {
-    navigate("/admin-login");
+  if (user?.admin === null || user?.admin?.role !== "admin") {
+    navigate("/admin/login");
     return null;
   }
 
@@ -114,15 +114,15 @@ function AdminHomePage() {
             textColor="text-[#4D7BFAFF] text-shadow-[0_0_10px_rgba(30,58,138,0.5)]"
             headerStyle="from-[#A7F3D0] to-[#34D399]"
             menuLinks={[
-              { name: "Home", href: "/admin-home" },
+              { name: "Home", href: "/admin" },
               { name: "Users", href: "#userList" },
               { name: "Add User", href: "#addUsers" },
               { name: "Papers", href: "#papersList" },
             ]}
             wantSearch={false}
             dummyReports={dummyReports}
-            profileNavigate="/admin-profile"
-            loginPage="/admin-login"
+            profileNavigate="/admin/profile"
+            loginPage="/admin/login"
           />
         </div>
 
@@ -166,8 +166,8 @@ function AdminHomePage() {
               ["name", "email", "subject", "course", "year", "division"],
             ]}
             entityEndpoints={[
-              "libraryManagers",
-              "userManagers",
+              "library-managers",
+              "user-managers",
               "students",
               "faculties",
             ]}
