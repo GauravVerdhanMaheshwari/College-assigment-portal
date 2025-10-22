@@ -7,6 +7,12 @@ function UserManagerHomePage() {
 
   const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem("user"));
+
+  if (!user || user?.role !== "userManager") {
+    navigate("/userManager/login");
+    return null;
+  }
+
   const dummyReports = [
     {
       id: 1,
@@ -140,7 +146,7 @@ function UserManagerHomePage() {
   };
 
   if (!user) {
-    navigate("/user-manager-login");
+    navigate("/userManager/login");
     return null;
   }
 
@@ -152,14 +158,14 @@ function UserManagerHomePage() {
             textColor="text-[#0EA5E9]"
             headerStyle="to-[#C4B5FD] from-[#A37BFFFF]"
             menuLinks={[
-              { name: "Home", href: "/user-manager-home" },
+              { name: "Home", href: "/userManager" },
               { name: "User List", href: "#userList" },
               { name: "Add User", href: "#addUsers" },
             ]}
             wantSearch={false}
             dummyReports={dummyReports}
-            profileNavigate="/user-manager-profile"
-            loginPage="/user-manager-login"
+            profileNavigate="/userManager/profile"
+            loginPage="/userManager/login"
           />
         </div>
 
