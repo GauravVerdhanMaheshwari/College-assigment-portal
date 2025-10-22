@@ -11,6 +11,19 @@ function StudentHomePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
+  useEffect(() => {
+    const stored = sessionStorage.getItem("user");
+    if (!stored) {
+      navigate("/");
+      return;
+    }
+    try {
+      setUser(JSON.parse(stored));
+    } catch {
+      navigate("/");
+    }
+  }, [navigate]);
+
   const [searchTerm, setSearchTerm] = useState("");
 
   // Dummy faculty assignments (future)
@@ -116,7 +129,7 @@ function StudentHomePage() {
         dummyReports={requests}
         loginPage="/"
         menuLinks={[
-          { name: "Home", href: "/student-home" },
+          { name: "Home", href: "/student" },
           { name: "Assignments", href: "#studentAssignments" },
           { name: "Future Assignments", href: "#futureAssignments" },
           { name: "Peer Submissions", href: "#peerSubmissions" },
