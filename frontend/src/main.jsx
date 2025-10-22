@@ -33,11 +33,13 @@ import "./index.css";
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<Layout />}>
+      // Login Routes
       <Route index element={<StudentLogin />} />
       <Route path="faculties/login" element={<FacultyLogin />} />
       <Route path="userManager/login" element={<UserManagerLogin />} />
       <Route path="libraryManager/login" element={<LibraryManagerLogin />} />
-
+      <Route path="admin/login" element={<AdminLogin />} />
+      // Forget Password Routes
       <Route
         path="student/forgetPassword"
         element={<StudentForgetPassword />}
@@ -55,14 +57,13 @@ const router = createBrowserRouter(
         element={<LibraryManagerForgetPassword />}
       />
       <Route path="admin/forgetPassword" element={<AdminForgetPassword />} />
-      <Route path="admin/login" element={<AdminLogin />} />
-
+      // Home Routes
       <Route path="student" element={<StudentHomePage />} />
       <Route path="faculties" element={<FacultiesHomePage />} />
       <Route path="admin" element={<AdminHomePage />} />
       <Route path="userManager" element={<UserManagerHomePage />} />
       <Route path="libraryManager" element={<LibraryManagerHomePage />} />
-
+      // Profile Routes
       <Route path="userManager/profile" element={<UserManagerProfile />} />
       <Route
         path="libraryManager/profile"
