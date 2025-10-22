@@ -11,9 +11,9 @@ function UserManagerLogin() {
       imageAlt="User Manager login image"
       API="user-managers"
       h1CSS="text-[#0EA5E9] text-shadow-[0_0_10px_rgba(14,165,233,0.5)]"
-      forgetPasswordLink="/user-manager-forget-password"
+      forgetPasswordLink="/userManager/forgetPassword"
       pageAbout="User Manager"
-      redirectLink="/user-manager-home"
+      redirectLink="/userManager/home"
     />
   );
 }
