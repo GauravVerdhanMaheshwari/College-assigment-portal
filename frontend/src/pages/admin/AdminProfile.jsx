@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 function AdminProfile() {
   document.title = "Admin Profile";
   const navigate = useNavigate();
-  const userDetails = JSON.parse(sessionStorage.getItem("user")).admin;
+  const user = JSON.parse(sessionStorage.getItem("user")).admin;
 
   const handleSave = (updatedUser) => {
     console.log("Saved admin data:", updatedUser);
@@ -22,11 +22,16 @@ function AdminProfile() {
     textShadow: "0 0 10px rgba(30,58,138,0.5)",
   };
 
+  if (user === null || user.role !== "admin") {
+    navigate("/admin/login");
+    return null;
+  }
+
   return (
     <div className={`p-6 min-h-screen bg-gradient-to-b ${theme.bgGradient}`}>
       {/* Home Button */}
       <button
-        onClick={() => navigate("/admin-home")}
+        onClick={() => navigate("/admin")}
         className={`mb-6 px-5 py-3 rounded-2xl text-white font-semibold text-lg transition-all duration-300 shadow-lg`}
         style={{
           backgroundColor: theme.buttonColor,
@@ -47,11 +52,7 @@ function AdminProfile() {
       </button>
 
       {/* Profile Component */}
-      <UserProfile
-        userDetails={userDetails}
-        onSave={handleSave}
-        theme={theme}
-      />
+      <UserProfile userDetails={user} onSave={handleSave} theme={theme} />
     </div>
   );
 }
