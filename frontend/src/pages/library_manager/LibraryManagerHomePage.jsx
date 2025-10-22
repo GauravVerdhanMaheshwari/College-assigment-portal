@@ -53,10 +53,10 @@ function LibraryManagerHomePage() {
     setTimeout(() => {
       setPapers(dummyPapers);
     }, 500);
-  }, []);
+  });
 
-  if (!user) {
-    navigate("/library-manager-login");
+  if (!user || user?.role !== "libraryManager") {
+    navigate("/library-manager/login");
     return null;
   }
 
@@ -74,8 +74,8 @@ function LibraryManagerHomePage() {
             ]}
             wantSearch={false}
             dummyReports={dummyReports}
-            profileNavigate="/library-manager-profile"
-            loginPage="/library-manager-login"
+            profileNavigate="/libraryManager/profile"
+            loginPage="/libraryManager/login"
           />
         </div>
 
