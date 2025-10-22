@@ -34,43 +34,43 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<Layout />}>
       <Route index element={<StudentLogin />} />
-      <Route path="faculties-login" element={<FacultyLogin />} />
-      <Route path="user-manager-login" element={<UserManagerLogin />} />
-      <Route path="library-manager-login" element={<LibraryManagerLogin />} />
+      <Route path="faculties/login" element={<FacultyLogin />} />
+      <Route path="userManager/login" element={<UserManagerLogin />} />
+      <Route path="libraryManager/login" element={<LibraryManagerLogin />} />
 
       <Route
-        path="student-forget-password"
+        path="student/forgetPassword"
         element={<StudentForgetPassword />}
       />
       <Route
-        path="faculties-forget-password"
+        path="faculties/forgetPassword"
         element={<FacultyForgetPassword />}
       />
       <Route
-        path="user-manager-forget-password"
+        path="userManager/forgetPassword"
         element={<UserManagerForgetPassword />}
       />
       <Route
-        path="library-manager-forget-password"
+        path="libraryManager/forgetPassword"
         element={<LibraryManagerForgetPassword />}
       />
-      <Route path="admin-forget-password" element={<AdminForgetPassword />} />
-      <Route path="admin-login" element={<AdminLogin />} />
+      <Route path="admin/forgetPassword" element={<AdminForgetPassword />} />
+      <Route path="admin/login" element={<AdminLogin />} />
 
-      <Route path="student-home" element={<StudentHomePage />} />
-      <Route path="faculties-home" element={<FacultiesHomePage />} />
-      <Route path="admin-home" element={<AdminHomePage />} />
-      <Route path="user-manager-home" element={<UserManagerHomePage />} />
-      <Route path="library-manager-home" element={<LibraryManagerHomePage />} />
+      <Route path="student" element={<StudentHomePage />} />
+      <Route path="faculties" element={<FacultiesHomePage />} />
+      <Route path="admin" element={<AdminHomePage />} />
+      <Route path="userManager" element={<UserManagerHomePage />} />
+      <Route path="libraryManager" element={<LibraryManagerHomePage />} />
 
-      <Route path="user-manager-profile" element={<UserManagerProfile />} />
+      <Route path="userManager/profile" element={<UserManagerProfile />} />
       <Route
-        path="library-manager-profile"
+        path="libraryManager/profile"
         element={<LibraryManagerProfile />}
       />
-      <Route path="admin-profile" element={<AdminProfile />} />
-      <Route path="faculties-profile" element={<FacultiesProfile />} />
-      <Route path="student-profile" element={<StudentProfile />} />
+      <Route path="admin/profile" element={<AdminProfile />} />
+      <Route path="faculties/profile" element={<FacultiesProfile />} />
+      <Route path="student/profile" element={<StudentProfile />} />
     </Route>
   )
 );
