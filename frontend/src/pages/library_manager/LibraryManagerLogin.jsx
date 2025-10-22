@@ -13,9 +13,9 @@ function LibraryManagerLogin() {
         inputCSS="active:border-[#6EE7B7] focus:border-[#5CC198FF]"
         aLinkCSS="text-[#FDE68A] hover:text-[#FFE26DFF] hover:text-shadow-[0_0_10px_rgba(250, 210, 50,0.5)]"
         API="library-managers"
-        forgetPasswordLink="/library-manager-forget-password"
+        forgetPasswordLink="/libraryManager/forgetPassword"
         pageAbout="Library Manager"
-        redirectLink="/library-manager-home"
+        redirectLink="/libraryManager/home"
       />
     </>
   );
