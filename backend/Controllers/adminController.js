@@ -15,7 +15,7 @@ exports.createAdmin = async (req, res) => {
 exports.getAllAdmins = async (req, res) => {
   try {
     const admins = await Admin.find();
-    res.status(200).json({ message: "Admins retrieved successfully", admins });
+    res.status(200).json({ admins });
   } catch (error) {
     res.status(500).json({ message: "Error retrieving admins", error });
   }
@@ -28,7 +28,7 @@ exports.getAdminById = async (req, res) => {
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
     }
-    res.status(200).json({ message: "Admin retrieved successfully", admin });
+    res.status(200).json({ admin });
   } catch (error) {
     res.status(500).json({ message: "Error retrieving admin", error });
   }
@@ -43,7 +43,7 @@ exports.updateAdminById = async (req, res) => {
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
     }
-    res.status(200).json({ message: "Admin updated successfully", admin });
+    res.status(200).json({ admin });
   } catch (error) {
     res.status(500).json({ message: "Error updating admin", error });
   }
@@ -56,7 +56,7 @@ exports.deleteAdminById = async (req, res) => {
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
     }
-    res.status(200).json({ message: "Admin deleted successfully", admin });
+    res.status(200).json({ admin });
   } catch (error) {
     res.status(500).json({ message: "Error deleting admin", error });
   }
@@ -70,7 +70,7 @@ exports.adminLogin = async (req, res) => {
     if (!admin) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-    res.status(200).json({ message: "Login successful", admin });
+    res.status(200).json({ admin });
   } catch (error) {
     res.status(500).json({ message: "Error during login", error });
   }
