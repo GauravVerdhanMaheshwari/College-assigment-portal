@@ -9,6 +9,7 @@ const facultySchema = new Schema({
   division: { type: String, required: true },
   subject: { type: String, required: true },
   year: { type: Number, required: true },
+  role: { type: String, required: true },
 });
 
 module.exports = mongoose.model("Faculty", facultySchema);

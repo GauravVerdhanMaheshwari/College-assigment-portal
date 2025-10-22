@@ -9,6 +9,7 @@ const studentSchema = new Schema({
   course: { type: String, required: true },
   division: { type: String, required: true },
   year: { type: Number, required: true },
+  role: { type: String, required: true }
 });
 
 module.exports = mongoose.model("Student", studentSchema);
