@@ -13,6 +13,10 @@ function FacultiesHomePage() {
   document.title = "Faculties Home";
   const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem("user"));
+  if (user?.faculty?.role !== "faculty") {
+    navigate("/faculties/login");
+    return null;
+  }
 
   const dummyPapers = [
     {
@@ -63,7 +67,7 @@ function FacultiesHomePage() {
             textColor="text-[#4C1D95] text-shadow-[0px_0px_10px_rgba(124,58,237,0.9)]"
             headerStyle="from-[#C4B5FD] to-[#8B5CF6]"
             menuLinks={[
-              { name: "Home", href: "/faculties-home" },
+              { name: "Home", href: "/faculties/home" },
               { name: "Papers", href: "#facultyPapers" },
               { name: "Assignments", href: "#assignmentsList" },
               { name: "Add Assignment", href: "#assignmentForm" },
@@ -77,8 +81,8 @@ function FacultiesHomePage() {
                 message: "New assignment added",
               },
             ]}
-            profileNavigate="/faculties-profile"
-            loginPage="/faculties-login"
+            profileNavigate="/faculties/profile"
+            loginPage="/faculties/login"
           />
         </div>
 
