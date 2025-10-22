@@ -12,7 +12,7 @@ function UserManagerForgetPassword() {
       imageAlt="User Manager login image"
       API="user_manager"
       h1CSS="text-[#0EA5E9] text-shadow-[0_0_10px_rgba(14,165,233,0.5)]"
-      loginPageLink="/user-manager-login"
+      loginPageLink="/userManager/login"
     />
   );
 }
