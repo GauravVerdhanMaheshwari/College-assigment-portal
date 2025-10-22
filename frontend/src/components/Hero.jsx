@@ -1,6 +1,15 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 function Hero({ user, userRole, userObjectName, heroBgColor, heroImg }) {
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   if (!user) return null; // safeguard
 
   const date = new Date();
@@ -15,12 +24,6 @@ function Hero({ user, userRole, userObjectName, heroBgColor, heroImg }) {
     greeting = "Good Evening";
   }
 
-  const time = date.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  const currentDate = date.toLocaleDateString();
-
   return (
     <div
       className={`flex flex-row gap-4 flex-grow items-center justify-center h-full mx-20 mt-2 bg-gradient-to-t ${heroBgColor} border border-gray-300 rounded-3xl py-10 px-30 shadow-lg`}
@@ -33,7 +36,12 @@ function Hero({ user, userRole, userObjectName, heroBgColor, heroImg }) {
           Logged in as: <span className="font-semibold">{userObjectName}</span>
         </p>
         <p className="text-3xl text-white">
-          {greeting}, it's {time} on {currentDate}.
+          {greeting}, it's{" "}
+          {time.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}{" "}
+          on {time.toLocaleDateString()}.
         </p>
       </div>
       <div className="flex flex-1 flex-col mr-10 items-end">
