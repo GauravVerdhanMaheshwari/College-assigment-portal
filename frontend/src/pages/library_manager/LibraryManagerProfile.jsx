@@ -8,8 +8,22 @@ function LibraryManagerProfile() {
   const userDetails = JSON.parse(sessionStorage.getItem("user")).libraryManager;
 
   const handleSave = (updatedUser) => {
-    console.log("Saved library manager data:", updatedUser);
-    alert("Profile saved (UI only)!");
+    fetch("http://localhost:3000/libraryManagers/" + updatedUser._id, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId: userDetails._id, ...updatedUser }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        alert("Profile saved successfully!");
+      })
+      .catch((error) => {
+        console.error("There was a problem with the fetch operation:", error);
+      });
   };
 
   // Theme/colors for child component
