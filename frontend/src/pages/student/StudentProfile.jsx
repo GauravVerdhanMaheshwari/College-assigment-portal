@@ -8,8 +8,28 @@ function StudentProfile() {
   const userDetails = JSON.parse(sessionStorage.getItem("user")).student;
 
   const handleSave = (updatedUser) => {
-    console.log("Saved student profile:", updatedUser);
-    alert("Profile saved (UI only)!");
+    sessionStorage.setItem("user", JSON.stringify({ student: updatedUser }));
+    fetch("http://localhost:3000/students/" + updatedUser._id, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId: userDetails._id, ...updatedUser }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Success:", data);
+        alert("Profile saved successfully!");
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        alert("Failed to update profile.");
+      });
   };
 
   const theme = {
