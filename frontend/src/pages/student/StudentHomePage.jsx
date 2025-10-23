@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header, Hero, NotificationPanel } from "../../components/index";
 import {
@@ -9,21 +9,7 @@ import {
 
 function StudentHomePage() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const stored = sessionStorage.getItem("user");
-    if (!stored) {
-      navigate("/");
-      return;
-    }
-    try {
-      setUser(JSON.parse(stored));
-    } catch {
-      navigate("/");
-    }
-  }, [navigate]);
-
+  const user = JSON.parse(sessionStorage.getItem("user")).student;
   const [searchTerm, setSearchTerm] = useState("");
 
   // Dummy faculty assignments (future)
@@ -78,19 +64,6 @@ function StudentHomePage() {
     },
   ]);
 
-  useEffect(() => {
-    const stored = sessionStorage.getItem("user");
-    if (!stored) {
-      navigate("/");
-      return;
-    }
-    try {
-      setUser(JSON.parse(stored));
-    } catch {
-      navigate("/");
-    }
-  }, [navigate]);
-
   const handleUpload = (newSubmission) => {
     setSubmissions((prev) => [
       {
@@ -116,7 +89,10 @@ function StudentHomePage() {
     alert(`Request ${action}`);
   };
 
-  if (!user) return null;
+  if (!user || user.role !== "student") {
+    navigate("/");
+    return null;
+  }
 
   return (
     <div className="bg-gradient-to-b from-[#FFF6E0] to-[#FFE39E] min-h-screen w-full">
