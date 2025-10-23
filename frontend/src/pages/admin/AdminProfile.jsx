@@ -8,8 +8,22 @@ function AdminProfile() {
   const user = JSON.parse(sessionStorage.getItem("user")).admin;
 
   const handleSave = (updatedUser) => {
-    console.log("Saved admin data:", updatedUser);
-    alert("Profile saved (UI only)!");
+    fetch("http://localhost:3000/admins/" + updatedUser._id, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId: user._id, ...updatedUser }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        alert("Profile saved successfully!");
+      })
+      .catch((error) => {
+        console.error("There was a problem with the fetch operation:", error);
+      });
   };
 
   // Theme/colors for child component
