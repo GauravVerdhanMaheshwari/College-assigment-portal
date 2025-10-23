@@ -6,11 +6,13 @@ function UserProfile({ userDetails, onSave, theme }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setUser((prev) => ({ ...prev, [name]: value }));
+    setUser((prev) => ({ ...prev, [name]: value.trim() }));
   };
 
   const handleSave = () => {
-    if (onSave) onSave(user);
+    if (onSave) {
+      onSave(user);
+    }
   };
 
   return (
