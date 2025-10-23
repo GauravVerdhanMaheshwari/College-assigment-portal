@@ -53,7 +53,13 @@ function FacultiesHomePage() {
     },
   ];
 
-  if (!user) {
+  console.log(user);
+
+  if (
+    !user ||
+    user.role !== "faculty" ||
+    user === null
+  ) {
     navigate("/faculty-login");
     return null;
   }
