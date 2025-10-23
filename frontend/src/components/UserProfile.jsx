@@ -86,7 +86,7 @@ function UserProfile({ userDetails, onSave, theme }) {
       {/* Save Button */}
       <button
         onClick={handleSave}
-        className="w-full py-3 px-5 rounded-2xl text-white font-bold text-lg transition-all duration-500 shadow-lg hover:shadow-2xl"
+        className="w-full py-3 px-5 rounded-2xl text-white font-bold text-lg transition-all duration-500 shadow-lg hover:shadow-2xl cursor-pointer"
         style={{ backgroundColor: theme.buttonColor }}
         onMouseOver={(e) =>
           (e.currentTarget.style.backgroundColor = theme.buttonHoverColor)
