@@ -41,7 +41,7 @@ function LibraryManagerProfile() {
       {/* Home Button */}
       <button
         onClick={() => navigate("/libraryManager")}
-        className={`mb-6 px-5 py-3 rounded-2xl text-white font-semibold text-lg transition-all duration-300 shadow-lg`}
+        className={`mb-6 px-5 py-3 rounded-2xl text-white font-semibold text-lg transition-all duration-300 shadow-lg cursor-pointer`}
         style={{
           backgroundColor: theme.buttonColor,
           color: theme.textColor,
