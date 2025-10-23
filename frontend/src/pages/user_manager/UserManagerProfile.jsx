@@ -44,7 +44,7 @@ function UserManagerProfile() {
       {/* Home Button */}
       <button
         onClick={() => navigate("/userManager")}
-        className={`mb-6 px-5 py-3 rounded-2xl text-white font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-2xl`}
+        className={`mb-6 px-5 py-3 rounded-2xl text-white font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-2xl cursor-pointer`}
         style={{
           backgroundColor: theme.buttonColor,
           transition: "all 0.3s ease",
