@@ -8,7 +8,7 @@ function UserManagerHomePage() {
   const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem("user"));
 
-  if (!user || user?.role !== "userManager") {
+  if (!user || user?.userManager?.role !== "userManager") {
     navigate("/userManager/login");
     return null;
   }
@@ -155,7 +155,7 @@ function UserManagerHomePage() {
       <div className="flex flex-col h-full">
         <div className="mb-6">
           <Header
-            textColor="text-[#0EA5E9]"
+            textColor="text-[#0EA5E9] text-shadow-[0_0_10px_rgba(14,165,233,0.5)]"
             headerStyle="to-[#C4B5FD] from-[#A37BFFFF]"
             menuLinks={[
               { name: "Home", href: "/userManager" },
