@@ -139,6 +139,10 @@ function Header({
         <button>
           <a
             href={loginPage}
+            onClick={() => {
+              sessionStorage.clear();
+              handleNavigate(loginPage);
+            }}
             className="text-white font-semibold px-4 py-3 mr-2 rounded-full hover:bg-red-400 transition-all duration-300 bg-red-500"
           >
             Logout
