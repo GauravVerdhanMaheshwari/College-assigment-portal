@@ -100,7 +100,9 @@ function AdminHomePage() {
     }
   };
 
-  if (user?.admin === null || user?.admin?.role !== "admin") {
+  if (user?.role !== "admin" || !user || user === null) {
+    sessionStorage.clear();
+    console.log("User is not authorized");
     navigate("/admin/login");
     return null;
   }
