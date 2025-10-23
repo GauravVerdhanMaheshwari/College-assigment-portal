@@ -30,7 +30,7 @@ function Hero({ user, userRole, userObjectName, heroBgColor, heroImg }) {
     >
       <div className="flex flex-col flex-1 items-start ml-10">
         <p className="text-4xl text-white mb-3 font-bold">
-          WELCOME BACK {user[userObjectName].name} ({userRole})!
+          WELCOME BACK {user.name} ({userRole})!
         </p>
         <p className="text-xl text-gray-200 italic mb-2">
           Logged in as: <span className="font-semibold">{userObjectName}</span>
