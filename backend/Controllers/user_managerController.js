@@ -104,7 +104,7 @@ exports.loginUserManager = async (req, res) => {
     if (!userManager) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-    res.status(200).json({ message: "Login successful", userManager });
+    res.status(200).json({ userManager });
   } catch (error) {
     console.log(res.status);
     res.status(500).json({ message: error.message });
