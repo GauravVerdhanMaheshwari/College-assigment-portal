@@ -145,7 +145,7 @@ function UserManagerHomePage() {
     }
   };
 
-  if (!user || user?.userManager?.role !== "userManager") {
+  if (!user || user?.role !== "userManager") {
     navigate("/userManager/login");
     return null;
   }
