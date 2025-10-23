@@ -89,7 +89,7 @@ function StudentHomePage() {
     alert(`Request ${action}`);
   };
 
-  if (!user || user.role !== "student") {
+  if (user.role !== "student" || !user || user === null) {
     navigate("/");
     return null;
   }
