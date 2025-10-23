@@ -24,7 +24,7 @@ function StudentProfile() {
   return (
     <div className={`p-6 min-h-screen bg-gradient-to-b ${theme.bgGradient}`}>
       <button
-        onClick={() => navigate("/student-home")}
+        onClick={() => navigate("/student")}
         className="mb-6 px-5 py-3 rounded-2xl text-white font-semibold text-lg transition-all duration-300 shadow-lg"
         style={{
           backgroundColor: theme.buttonColor,
