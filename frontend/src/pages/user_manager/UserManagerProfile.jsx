@@ -24,7 +24,7 @@ function UserManagerProfile() {
     <div className={`p-6 min-h-screen bg-gradient-to-b ${theme.bgGradient}`}>
       {/* Home Button */}
       <button
-        onClick={() => navigate("/user-manager-home")}
+        onClick={() => navigate("/userManager")}
         className={`mb-6 px-5 py-3 rounded-2xl text-white font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-2xl`}
         style={{
           backgroundColor: theme.buttonColor,
