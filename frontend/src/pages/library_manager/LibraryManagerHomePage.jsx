@@ -55,7 +55,7 @@ function LibraryManagerHomePage() {
     }, 500);
   });
 
-  if (!user || user?.role !== "libraryManager") {
+  if (!user || user?.libraryManager?.role !== "libraryManager") {
     navigate("/libraryManager/login");
     return null;
   }
