@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Header, Hero, List, AddUsers } from "../../components/index";
 import { useNavigate } from "react-router-dom";
 
@@ -8,10 +8,19 @@ function UserManagerHomePage() {
   const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem("user"));
 
-  if (!user || user?.userManager?.role !== "userManager") {
-    navigate("/userManager/login");
-    return null;
-  }
+  useEffect(() => {
+    if (!user) {
+      sessionStorage.clear();
+      console.log("No user logged in");
+      navigate("/userManager/login");
+    }
+
+    if (user?.role !== "userManager") {
+      sessionStorage.clear();
+      console.log("User is not a User Manager");
+      navigate("/userManager/login");
+    }
+  }, [user, navigate]);
 
   const dummyReports = [
     {
@@ -145,10 +154,7 @@ function UserManagerHomePage() {
     }
   };
 
-  if (!user || user?.role !== "userManager") {
-    navigate("/userManager/login");
-    return null;
-  }
+  console.log(user);
 
   return (
     <div className="w-full h-full bg-gradient-to-b from-[#C4B5FD] to-[#8B5CF6]">
