@@ -1,5 +1,5 @@
 // FacultiesHomePage.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import { Header, Hero } from "../../components/index";
 import {
   FacultyPapers,
@@ -13,10 +13,18 @@ function FacultiesHomePage() {
   document.title = "Faculties Home";
   const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem("user"));
-  if (user?.faculty?.role !== "faculty") {
-    navigate("/faculties/login");
-    return null;
-  }
+
+  useEffect(() => {
+    if (!user) {
+      console.log("No user logged in");
+      navigate("/faculties/login");
+    }
+
+    if (user.role !== "faculty") {
+      console.log("User is not a Faculty");
+      navigate("/faculties/login");
+    }
+  }, [user, navigate]);
 
   const dummyPapers = [
     {
@@ -52,17 +60,6 @@ function FacultiesHomePage() {
       description: "Introduction to components, props and state",
     },
   ];
-
-  console.log(user);
-
-  if (
-    !user ||
-    user.role !== "faculty" ||
-    user === null
-  ) {
-    navigate("/faculty-login");
-    return null;
-  }
 
   return (
     <div className="w-full h-full bg-gradient-to-b from-[#C4B5FD] to-[#8B5CF6]">
