@@ -19,6 +19,7 @@ import {
   FacultiesHomePage,
   FacultiesProfile,
   StudentProfile,
+  PageNotFound,
 } from "./pages/index.js";
 import { createRoot } from "react-dom/client";
 import {
@@ -72,6 +73,9 @@ const router = createBrowserRouter(
       <Route path="admin/profile" element={<AdminProfile />} />
       <Route path="faculties/profile" element={<FacultiesProfile />} />
       <Route path="student/profile" element={<StudentProfile />} />
+
+      {/* Fallback Route */}
+      <Route path="*" element={<PageNotFound />} />
     </Route>
   )
 );
