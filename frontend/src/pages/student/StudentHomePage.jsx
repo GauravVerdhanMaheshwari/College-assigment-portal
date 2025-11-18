@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header, Hero, NotificationPanel } from "../../components/index";
 import {
@@ -64,6 +64,20 @@ function StudentHomePage() {
     },
   ]);
 
+  useEffect(() => {
+    if (!user) {
+      sessionStorage.clear();
+      console.log("No user logged in");
+      navigate("/");
+    }
+
+    if (user.role !== "student") {
+      sessionStorage.clear();
+      console.log("User is not authorized");
+      navigate("/");
+    }
+  }, [user, navigate]);
+
   const handleUpload = (newSubmission) => {
     setSubmissions((prev) => [
       {
@@ -88,11 +102,6 @@ function StudentHomePage() {
     );
     alert(`Request ${action}`);
   };
-
-  if (user.role !== "student" || !user || user === null) {
-    navigate("/");
-    return null;
-  }
 
   return (
     <div className="bg-gradient-to-b from-[#FFF6E0] to-[#FFE39E] min-h-screen w-full">
