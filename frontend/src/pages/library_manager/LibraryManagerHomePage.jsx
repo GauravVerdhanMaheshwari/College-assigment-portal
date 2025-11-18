@@ -4,8 +4,31 @@ import { useNavigate } from "react-router-dom";
 
 function LibraryManagerHomePage() {
   document.title = "Library Manager Home";
+
   const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem("user"));
+  const [papers, setPapers] = useState([]);
+
+  useEffect(() => {
+    // Simulate fetch
+    setTimeout(() => {
+      setPapers(dummyPapers);
+    }, 500);
+  });
+
+  useEffect(() => {
+    if (!user) {
+      sessionStorage.clear();
+      console.log("No user logged in");
+      navigate("/libraryManager/login");
+    }
+
+    if (user.role !== "libraryManager") {
+      sessionStorage.clear();
+      console.log("User is not a Library Manager");
+      navigate("/libraryManager/login");
+    }
+  }, [user, navigate]);
 
   // Dummy paper data
   const dummyPapers = [
@@ -45,26 +68,6 @@ function LibraryManagerHomePage() {
       message: "New paper submitted: Blockchain in Supply Chain",
     },
   ];
-
-  const [papers, setPapers] = useState([]);
-
-  useEffect(() => {
-    // Simulate fetch
-    setTimeout(() => {
-      setPapers(dummyPapers);
-    }, 500);
-  });
-
-  console.log(user);
-
-  if (
-    !user ||
-    user.role !== "libraryManager" ||
-    user === null
-  ) {
-    navigate("/libraryManager/login");
-    return null;
-  }
 
   return (
     <div className="w-full h-[110vh] bg-gradient-to-b from-[#38BDF8] to-[#8B5CF6]">
