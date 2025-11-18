@@ -21,6 +21,8 @@ import AdminProfile from "./admin/AdminProfile";
 import FacultiesProfile from "./faculties/FacultiesProfile";
 import StudentProfile from "./student/StudentProfile";
 
+import PageNotFound from "./PageNotFound/PageNotFound";
+
 export {
   StudentLogin,
   StudentForgetPassword,
@@ -42,4 +44,5 @@ export {
   FacultiesHomePage,
   FacultiesProfile,
   StudentProfile,
+  PageNotFound,
 };
