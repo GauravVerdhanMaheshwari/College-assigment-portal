@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Header,
   Hero,
@@ -12,6 +12,19 @@ function AdminHomePage() {
   document.title = "Admin Home";
   const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem("user"));
+
+  useEffect(() => {
+    if (!user) {
+      console.log("No user logged in");
+      navigate("/admin/login");
+    }
+
+    if (user?.role !== "admin") {
+      sessionStorage.clear();
+      console.log("User is not authorized");
+      navigate("/admin/login");
+    }
+  }, [user, navigate]);
 
   const dummyReports = [
     {
@@ -99,13 +112,6 @@ function AdminHomePage() {
       throw err;
     }
   };
-
-  if (user?.role !== "admin" || !user || user === null) {
-    sessionStorage.clear();
-    console.log("User is not authorized");
-    navigate("/admin/login");
-    return null;
-  }
 
   return (
     <div className="w-full h-full bg-gradient-to-b from-[#A7F3D0] to-[#34D399]">
