@@ -11,15 +11,15 @@ import { useNavigate } from "react-router-dom";
 function AdminHomePage() {
   document.title = "Admin Home";
   const navigate = useNavigate();
-  const user = JSON.parse(sessionStorage.getItem("user")).admin;
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   useEffect(() => {
-    if (!user) {
+    if (!user?.admin) {
       console.log("No user logged in");
       navigate("/admin/login");
     }
 
-    if (user?.role !== "admin") {
+    if (user?.admin.role !== "admin") {
       sessionStorage.clear();
       console.log("User is not authorized");
       navigate("/admin/login");
