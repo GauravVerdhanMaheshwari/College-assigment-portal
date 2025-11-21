@@ -12,15 +12,15 @@ import { useNavigate } from "react-router-dom";
 function FacultiesHomePage() {
   document.title = "Faculties Home";
   const navigate = useNavigate();
-  const user = JSON.parse(sessionStorage.getItem("user")).faculty;
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   useEffect(() => {
-    if (!user) {
+    if (!user?.faculty) {
       console.log("No user logged in");
       navigate("/faculties/login");
     }
 
-    if (user.role !== "faculty") {
+    if (user?.faculty.role !== "faculty") {
       console.log("User is not a Faculty");
       navigate("/faculties/login");
     }

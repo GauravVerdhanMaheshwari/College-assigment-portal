@@ -9,7 +9,7 @@ import {
 
 function StudentHomePage() {
   const navigate = useNavigate();
-  const user = JSON.parse(sessionStorage.getItem("user")).student;
+  const user = JSON.parse(sessionStorage.getItem("user"));
   const [searchTerm, setSearchTerm] = useState("");
 
   // Dummy faculty assignments (future)
@@ -65,13 +65,13 @@ function StudentHomePage() {
   ]);
 
   useEffect(() => {
-    if (!user) {
+    if (!user?.student) {
       sessionStorage.clear();
       console.log("No user logged in");
       navigate("/");
     }
 
-    if (user.role !== "student") {
+    if (user?.student.role !== "student") {
       sessionStorage.clear();
       console.log("User is not authorized");
       navigate("/");

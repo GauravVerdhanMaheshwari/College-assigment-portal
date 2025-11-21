@@ -6,16 +6,16 @@ function UserManagerHomePage() {
   document.title = "User Manager Home";
 
   const navigate = useNavigate();
-  const user = JSON.parse(sessionStorage.getItem("user")).userManager;
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   useEffect(() => {
-    if (!user) {
+    if (!user?.userManager) {
       sessionStorage.clear();
       console.log("No user logged in");
       navigate("/userManager/login");
     }
 
-    if (user?.role !== "userManager") {
+    if (user?.userManager.role !== "userManager") {
       sessionStorage.clear();
       console.log("User is not a User Manager");
       navigate("/userManager/login");

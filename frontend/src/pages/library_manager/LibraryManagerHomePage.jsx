@@ -6,7 +6,7 @@ function LibraryManagerHomePage() {
   document.title = "Library Manager Home";
 
   const navigate = useNavigate();
-  const user = JSON.parse(sessionStorage.getItem("user")).libraryManager;
+  const user = JSON.parse(sessionStorage.getItem("user"));
   const [papers, setPapers] = useState([]);
 
   useEffect(() => {
@@ -17,13 +17,13 @@ function LibraryManagerHomePage() {
   });
 
   useEffect(() => {
-    if (!user) {
+    if (!user?.libraryManager) {
       sessionStorage.clear();
       console.log("No user logged in");
       navigate("/libraryManager/login");
     }
 
-    if (user.role !== "libraryManager") {
+    if (user?.libraryManager.role !== "libraryManager") {
       sessionStorage.clear();
       console.log("User is not a Library Manager");
       navigate("/libraryManager/login");
