@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 function AdminHomePage() {
   document.title = "Admin Home";
   const navigate = useNavigate();
-  const user = JSON.parse(sessionStorage.getItem("user"));
+  const user = JSON.parse(sessionStorage.getItem("user")).admin;
 
   useEffect(() => {
     if (!user) {

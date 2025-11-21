@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 function FacultiesHomePage() {
   document.title = "Faculties Home";
   const navigate = useNavigate();
-  const user = JSON.parse(sessionStorage.getItem("user"));
+  const user = JSON.parse(sessionStorage.getItem("user")).faculty;
 
   useEffect(() => {
     if (!user) {
