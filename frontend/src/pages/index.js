@@ -22,6 +22,7 @@ import FacultiesProfile from "./faculties/FacultiesProfile";
 import StudentProfile from "./student/StudentProfile";
 
 import PageNotFound from "./PageNotFound/PageNotFound";
+import QuickAccess from "./QuickAccess/QuickAccess";
 
 export {
   StudentLogin,
@@ -44,5 +45,6 @@ export {
   FacultiesHomePage,
   FacultiesProfile,
   StudentProfile,
+  QuickAccess,
   PageNotFound,
 };

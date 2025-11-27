@@ -19,6 +19,7 @@ import {
   FacultiesHomePage,
   FacultiesProfile,
   StudentProfile,
+  QuickAccess,
   PageNotFound,
 } from "./pages/index.js";
 import { createRoot } from "react-dom/client";
@@ -35,7 +36,7 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<Layout />}>
       {/* Login Routes */}
-      <Route index element={<StudentLogin />} />
+      <Route index element={<QuickAccess />} />
       <Route path="student/login" element={<StudentLogin />} />
       <Route path="faculties/login" element={<FacultyLogin />} />
       <Route path="userManager/login" element={<UserManagerLogin />} />
