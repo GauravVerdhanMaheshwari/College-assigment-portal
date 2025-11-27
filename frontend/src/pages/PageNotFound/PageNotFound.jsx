@@ -19,6 +19,12 @@ function PageNotFound() {
     "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExY2JzZnpndDlwdmwxZnV4M3ZjZjJtcWdlajUwNjV0M3F5MjZmZXRzZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/8vQSQ3cNXuDGo/giphy.gif",
     "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExY2JzZnpndDlwdmwxZnV4M3ZjZjJtcWdlajUwNjV0M3F5MjZmZXRzZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/2zUn8hAwJwG4abiS0p/giphy.gif",
     "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3cDZ5MnNlbm80OHkwMTNpNTViancxeWlkdzdsMTRqYWh0bmtxMmM2dyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/MWSRkVoNaC30A/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ2NsbWhwZzc5c3YzZDQzMzV2enl4ZHJhampidTE4bGZ2ZzUzMHVxOCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/2x0VePimPaFJDpGZ7H/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ2NsbWhwZzc5c3YzZDQzMzV2enl4ZHJhampidTE4bGZ2ZzUzMHVxOCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/H4DjXQXamtTiIuCcRU/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ2NsbWhwZzc5c3YzZDQzMzV2enl4ZHJhampidTE4bGZ2ZzUzMHVxOCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/B6odR0DhsStfW/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3d2V2b2M1eWUxbW92cmY5a2Vmc2ZodjdmYmZvcTQ4MnhianhnanR3byZlcD12MV9naWZzX3NlYXJjaCZjdD1n/cLM83RvATUc1E0SbjA/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3d2V2b2M1eWUxbW92cmY5a2Vmc2ZodjdmYmZvcTQ4MnhianhnanR3byZlcD12MV9naWZzX3NlYXJjaCZjdD1n/W8krmZSDxPIfm/giphy.gif",
+    "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3Z3NlZXBvbDVkdHUzNXhlbGRxNDI0Z251M3NzMXJjN3hsZDU0cXVtNyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/A7GowSMfBhq6Y/giphy.gif",
   ];
 
   const randomGif = links[Math.floor(Math.random() * links.length)];
