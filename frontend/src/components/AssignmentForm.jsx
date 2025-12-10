@@ -4,7 +4,9 @@ function AssignmentForm({ textCSS, buttonCSS }) {
   const [assignment, setAssignment] = useState({
     topic: "",
     subject: "",
-    assignedBy: "",
+    assignedBy: sessionStorage.getItem("user")
+      ? JSON.parse(sessionStorage.getItem("user")).faculty.name
+      : alert("Please login as faculty to add assignments"),
     assignedTo: "",
     dueDate: "",
     description: "",
@@ -16,7 +18,21 @@ function AssignmentForm({ textCSS, buttonCSS }) {
 
   const handleSubmit = () => {
     console.log("Assignment added:", assignment);
-    alert("Assignment scheduled (UI only)!");
+
+    try {
+      fetch("http://localhost:5000/assignments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(assignment),
+      });
+      alert("Assignment scheduled successfully!");
+    } catch (error) {
+      console.error("Error adding assignment:", error);
+      alert("Failed to schedule assignment.");
+    }
+
     setAssignment({
       topic: "",
       subject: "",
@@ -44,13 +60,6 @@ function AssignmentForm({ textCSS, buttonCSS }) {
           name="subject"
           placeholder="Subject"
           value={assignment.subject}
-          onChange={handleChange}
-          className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition duration-200 ease-in-out active:shadow-sm"
-        />
-        <input
-          name="assignedBy"
-          placeholder="Assigned By"
-          value={assignment.assignedBy}
           onChange={handleChange}
           className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition duration-200 ease-in-out active:shadow-sm"
         />
