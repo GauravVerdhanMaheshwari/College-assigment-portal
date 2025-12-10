@@ -12,3 +12,5 @@ const PaperSchema = new Schema(
   },
   { timestamps: true }
 );
+
+module.exports = mongoose.model("Paper", PaperSchema);
