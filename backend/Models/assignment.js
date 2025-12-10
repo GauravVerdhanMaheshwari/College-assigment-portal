@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const PaperSchema = new Schema(
+const AssignmentSchema = new Schema(
   {
-    title: {
+    topic: {
       type: String,
       required: true,
       trim: true,
@@ -13,7 +13,7 @@ const PaperSchema = new Schema(
       ref: "Faculty",
       required: true,
     },
-    class: {
+    assignedTo: {
       type: String,
       required: true,
       trim: true,
@@ -31,7 +31,6 @@ const PaperSchema = new Schema(
     dueDate: {
       type: Date,
       required: true,
-      default: Date.now,
     },
   },
   {
@@ -39,4 +38,4 @@ const PaperSchema = new Schema(
   }
 );
 
-module.exports = mongoose.model("Assignment", PaperSchema);
+module.exports = mongoose.model("Assignment", AssignmentSchema);
