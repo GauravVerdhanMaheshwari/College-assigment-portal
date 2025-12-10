@@ -49,18 +49,6 @@ function FacultiesHomePage() {
     },
   ];
 
-  const dummyAssignments = [
-    {
-      id: 1,
-      topic: "React Basics",
-      subject: "Web Development",
-      assignedBy: "Prof. Sharma",
-      assignedTo: "TY BSc IT",
-      dueDate: "2025-09-25",
-      description: "Introduction to components, props and state",
-    },
-  ];
-
   return (
     <div className="w-full h-full bg-gradient-to-b from-[#C4B5FD] to-[#8B5CF6]">
       <div className="flex flex-col h-full">
@@ -111,10 +99,7 @@ function FacultiesHomePage() {
 
         {/* ASSIGNMENTS LIST */}
         <div id="assignmentsList" className="mb-12">
-          <AssignmentsList
-            assignments={dummyAssignments}
-            textCSS="text-[#4C1D95] text-shadow-[0px_0px_10px_rgba(124,58,237,0.9)]"
-          />
+          <AssignmentsList textCSS="text-[#4C1D95] text-shadow-[0px_0px_10px_rgba(124,58,237,0.9)]" />
         </div>
 
         {/* ASSIGNMENT FORM */}
