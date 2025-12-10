@@ -1,5 +1,5 @@
 import React from "react";
-import AssignmentUploadForm from "./AssignmentUploadForm";
+import AssignmentUploadForm from "./AssignmentUploadForm.jsx";
 
 function FutureAssignmentsList({
   assignments,
