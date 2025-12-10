@@ -28,7 +28,7 @@ app.use("/library-managers", require("./Routers/library_managerRoute"));
 // Import and use admin routes
 app.use("/admins", require("./Routers/adminRoute"));
 // Import and use assignment routes
-// app.use("/assignments", require("./Routers/assignmentRoute"));
+app.use("/assignments", require("./Routers/assignmentRoute"));
 // Import and use paper routes
 app.use("/papers", require("./Routers/paperRoute"));
 
