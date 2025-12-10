@@ -43,7 +43,7 @@ export default function QuickAccess() {
 
   return (
     <div className="bg-[#BB4430] text-[#FFFCF2] min-h-screen flex flex-col items-center justify-center p-6">
-      <h1 className="text-5xl font-semibold mb-10 hover:text-shadow-[0px_0px_30px] text-shadow-[#00b6c3] hover:underline hover:underline-offset-10 transition-all duration-300 ease-in-out cursor-default">
+      <h1 className="text-5xl font-semibold mb-10 hover:text-shadow-[0px_0px_30px] text-shadow-[#00b6c3] transition-all duration-300 ease-in-out cursor-default">
         Quick Access
       </h1>
       <div className=" bg-[#F3DFA2] text-black p-10 rounded-2xl shadow-[0px_0px_20px_10px_rgba(0,0,0,0.25)] w-full max-w-xl  transition-all duration-300 ease-in-out">
