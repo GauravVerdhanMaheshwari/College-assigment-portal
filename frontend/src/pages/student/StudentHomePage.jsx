@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Header, Hero, NotificationPanel } from "../../components/index";
 import {
   StudentAssignmentsList,
-  AssignmentUploadForm,
+  // AssignmentUploadForm,
   FutureAssignmentsList,
 } from "./index.js";
 
