@@ -3,7 +3,7 @@ import React, { useState } from "react";
 function AssignmentForm({ textCSS, buttonCSS }) {
   const courses = ["CE", "IT", "AI/ML", "CS", "ME"];
   const sections = ["A", "B", "C", "D"];
-  const semesters = ["1", "2", "3", "4"];
+  const semesters = ["1", "2", "3", "4", "5"];
 
   const [assignment, setAssignment] = useState({
     topic: "",
@@ -21,7 +21,7 @@ function AssignmentForm({ textCSS, buttonCSS }) {
   const [selectedSemester, setSelectedSemester] = useState("");
 
   const updateAssignedTo = (course, section, semester) => {
-    const value = `${course}-${section}-${semester}`;
+    const value = `${course}-${semester}-${section}`;
     setAssignment({ ...assignment, assignedTo: value });
   };
 
@@ -62,6 +62,7 @@ function AssignmentForm({ textCSS, buttonCSS }) {
       setSelectedCourse("");
       setSelectedSection("");
       setSelectedSemester("");
+      location.reload();
     } catch (error) {
       console.log(error);
       alert(error.message);
