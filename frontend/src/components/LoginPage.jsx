@@ -17,6 +17,7 @@ function LoginPage({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   // sessionStorage.setItem("user", JSON.stringify({}));
 
@@ -68,14 +69,27 @@ function LoginPage({
             required
           />
 
-          <input
-            type="password"
-            placeholder="Enter your password"
-            className={`mb-6 py-3 px-2 w-80 rounded-xl border border-gray-300 bg-[#ffffffa1] focus:outline-none focus:shadow-[7px_7px_8px_1px_rgba(_0,_0,_0,_0.3)] transition-all duration-300 ease-in-out${inputCSS}`}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="mb-4 flex flex-row">
+            <div>
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                className={`mb-6 py-3 px-2 w-80 rounded-xl border border-gray-300 bg-[#ffffffa1] focus:outline-none focus:shadow-[7px_7px_8px_1px_rgba(_0,_0,_0,_0.3)] transition-all duration-300 ease-in-out${inputCSS}`}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="ml-2 mt-4">
+              <label
+                htmlFor="showPassword"
+                className="text-black bg-blue-300 px-2 py-1 rounded-full hover:bg-blue-400 hover:shadow-[-4px_4px_5px_rgba(0,0,0,.1)] font-semibold cursor-pointer select-none transition-all duration-300 ease-in-out hover:text-shadow-[-4px_4px_5px_rgba(0,0,0,.1)]"
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? "HIDE" : "SHOW"}
+              </label>
+            </div>
+          </div>
 
           <button
             type="submit"
