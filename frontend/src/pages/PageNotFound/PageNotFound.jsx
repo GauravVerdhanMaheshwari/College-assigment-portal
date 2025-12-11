@@ -36,7 +36,10 @@ function PageNotFound() {
         Oops! This page doesn't exist.
       </p>
       <p className="text-2xl mb-2">But here's a cat to cheer you up 🐱</p>
-      <p className="text-2xl mb-6">Refresh the page to see another cat! 🔄</p>
+      <p className="text-2xl mb-6">
+        Refresh the page to see another cat!{" "}
+        <span className="cursor-pointer" onClick={() => location.reload()}>🔄</span>
+      </p>
 
       <img
         src={randomGif}
