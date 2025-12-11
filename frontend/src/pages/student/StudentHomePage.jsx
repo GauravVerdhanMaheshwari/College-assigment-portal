@@ -11,32 +11,30 @@ function StudentHomePage() {
   const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem("user"));
   const [searchTerm, setSearchTerm] = useState("");
+  const [futureAssignments, setFutureAssignments] = useState([]);
 
-  // Dummy faculty assignments (future)
-  const [futureAssignments] = useState([
-    {
-      id: "A1",
-      topic: "React Basics",
-      subject: "Web Development",
-      assignedBy: "Prof. Sharma",
-      division: "C",
-      course: "C.E",
-      year: 5,
-      dueDate: "2025-09-25",
-      description: "Intro to components, props and state",
-    },
-    {
-      id: "A2",
-      topic: "AI Ethics",
-      subject: "AI",
-      assignedBy: "Prof. Rao",
-      division: "B",
-      course: "C.E",
-      year: 4,
-      dueDate: "2025-10-01",
-      description: "Essay on ethics in AI",
-    },
-  ]);
+  // faculty assignments
+
+  useEffect(() => {
+    if (!user?.student) return;
+
+    const studentClass = `${user.student.course}-${user.student.year}-${user.student.division}`;
+
+    try {
+      fetch("http://localhost:3000/assignments/")
+        .then((response) => response.json())
+        .then((data) => {
+          // Keep only assignments assigned to the student's class
+          const filteredAssignments = data.filter(
+            (a) => a.assignedTo === studentClass
+          );
+
+          setFutureAssignments(filteredAssignments);
+        });
+    } catch (error) {
+      console.error("Error fetching assignments:", error);
+    }
+  }, []);
 
   // Dummy peer requests (notifications)
   const [requests, setRequests] = useState([
