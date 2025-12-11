@@ -23,7 +23,7 @@ function FutureAssignmentsList({
         <ul className="space-y-4">
           {filtered.map((a) => (
             <li
-              key={a.id}
+              key={a._id}
               className="p-4 bg-white shadow-md rounded-lg flex justify-between items-center"
             >
               <div>
