@@ -5,8 +5,6 @@ function AssignmentForm({ textCSS, buttonCSS }) {
   const sections = ["A", "B", "C", "D"];
   const semesters = ["1", "2", "3", "4"];
 
-  console.log(sessionStorage.getItem("user"));
-
   const [assignment, setAssignment] = useState({
     topic: "",
     subject: "",
