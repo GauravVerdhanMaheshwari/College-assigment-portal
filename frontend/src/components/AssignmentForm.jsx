@@ -39,7 +39,6 @@ function AssignmentForm({ textCSS, buttonCSS }) {
       return;
     }
     try {
-      console.log(assignment);
       const response = await fetch("http://localhost:3000/assignments/", {
         method: "POST",
         headers: {
