@@ -1,69 +1,115 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 function PasswordPage({
-  loginSectionCSS,
-  buttonCSS,
-  aLinkCSS,
+  loginSectionCSS = "",
+  buttonCSS = "",
+  aLinkCSS = "",
   API,
   loginPageLink,
   imageSrc,
   imageAlt,
-  h1CSS,
-  inputCSS,
+  h1CSS = "",
+  inputCSS = "",
 }) {
-  const [name, setName] = React.useState("");
-  const [email, setEmail] = React.useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    document.title = "Forgot Password";
+  }, []);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle forget password logic here
+
+    // 🔹 Replace this with real API call later
     console.log("Name:", name);
     console.log("Email:", email);
-    console.log("API Endpoint:", API);
+    console.log("API:", API);
+
+    setMessage("If this email exists, a reset link will be sent.");
+    setName("");
+    setEmail("");
   };
 
   return (
-    <div className="flex flex-row align-middle justify-center">
+    <div className="min-h-screen flex">
+      {/* -------- LEFT SECTION -------- */}
       <div
-        className={`w-[44vw] h-[100vh] flex absolute left-0 items-center justify-center bg-gradient-to-b ${loginSectionCSS} rounded-r-[40px] shadow-2xl`}
+        className={`w-full md:w-[44vw] flex items-center justify-center
+        bg-gradient-to-b ${loginSectionCSS}
+        px-6`}
       >
-        <form className="flex flex-col" onSubmit={handleSubmit}>
-          <h1 className={`text-4xl text-center ${h1CSS} mb-6`}>
-            FORGET PASSWORD
+        <form
+          onSubmit={handleSubmit}
+          className="w-full max-w-sm flex flex-col gap-5"
+        >
+          <h1 className={`text-4xl text-center font-bold ${h1CSS}`}>
+            FORGOT PASSWORD
           </h1>
+
+          <p className="text-center text-sm text-gray-600">
+            Enter your registered name and email to reset your password.
+          </p>
+
+          {/* Name */}
           <input
             type="text"
-            placeholder="Enter your name"
-            className={`mb-6 py-3 px-2 w-80 rounded-xl border border-gray-300 bg-[#ffffffa1] focus:outline-none focus:shadow-[7px_7px_8px_1px_rgba(0,_0,_0,_0.3)] transition-all duration-300 ease-in-out ${inputCSS}`}
+            placeholder="Full name"
+            className={`py-3 px-4 rounded-xl border border-gray-300
+            bg-white/90 backdrop-blur-sm
+            focus:outline-none focus:ring-2 focus:ring-blue-400
+            transition-all ${inputCSS}`}
             value={name}
             onChange={(e) => setName(e.target.value)}
+            required
           />
+
+          {/* Email */}
           <input
             type="email"
-            placeholder="Enter your email"
-            className={`mb-6 py-3 px-2 w-80 rounded-xl border border-gray-300 bg-[#ffffffa1] focus:outline-none focus:shadow-[7px_7px_8px_1px_rgba(_0,_0,_0,_0.3)] transition-all duration-300 ease-in-out ${inputCSS}`}
+            placeholder="Email address"
+            className={`py-3 px-4 rounded-xl border border-gray-300
+            bg-white/90 backdrop-blur-sm
+            focus:outline-none focus:ring-2 focus:ring-blue-400
+            transition-all ${inputCSS}`}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
           />
+
+          {/* Info message */}
+          {message && (
+            <p className="text-green-600 text-sm text-center">{message}</p>
+          )}
+
+          {/* Button */}
           <button
             type="submit"
-            className={`${buttonCSS} w-45 text-lg mb-2 mx-auto text-white py-2 px-3 rounded-2xl hover:rounded-3xl transition-all duration-300 cursor-pointer ease-in-out`}
+            className={`w-full py-3 rounded-xl text-white font-semibold
+            hover:scale-[1.03] active:scale-[0.97]
+            transition-transform duration-200 ${buttonCSS}`}
           >
-            SEND REQUEST
+            Send Reset Link
           </button>
+
+          {/* Back to login */}
           <Link
             to={loginPageLink}
-            className={`text-center ${aLinkCSS} mt-3 hover:underline transition-all duration-300 ease-in-out`}
+            className={`text-center text-sm hover:underline ${aLinkCSS}`}
           >
-            GO BACK
+            Back to Login
           </Link>
         </form>
       </div>
-      <div className="h-[100vh] absolute -z-1 right-0 w-[60vw]">
+
+      {/* -------- RIGHT IMAGE SECTION -------- */}
+      <div className="hidden md:block w-[56vw]">
         <img
           src={imageSrc}
           alt={imageAlt}
-          className="h-full w-full object-cover"
+          className="h-screen w-full object-cover"
         />
       </div>
     </div>
