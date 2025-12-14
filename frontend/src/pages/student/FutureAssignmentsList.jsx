@@ -11,6 +11,7 @@ function FutureAssignmentsList({
   const filtered = assignments.filter((a) =>
     a.topic.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const user = JSON.parse(sessionStorage.getItem("user"))?.student;
 
   return (
     <div>
@@ -32,7 +33,12 @@ function FutureAssignmentsList({
                 <p className="text-xs text-gray-400">Due: {a.dueDate}</p>
                 <p className="text-xs text-gray-400 italic">{a.description}</p>
               </div>
-              <AssignmentUploadForm onUpload={onUpload} buttonCSS={buttonCSS} />
+              <AssignmentUploadForm
+                onUpload={onUpload}
+                buttonCSS={buttonCSS}
+                studentId={user?._id}
+                assignmentId={a._id}
+              />
             </li>
           ))}
         </ul>
