@@ -1,8 +1,12 @@
 const express = require("express");
 const cors = require("cors");
-const app = express();
 const PORT = process.env.PORT || 3000;
 const mongoose = require("mongoose");
+const { connectGridFS } = require("./config/gridfs");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
 
 // Connect to MongoDB
 mongoose.connect(
@@ -12,10 +16,8 @@ const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", () => {
   console.log("Connected to MongoDB");
+  connectGridFS();
 });
-app.use(cors());
-
-app.use(express.json());
 
 // Import and use student routes
 app.use("/students", require("./Routers/studentRoute"));
