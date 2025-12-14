@@ -1,37 +1,47 @@
 const Paper = require("../Models/paper");
-
-// Create a new paper
+const { getGridFSBucket } = require("../config/gridfs");
 const fs = require("fs");
-const { getGfs } = require("./../config/gridfs");
 
 exports.uploadPaperFile = async (req, res) => {
   try {
-    const gfs = getGfs();
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
 
-    const writeStream = gfs.createWriteStream({
-      filename: req.file.originalname,
-      content_type: req.file.mimetype,
+    const bucket = getGridFSBucket();
+
+    const uploadStream = bucket.openUploadStream(req.file.originalname, {
+      contentType: req.file.mimetype,
     });
 
-    fs.createReadStream(req.file.path).pipe(writeStream);
+    fs.createReadStream(req.file.path)
+      .pipe(uploadStream)
+      .on("error", (err) => {
+        console.error(err);
+        res.status(500).json({ message: "Upload failed" });
+      })
+      .on("finish", async () => {
+        const paper = new Paper({
+          title: req.body.title,
+          studentId: req.body.studentId,
+          assignmentId: req.body.assignmentId,
+          fileId: uploadStream.id,
+        });
 
-    writeStream.on("close", async (file) => {
-      // Create the paper with file reference
-      const paper = new Paper({
-        ...req.body,
-        fileId: file._id,
+        console.log("Paper to be saved:", paper);
+
+        await paper.save();
+
+        fs.unlinkSync(req.file.path);
+
+        res.status(201).json({
+          message: "Uploaded successfully",
+          paper,
+        });
       });
-
-      await paper.save();
-
-      res.status(201).json({
-        message: "File uploaded and paper created",
-        paper,
-      });
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
   }
 };
 
