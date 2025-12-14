@@ -11,7 +11,7 @@ function StudentLogin() {
       imageSrc="/student.png"
       imageAlt="Student login image"
       API="students"
-      forgetPasswordLink="/student/forget-password"
+      forgetPasswordLink="/student/forgetPassword"
       redirectLink="/student"
       pageAbout="Student"
     />
