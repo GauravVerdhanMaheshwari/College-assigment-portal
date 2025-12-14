@@ -164,6 +164,7 @@ function AssignmentCard({ a, facultyId }) {
     setSelectedSemester(a.assignedTo.split("-")[1] || "");
     setSelectedSection(a.assignedTo.split("-")[2] || "");
     setIsEditing(false);
+    location.reload();
   };
 
   const handleDelete = () => {
@@ -182,6 +183,7 @@ function AssignmentCard({ a, facultyId }) {
         .catch((error) => {
           console.error("There was a problem with the fetch operation:", error);
         });
+    location.reload();
   };
 
   const canEdit = a.facultyId === facultyId;
