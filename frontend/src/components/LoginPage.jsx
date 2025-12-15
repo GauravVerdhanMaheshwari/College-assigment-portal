@@ -120,7 +120,7 @@ function LoginPage({
           className="w-full max-w-sm flex flex-col gap-5"
         >
           <h1 className={`text-4xl text-center font-bold ${h1CSS}`}>
-            {pageAbout.toUpperCase()} LOGIN
+            {pageAbout.toUpperCase()} LOGIN PAGE
           </h1>
 
           {/* Email */}
