@@ -1,6 +1,5 @@
 const Paper = require("../Models/paper");
 const { getGridFSBucket } = require("../config/gridfs");
-const fs = require("fs");
 
 // Get all papers
 exports.getAllPapers = async (req, res) => {
@@ -65,18 +64,19 @@ exports.updatePaperById = async (req, res) => {
 exports.deletePaperById = async (req, res) => {
   try {
     const paper = await Paper.findById(req.params.id);
-    if (!paper) {
-      return res.status(404).json({ message: "Paper not found" });
-    }
+    if (!paper) return res.status(404).json({ message: "Paper not found" });
 
     const bucket = getGridFSBucket();
     await bucket.delete(paper.fileId);
 
     await paper.deleteOne();
 
-    res.status(200).json({ message: "Paper and file deleted" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json({
+      message: "Paper deleted",
+      assignmentId: paper.assignmentId,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -84,7 +84,7 @@ exports.deletePaperById = async (req, res) => {
 exports.getPapersByStudentId = async (req, res) => {
   try {
     const papers = await Paper.find({ studentId: req.params.studentId });
-    res.status(200).json(papers);
+    res.json(papers);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -164,31 +164,28 @@ exports.uploadPaperFile = async (req, res) => {
       contentType: req.file.mimetype,
     });
 
-    fs.createReadStream(req.file.path)
-      .pipe(uploadStream)
-      .on("error", (err) => {
-        console.error(err);
-        res.status(500).json({ message: "Upload failed" });
-      })
-      .on("finish", async () => {
-        const paper = new Paper({
-          title: req.body.title,
-          studentId: req.body.studentId,
-          assignmentId: req.body.assignmentId,
-          fileId: uploadStream.id,
-        });
+    uploadStream.end(req.file.buffer); // ✅ FIX HERE
 
-        console.log("Paper to be saved:", paper);
+    uploadStream.on("error", (err) => {
+      console.error(err);
+      res.status(500).json({ message: "Upload failed" });
+    });
 
-        await paper.save();
-
-        fs.unlinkSync(req.file.path);
-
-        res.status(201).json({
-          message: "Uploaded successfully",
-          paper,
-        });
+    uploadStream.on("finish", async () => {
+      const paper = new Paper({
+        title: req.body.title,
+        studentId: req.body.studentId,
+        assignmentId: req.body.assignmentId,
+        fileId: uploadStream.id,
       });
+
+      await paper.save();
+
+      res.status(201).json({
+        success: true,
+        paper,
+      });
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
@@ -196,22 +193,45 @@ exports.uploadPaperFile = async (req, res) => {
 };
 
 // Download a paper file
-exports.downloadPaperFile = async (req, res) => {
+exports.downloadPaper = async (req, res) => {
   try {
     const paper = await Paper.findById(req.params.id);
-    if (!paper) {
-      return res.status(404).json({ message: "Paper not found" });
-    }
+    if (!paper) return res.status(404).json({ message: "Paper not found" });
 
     const bucket = getGridFSBucket();
-    const stream = bucket.openDownloadStream(paper.fileId);
 
-    stream.on("error", () => {
-      res.status(404).json({ message: "File not found" });
+    // Fetch the file info from GridFS
+    const files = await bucket.find({ _id: paper.fileId }).toArray();
+    if (!files || files.length === 0) {
+      return res.status(404).json({ message: "File not found in GridFS" });
+    }
+
+    const file = files[0];
+
+    // Set headers for download
+    res.set({
+      "Content-Type": "application/pdf", // force PDF type
+      "Content-Disposition": `attachment; filename="${file.filename}"`,
     });
 
-    stream.pipe(res);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    // Stream the file
+    bucket.openDownloadStream(paper.fileId).pipe(res);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
   }
+};
+
+exports.getMySubmissions = async (req, res) => {
+  const { studentId } = req.params;
+  const papers = await Paper.find({ studentId });
+  res.status(200).json(papers);
+};
+
+exports.toggleVisibility = async (req, res) => {
+  const paper = await Paper.findById(req.params.id);
+  paper.isPublic = !paper.isPublic;
+  paper.visibilityUpdatedAt = new Date();
+  await paper.save({ timestamps: false });
+  res.json(paper);
 };
