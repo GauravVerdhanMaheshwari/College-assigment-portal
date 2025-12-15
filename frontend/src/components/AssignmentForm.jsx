@@ -21,7 +21,7 @@ function AssignmentForm({ textCSS, buttonCSS }) {
   const [selectedSemester, setSelectedSemester] = useState("");
 
   const updateAssignedTo = (course, section, semester) => {
-    const value = `${course}-${semester}-${section}`;
+    const value = `${course}-${section}-${semester}`;
     setAssignment({ ...assignment, assignedTo: value });
   };
 
