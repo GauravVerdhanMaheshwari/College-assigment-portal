@@ -12,6 +12,7 @@ function AssignmentUploadForm({
   const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {
+    if (!confirm("Are you sure you want to upload this assignment?")) return;
     e.preventDefault();
     if (!title || !file) {
       alert("Please provide a title and select a file.");
