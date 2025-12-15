@@ -1,42 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header, Hero, NotificationPanel } from "../../components/index";
-import {
-  StudentAssignmentsList,
-  // AssignmentUploadForm,
-  FutureAssignmentsList,
-} from "./index.js";
+import { StudentAssignmentsList, FutureAssignmentsList } from "./index.js";
 
 function StudentHomePage() {
   const navigate = useNavigate();
-  const user = JSON.parse(sessionStorage.getItem("user"));
+
+  /* 🔐 stable user reference */
+  const user = useMemo(() => JSON.parse(sessionStorage.getItem("user")), []);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [futureAssignments, setFutureAssignments] = useState([]);
+  const [submissions, setSubmissions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // faculty assignments
-
-  useEffect(() => {
-    if (!user?.student) return;
-
-    const studentClass = `${user.student.course}-${user.student.year}-${user.student.division}`;
-
-    try {
-      fetch("http://localhost:3000/assignments/")
-        .then((response) => response.json())
-        .then((data) => {
-          // Keep only assignments assigned to the student's class
-          const filteredAssignments = data.filter(
-            (a) => a.assignedTo === studentClass
-          );
-
-          setFutureAssignments(filteredAssignments);
-        });
-    } catch (error) {
-      console.error("Error fetching assignments:", error);
-    }
-  }, []);
-
-  // Dummy peer requests (notifications)
+  /* 🔔 requests MUST be declared before any return */
   const [requests, setRequests] = useState([
     {
       id: "R1",
@@ -48,52 +26,78 @@ function StudentHomePage() {
     },
   ]);
 
-  // Student's own submissions
-  const [submissions, setSubmissions] = useState([
-    {
-      id: "S1",
-      title: "React Basics - My Submission",
-      fileName: "react_basics_alice.pdf",
-      division: "C",
-      course: "C.E",
-      year: 5,
-      public: false,
-      uploadedAt: "2025-09-12",
-    },
-  ]);
-
+  /* 🔐 AUTH GUARD */
   useEffect(() => {
-    if (!user?.student) {
+    if (!user?.student || user.student.role !== "student") {
       sessionStorage.clear();
-      console.log("No user logged in");
-      navigate("/");
-    }
-
-    if (user?.student.role !== "student") {
-      sessionStorage.clear();
-      console.log("User is not authorized");
       navigate("/");
     }
   }, [user, navigate]);
 
-  const handleUpload = (newSubmission) => {
-    setSubmissions((prev) => [
-      {
-        id: `S${Date.now()}`,
-        ...newSubmission,
-        uploadedAt: new Date().toISOString().slice(0, 10),
-      },
-      ...prev,
-    ]);
-    alert("Submission uploaded (UI only).");
+  /* 📦 FETCH DATA (RUNS ONCE) */
+  useEffect(() => {
+    if (!user?.student) return;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        const [assignmentsRes, submissionsRes] = await Promise.all([
+          fetch("http://localhost:3000/assignments/"),
+          fetch(`http://localhost:3000/papers/student/${user.student._id}`),
+        ]);
+
+        if (!assignmentsRes.ok || !submissionsRes.ok) {
+          throw new Error("API returned HTML or error page");
+        }
+
+        const assignments = await assignmentsRes.json();
+        const papers = await submissionsRes.json();
+
+        const studentClass = `${user.student.course}-${user.student.year}-${user.student.division}`;
+
+        setFutureAssignments(
+          assignments.filter((a) => a.assignedTo === studentClass)
+        );
+        setSubmissions(papers);
+      } catch (err) {
+        console.error("Fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user]);
+
+  /* 📤 AFTER UPLOAD */
+  const handleUpload = (paper) => {
+    setSubmissions((prev) => [paper, ...prev]);
   };
 
-  const togglePublic = (id) => {
+  /* 🔓 TOGGLE PUBLIC */
+  const togglePublic = async (paperId) => {
+    const res = await fetch(
+      `http://localhost:3000/papers/${paperId}/toggle-visibility`,
+      { method: "PATCH" }
+    );
+    const updated = await res.json();
+
     setSubmissions((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, public: !s.public } : s))
+      prev.map((p) => (p._id === updated._id ? updated : p))
     );
   };
 
+  const handleDelete = async (paperId) => {
+    confirm("Are you sure you want to delete this submission?") &&
+      (await fetch(`http://localhost:3000/papers/${paperId}`, {
+        method: "DELETE",
+      }));
+
+    setSubmissions((prev) => prev.filter((p) => p._id !== paperId));
+  };
+
+  /* 🔔 PEER REQUEST ACTION */
   const handleRequestAction = (requestId, action) => {
     setRequests((prev) =>
       prev.map((r) => (r.id === requestId ? { ...r, status: action } : r))
@@ -101,12 +105,21 @@ function StudentHomePage() {
     alert(`Request ${action}`);
   };
 
+  /* ⏳ SAFE LOADING RENDER (AFTER ALL HOOKS) */
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-xl font-semibold">
+        Loading your assignments...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gradient-to-b from-[#FFF6E0] to-[#FFE39E] min-h-screen w-full">
       <Header
         wantSearch={true}
         searchPlaceholder="Search assignments..."
-        textColor="text-[#073B4C] text-shadow-[0px_0px_10px_rgba(7,59,76,0.9)]"
+        textColor="text-[#073B4C]"
         headerStyle="to-[#FFE9B5] from-[#FFD166]"
         profileNavigate="/student/profile"
         dummyReports={requests}
@@ -129,27 +142,21 @@ function StudentHomePage() {
           heroBgColor="to-[#FFCE5BFF] from-[#F8B009FF]"
         />
 
-        {/* Submissions */}
         <div id="studentAssignments" className="my-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-[#073B4C]">
-              Your Submissions
-            </h2>
-          </div>
-
           <StudentAssignmentsList
             submissions={submissions}
             onTogglePublic={togglePublic}
+            onDelete={handleDelete}
             searchTerm={searchTerm}
             textCSS="text-[#073B4C]"
             buttonCSS="bg-[#78350F] hover:bg-[#78350F]/80 text-white"
           />
         </div>
 
-        {/* Future assignments */}
         <div id="futureAssignments" className="my-6">
           <FutureAssignmentsList
             assignments={futureAssignments}
+            submissions={submissions}
             searchTerm={searchTerm}
             textCSS="text-[#073B4C]"
             buttonCSS="bg-[#78350F] hover:bg-[#78350F]/80 text-white"
@@ -157,11 +164,7 @@ function StudentHomePage() {
           />
         </div>
 
-        {/* Peer requests */}
         <div id="peerSubmissions" className="my-6">
-          <h2 className="text-2xl font-bold text-[#073B4C] mb-4">
-            Peer Access Requests
-          </h2>
           <NotificationPanel
             reports={requests}
             onApprove={(id) => handleRequestAction(id, "approved")}
