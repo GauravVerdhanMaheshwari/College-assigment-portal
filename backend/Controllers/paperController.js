@@ -221,7 +221,6 @@ exports.downloadPaper = async (req, res) => {
 
     const bucket = getGridFSBucket();
 
-    // Fetch the file info from GridFS
     const files = await bucket.find({ _id: paper.fileId }).toArray();
     if (!files || files.length === 0) {
       return res.status(404).json({ message: "File not found in GridFS" });
@@ -229,14 +228,21 @@ exports.downloadPaper = async (req, res) => {
 
     const file = files[0];
 
-    // Set headers for download
     res.set({
-      "Content-Type": "application/pdf", // force PDF type
+      "Content-Type": file.contentType || "application/pdf",
       "Content-Disposition": `attachment; filename="${file.filename}"`,
     });
 
-    // Stream the file
-    bucket.openDownloadStream(paper.fileId).pipe(res);
+    const stream = bucket.openDownloadStream(paper.fileId);
+
+    stream.on("error", (err) => {
+      console.error("GridFS stream error:", err);
+      if (!res.headersSent) {
+        res.status(500).json({ message: "Error reading file" });
+      }
+    });
+
+    stream.pipe(res);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
