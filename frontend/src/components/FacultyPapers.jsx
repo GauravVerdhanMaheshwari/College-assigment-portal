@@ -9,12 +9,13 @@ function FacultyPapers({ papers }) {
   const [isGrouped, setIsGrouped] = useState(false);
 
   useEffect(() => {
-    setLocalPapers(papers);
-    setFilteredPapers(papers);
+    setLocalPapers(papers || []);
+    setFilteredPapers(papers || []);
   }, [papers]);
 
-  const handleGrade = async (id, grade) => {
-    const res = await fetch(`http://localhost:3000/papers/${id}/grade`, {
+  /* ===================== GRADE ===================== */
+  const handleGrade = async (paperId, grade) => {
+    const res = await fetch(`http://localhost:3000/papers/${paperId}/grade`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ grade }),
@@ -22,11 +23,12 @@ function FacultyPapers({ papers }) {
 
     if (res.ok) {
       setLocalPapers((prev) =>
-        prev.map((p) => (p._id === id ? { ...p, grade } : p))
+        prev.map((p) => (p._id === paperId ? { ...p, grade } : p))
       );
     }
   };
 
+  /* ===================== ADD COMMENT ===================== */
   const handleAddComment = async (paperId, text, input) => {
     if (!text.trim()) return;
 
@@ -54,6 +56,36 @@ function FacultyPapers({ papers }) {
     input.value = "";
   };
 
+  /* ===================== EDIT COMMENT ===================== */
+  const handleEditComment = async (paperId, commentId, newText) => {
+    if (!newText.trim()) return;
+
+    const res = await fetch(
+      `http://localhost:3000/papers/${paperId}/comment/${commentId}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: newText }),
+      }
+    );
+
+    if (!res.ok) return;
+
+    setLocalPapers((prev) =>
+      prev.map((p) =>
+        p._id === paperId
+          ? {
+              ...p,
+              comments: p.comments.map((c) =>
+                c._id === commentId ? { ...c, text: newText } : c
+              ),
+            }
+          : p
+      )
+    );
+  };
+
+  /* ===================== DELETE COMMENT ===================== */
   const handleDeleteComment = async (paperId, commentId) => {
     await fetch(
       `http://localhost:3000/papers/${paperId}/comment/${commentId}`,
@@ -72,31 +104,40 @@ function FacultyPapers({ papers }) {
     );
   };
 
+  /* ===================== DOWNLOAD ===================== */
+  const handleDownload = (paperId) => {
+    window.open(`http://localhost:3000/papers/${paperId}/download`, "_blank");
+  };
+
+  /* ===================== RENDER PAPER ===================== */
   const renderPaper = (paper) => (
     <div key={paper._id} className="p-4 bg-white rounded-xl shadow mb-6">
       <h3 className="text-xl font-semibold">{paper.title}</h3>
+
       <p>Student: {paper.studentName}</p>
       <p>Enrollment: {paper.enrollment}</p>
       <p>Class: {paper.division}</p>
       <p>Course: {paper.course}</p>
       <p>Semester: {paper.semester}</p>
 
+      {/* 🎓 Grade */}
       <div className="mt-2">
-        <label>Grade: </label>
+        <label className="font-medium">Grade: </label>
         <input
           type="number"
           defaultValue={paper.grade ?? ""}
           onBlur={(e) => handleGrade(paper._id, e.target.value)}
           className="border p-1 rounded"
-          placeholder="0-100"
           min={0}
           max={100}
+          placeholder="0-100"
         />
       </div>
 
+      {/* 💬 Comments */}
       <div className="mt-4">
         <input
-          placeholder="Write a comment..."
+          placeholder="Write a comment and press Enter"
           className="w-full border p-2 mb-2 rounded"
           onKeyDown={(e) =>
             e.key === "Enter" &&
@@ -105,8 +146,19 @@ function FacultyPapers({ papers }) {
         />
 
         {(paper.comments || []).map((c) => (
-          <div key={c._id} className="flex gap-2 items-center">
-            <span className="flex-1">{c.text}</span>
+          <div key={c._id} className="flex gap-2 items-center mb-1">
+            <input
+              defaultValue={c.text}
+              className="flex-1 border p-1 rounded"
+              onBlur={(e) =>
+                handleEditComment(paper._id, c._id, e.target.value)
+              }
+              onKeyDown={(e) =>
+                e.key === "Enter" &&
+                handleEditComment(paper._id, c._id, e.target.value)
+              }
+            />
+
             <button
               className="text-red-500"
               onClick={() => handleDeleteComment(paper._id, c._id)}
@@ -116,6 +168,14 @@ function FacultyPapers({ papers }) {
           </div>
         ))}
       </div>
+
+      {/* 📥 Download */}
+      <button
+        onClick={() => handleDownload(paper._id)}
+        className="mt-3 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+      >
+        ⬇ Download Paper
+      </button>
     </div>
   );
 
@@ -131,7 +191,6 @@ function FacultyPapers({ papers }) {
         }}
       />
 
-      {/* 🧠 HANDLE BOTH CASES */}
       {isGrouped
         ? Object.entries(filteredPapers).map(([group, papers]) => (
             <div key={group} className="mb-6">
