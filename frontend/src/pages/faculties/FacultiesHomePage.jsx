@@ -1,5 +1,5 @@
 // FacultiesHomePage.jsx
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Header, Hero } from "../../components/index";
 import {
   FacultyPapers,
@@ -26,30 +26,14 @@ function FacultiesHomePage() {
     }
   }, [user, navigate]);
 
-  const dummyPapers = [
-    {
-      id: 1,
-      title: "AI in Agriculture",
-      author: "John Doe",
-      division: "C",
-      course: "C.E",
-      semester: 5,
-      enrollment: 158,
-      comments: ["Very insightful work."],
-      rating: 4,
-    },
-    {
-      id: 2,
-      title: "Blockchain in Supply Chain",
-      author: "Jane Smith",
-      division: "B",
-      course: "C.S",
-      semester: 4,
-      enrollment: 159,
-      comments: [],
-      rating: 5,
-    },
-  ];
+  const [papers, setPapers] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3000/papers/faculty")
+      .then((res) => res.json())
+      .then((data) => setPapers(data))
+      .catch((err) => console.error(err));
+  }, []);
 
   return (
     <div className="w-full h-full bg-gradient-to-b from-[#C4B5FD] to-[#8B5CF6]">
@@ -93,9 +77,9 @@ function FacultiesHomePage() {
         {/* PAPERS SECTION */}
         <div id="facultyPapers" className="mb-12">
           <FacultyPapers
-            papers={dummyPapers}
-            textCSS="text-[#4C1D95] text-shadow-[0px_0px_10px_rgba(124,58,237,0.9)]"
-            buttonCSS="bg-[#4C1D95] hover:bg-[#4C1D95]/70 hover:shadow-[4px_4px_16px_1px_rgba(97,41,186,0.4)] text-white"
+            papers={papers}
+            textCSS="text-[#4C1D95]"
+            buttonCSS="bg-[#4C1D95] text-white"
           />
         </div>
 
