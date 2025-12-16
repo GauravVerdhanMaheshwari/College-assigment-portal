@@ -9,6 +9,10 @@ router.post("/upload", upload.single("file"), paperController.uploadPaperFile);
 router.get("/:id/download", paperController.downloadPaper);
 router.get("/student/:studentId", paperController.getPapersByStudentId);
 router.patch("/:id/toggle-visibility", paperController.toggleVisibility);
+router.get("/faculty", paperController.getFacultyPapers);
+router.patch("/:id/grade", paperController.gradePaper);
+router.post("/:id/comment", paperController.addComment);
+router.delete("/:paperId/comment/:commentId", paperController.deleteComment);
 
 router.get("/", paperController.getAllPapers);
 router.get("/:id", paperController.getPaperById);
