@@ -4,12 +4,21 @@ const Schema = mongoose.Schema;
 const PaperSchema = new Schema(
   {
     title: String,
+
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: "Student" },
     assignmentId: { type: mongoose.Schema.Types.ObjectId, ref: "Assignment" },
 
     fileId: { type: mongoose.Schema.Types.ObjectId, ref: "fs.files" },
 
-    grade: { type: Number, default: null },
+    grade: { type: Number, default: null }, // 0–100
+
+    comments: [
+      {
+        facultyId: { type: mongoose.Schema.Types.ObjectId, ref: "Faculty" },
+        text: String,
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
 
     isPublic: { type: Boolean, default: false },
     visibilityUpdatedAt: { type: Date },
