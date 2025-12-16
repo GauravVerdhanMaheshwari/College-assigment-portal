@@ -131,7 +131,15 @@ function FacultyPapers({ papers }) {
         }}
       />
 
-      {filteredPapers.map(renderPaper)}
+      {/* 🧠 HANDLE BOTH CASES */}
+      {isGrouped
+        ? Object.entries(filteredPapers).map(([group, papers]) => (
+            <div key={group} className="mb-6">
+              <h3 className="text-lg font-bold mb-2">{group}</h3>
+              {papers.map(renderPaper)}
+            </div>
+          ))
+        : filteredPapers.map(renderPaper)}
     </div>
   );
 }
