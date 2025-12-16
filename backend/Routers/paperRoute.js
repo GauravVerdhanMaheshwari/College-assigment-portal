@@ -12,6 +12,10 @@ router.patch("/:id/toggle-visibility", paperController.toggleVisibility);
 router.get("/faculty", paperController.getFacultyPapers);
 router.patch("/:id/grade", paperController.gradePaper);
 router.post("/:id/comment", paperController.addComment);
+router.patch(
+    "/papers/:paperId/comment/:commentId",
+    paperController.updateComment
+);
 router.delete("/:paperId/comment/:commentId", paperController.deleteComment);
 
 router.get("/", paperController.getAllPapers);
