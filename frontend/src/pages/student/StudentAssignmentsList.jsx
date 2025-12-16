@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 function StudentAssignmentsList({
   submissions,
@@ -8,9 +8,20 @@ function StudentAssignmentsList({
   textCSS,
   buttonCSS,
 }) {
+  const [openComments, setOpenComments] = useState(null);
+
   const filtered = submissions.filter((s) =>
     s.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const getGradeStyle = (grade) => {
+    if (grade === null || grade === undefined)
+      return "italic font-bold text-lg text-gray-500";
+    if (grade >= 85) return "text-green-700 font-bold text-lg";
+    if (grade >= 60) return "text-yellow-400 font-bold text-lg";
+    if (grade >= 40) return "text-orange-500 font-bold text-lg";
+    return "text-red-600 font-bold text-lg";
+  };
 
   return (
     <div>
@@ -19,38 +30,97 @@ function StudentAssignmentsList({
       ) : (
         <ul className="space-y-4">
           {filtered.map((s) => (
-            <li
-              key={s._id}
-              className="p-4 bg-white shadow-lg rounded-lg flex justify-between items-center"
-            >
-              <div>
-                <h3 className={`font-semibold ${textCSS}`}>{s.title}</h3>
-                <p className="text-xs text-gray-400">
-                  Uploaded: {new Date(s.createdAt).toLocaleString()}
-                </p>
+            <li key={s._id} className="p-4 bg-white shadow-lg rounded-lg">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className={`font-semibold ${textCSS}`}>{s.title}</h3>
+
+                  {/* 🎓 Grade */}
+                  <p className="text-sm mt-1">
+                    <span className="font-medium">Grade: </span>
+                    <span className={getGradeStyle(s.grade)}>
+                      {s.grade !== null && s.grade !== undefined
+                        ? `${s.grade} / 100`
+                        : "Not graded / Yet to be graded"}
+                    </span>
+                  </p>
+
+                  <p className="text-xs text-gray-400">
+                    Uploaded: {new Date(s.createdAt).toLocaleString()}
+                  </p>
+                </div>
+
+                {/* 🎛 Buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onTogglePublic(s._id)}
+                    className={`px-3 py-1 rounded ${buttonCSS}`}
+                  >
+                    {s.isPublic ? "Make Private" : "Make Public"}
+                  </button>
+
+                  <a
+                    href={`http://localhost:3000/papers/${s._id}/download`}
+                    className="px-3 py-1 rounded bg-blue-600 text-white"
+                  >
+                    Download
+                  </a>
+
+                  <button
+                    onClick={() => onDelete(s._id, s.assignmentId)}
+                    disabled={s.grade !== null && s.grade !== undefined}
+                    title={
+                      s.grade !== null && s.grade !== undefined
+                        ? "Cannot delete after grading"
+                        : "Delete submission"
+                    }
+                    className={`px-3 py-1 rounded text-white ${
+                      s.grade !== null && s.grade !== undefined
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-red-600 hover:bg-red-700"
+                    }`}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
 
-              <div className="flex gap-2">
+              {/* 💬 Faculty Feedback */}
+              <div className="mt-3">
                 <button
-                  onClick={() => onTogglePublic(s._id)}
-                  className={`px-3 py-1 rounded ${buttonCSS}`}
+                  onClick={() =>
+                    setOpenComments(openComments === s._id ? null : s._id)
+                  }
+                  className="text-sm text-blue-600 underline"
                 >
-                  {s.isPublic ? "Make Private" : "Make Public"}
+                  {openComments === s._id
+                    ? "Hide Faculty Feedback"
+                    : "View Faculty Feedback"}
                 </button>
 
-                <a
-                  href={`http://localhost:3000/papers/${s._id}/download`}
-                  className="px-3 py-1 rounded bg-blue-600 text-white"
-                >
-                  Download
-                </a>
-
-                <button
-                  onClick={() => onDelete(s._id, s.assignmentId)}
-                  className="px-3 py-1 rounded bg-red-600 text-white"
-                >
-                  Delete
-                </button>
+                {openComments === s._id && (
+                  <div className="mt-2 bg-gray-50 border rounded p-3 space-y-2">
+                    {s.comments && s.comments.length > 0 ? (
+                      s.comments.map((c) => (
+                        <div key={c._id}>
+                          <p className="text-sm text-gray-800">
+                            <span className="font-semibold">
+                              {c.facultyName}:
+                            </span>{" "}
+                            {c.text}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {new Date(c.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm italic text-gray-500">
+                        No feedback yet.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </li>
           ))}
