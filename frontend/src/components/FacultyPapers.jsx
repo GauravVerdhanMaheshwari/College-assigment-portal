@@ -28,8 +28,22 @@ function FacultyPapers({ papers, textCSS, buttonCSS }) {
     alert(`Reported paper: ${paper.title}`);
   };
 
-  const entityFields = ["Title", "Author", "Class", "Course", "Year"];
-  const entityKeys = ["title", "author", "division", "course", "year"];
+  const entityFields = [
+    "Title",
+    "Author",
+    "Class",
+    "Course",
+    "Enrollment",
+    "Semester",
+  ];
+  const entityKeys = [
+    "title",
+    "author",
+    "division",
+    "course",
+    "enrollment",
+    "semester",
+  ];
 
   const renderPaper = (paper) => (
     <div
@@ -37,16 +51,22 @@ function FacultyPapers({ papers, textCSS, buttonCSS }) {
       className="mb-6 p-4 bg-white rounded-xl shadow-md transition hover:shadow-lg"
     >
       <h3 className="text-xl font-semibold">{paper.title}</h3>
-      <p className="text-sm text-gray-600">By {paper.author}</p>
-      <p>
-        <b>Class:</b> {paper.division}
-      </p>
-      <p>
-        <b>Course:</b> {paper.course}
-      </p>
-      <p>
-        <b>Year:</b> {paper.year}
-      </p>
+      <div className="flex gap-3 my-4">
+        <p className="text-sm text-gray-600">By {paper.author}</p>
+        <p className="text-sm text-gray-600">|</p>
+        <p className="text-sm text-gray-600">Enrollment:{paper.enrollment}</p>
+      </div>
+      <div className="flex gap-3 my-4">
+        <p>
+          <b>Class:</b> {paper.division}
+        </p>
+        <p>
+          <b>Course:</b> {paper.course}
+        </p>
+        <p>
+          <b>Semester:</b> {paper.semester}
+        </p>
+      </div>
 
       {/* ⭐ Ratings */}
       <div className="mt-2">
