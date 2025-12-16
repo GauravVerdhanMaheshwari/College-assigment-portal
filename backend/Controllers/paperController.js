@@ -64,17 +64,20 @@ exports.updatePaperById = async (req, res) => {
 exports.deletePaperById = async (req, res) => {
   try {
     const paper = await Paper.findById(req.params.id);
-    if (!paper) return res.status(404).json({ message: "Paper not found" });
 
-    const bucket = getGridFSBucket();
-    await bucket.delete(paper.fileId);
+    if (!paper) {
+      return res.status(404).json({ message: "Paper not found" });
+    }
+
+    // 🚫 BLOCK deletion if graded
+    if (paper.grade !== null && paper.grade !== undefined) {
+      return res.status(403).json({
+        message: "This paper has been graded and cannot be deleted",
+      });
+    }
 
     await paper.deleteOne();
-
-    res.json({
-      message: "Paper deleted",
-      assignmentId: paper.assignmentId,
-    });
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -83,10 +86,28 @@ exports.deletePaperById = async (req, res) => {
 // Search papers by student ID
 exports.getPapersByStudentId = async (req, res) => {
   try {
-    const papers = await Paper.find({ studentId: req.params.studentId });
-    res.json(papers);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    const papers = await Paper.find({ studentId: req.params.studentId })
+      .populate("assignmentId", "title")
+      .populate("comments.facultyId", "name"); // ✅ POPULATE FACULTY NAME
+
+    res.json(
+      papers.map((p) => ({
+        _id: p._id,
+        title: p.assignmentId?.title || "Untitled Assignment",
+        grade: p.grade,
+        isPublic: p.isPublic,
+        createdAt: p.createdAt,
+        assignmentId: p.assignmentId?._id,
+        comments: p.comments.map((c) => ({
+          _id: c._id,
+          text: c.text,
+          facultyName: c.facultyId?.name || "Faculty",
+          createdAt: c.createdAt,
+        })),
+      }))
+    );
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -239,32 +260,22 @@ exports.toggleVisibility = async (req, res) => {
 exports.getFacultyPapers = async (req, res) => {
   try {
     const papers = await Paper.find()
-      .populate({
-        path: "studentId",
-        select: "name enrollmentNumber division course year",
-      })
-      .populate({
-        path: "assignmentId",
-        select: "title",
-      });
+      .populate("studentId", "name enrollmentNumber division course year")
+      .populate("assignmentId", "title");
 
-    const response = papers.map((p) => ({
-      id: p._id,
-      title: p.assignmentId?.title || "Untitled Assignment",
-      studentName: p.studentId?.name,
-      enrollment: p.studentId?.enrollmentNumber, // ✅ FIX
-      division: p.studentId?.division,
-      course: p.studentId?.course,
-      semester: p.studentId?.year, // ✅ Using year as semester
-      grade: p.grade,
-      comments: p.comments.map((c) => ({
-        id: c._id,
-        text: c.text,
-      })),
-      fileId: p.fileId,
-    }));
-
-    res.status(200).json(response);
+    res.json(
+      papers.map((p) => ({
+        _id: p._id,
+        title: p.assignmentId?.title || "Untitled Assignment",
+        studentName: p.studentId?.name,
+        enrollment: p.studentId?.enrollmentNumber,
+        division: p.studentId?.division,
+        course: p.studentId?.course,
+        semester: p.studentId?.year,
+        grade: p.grade,
+        comments: p.comments,
+      }))
+    );
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -273,9 +284,8 @@ exports.getFacultyPapers = async (req, res) => {
 exports.gradePaper = async (req, res) => {
   const { grade } = req.body;
 
-  if (grade < 0 || grade > 100) {
+  if (grade < 0 || grade > 100)
     return res.status(400).json({ message: "Grade must be 0–100" });
-  }
 
   const paper = await Paper.findById(req.params.id);
   if (!paper) return res.status(404).json({ message: "Paper not found" });
@@ -283,20 +293,20 @@ exports.gradePaper = async (req, res) => {
   paper.grade = grade;
   await paper.save();
 
-  res.json(paper);
+  res.json({ grade });
 };
 
 exports.addComment = async (req, res) => {
-  const paper = await Paper.findById(req.params.id);
+  const { facultyId, text } = req.body;
+  const { id } = req.params;
+
+  const paper = await Paper.findById(id);
   if (!paper) return res.status(404).json({ message: "Paper not found" });
 
-  paper.comments.push({
-    facultyId: req.body.facultyId,
-    text: req.body.text,
-  });
-
+  paper.comments.push({ facultyId, text });
   await paper.save();
-  res.json(paper);
+
+  res.status(201).json(paper.comments.at(-1));
 };
 
 exports.deleteComment = async (req, res) => {
@@ -308,5 +318,21 @@ exports.deleteComment = async (req, res) => {
   paper.comments = paper.comments.filter((c) => c._id.toString() !== commentId);
 
   await paper.save();
-  res.json({ success: true });
+  res.json({ success: true, commentId });
+};
+
+exports.updateComment = async (req, res) => {
+  const { paperId, commentId } = req.params;
+  const { text } = req.body;
+
+  const paper = await Paper.findById(paperId);
+  if (!paper) return res.status(404).json({ message: "Paper not found" });
+
+  const comment = paper.comments.id(commentId);
+  if (!comment) return res.status(404).json({ message: "Comment not found" });
+
+  comment.text = text;
+  await paper.save();
+
+  res.json(comment);
 };
