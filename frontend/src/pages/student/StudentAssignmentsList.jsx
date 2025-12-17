@@ -15,6 +15,11 @@ function StudentAssignmentsList({
     s.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  console.log(submissions);
+
+  const seenByFaculty = (downloads = []) =>
+    downloads.some((d) => d.role === "faculty");
+
   const getGradeStyle = (grade) => {
     if (grade === null || grade === undefined)
       return "italic font-bold text-lg text-gray-500";
@@ -32,11 +37,18 @@ function StudentAssignmentsList({
         <ul className="space-y-4">
           {filtered.map((s) => (
             <li key={s._id} className="p-4 bg-white shadow-lg rounded-lg">
-              <DownloadHistory paperId={s._id} role="student" />
+              <DownloadHistory paperId={s._id} />
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className={`font-semibold ${textCSS}`}>{s.title}</h3>
-
+                  <div className="flex items-center gap-2">
+                    <h3 className={`font-semibold ${textCSS}`}>{s.title}</h3>
+                    {/* 👀 Seen by Faculty */}
+                    {seenByFaculty(s.downloads) && (
+                      <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded">
+                        Seen by Faculty
+                      </span>
+                    )}
+                  </div>
                   {/* 🎓 Grade */}
                   <p className="text-sm mt-1">
                     <span className="font-medium">Grade: </span>
@@ -46,14 +58,27 @@ function StudentAssignmentsList({
                         : "Not graded / Yet to be graded"}
                     </span>
                   </p>
-
+                  {s.isLate && (
+                    <p className="mt-1 text-sm text-red-600 font-medium">
+                      ⚠ Submitted after the deadline
+                    </p>
+                  )}
                   <p className="text-xs text-gray-400">
                     Uploaded: {new Date(s.createdAt).toLocaleString()}
                   </p>
                 </div>
 
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm text-gray-500">
+                    Deadline: {new Date(s.dueDate).toLocaleString()}
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    Submitted: {new Date(s.submittedAt).toLocaleString()}
+                  </p>
+                </div>
+
                 {/* 🎛 Buttons */}
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2">
                   <button
                     onClick={() => onTogglePublic(s._id)}
                     className={`px-3 py-1 rounded ${buttonCSS}`}
@@ -67,7 +92,6 @@ function StudentAssignmentsList({
                   >
                     Download
                   </a>
-
                   <button
                     onClick={() => onDelete(s._id, s.assignmentId)}
                     disabled={s.grade !== null && s.grade !== undefined}
@@ -88,7 +112,7 @@ function StudentAssignmentsList({
               </div>
 
               {/* 💬 Faculty Feedback */}
-              <div className="mt-3">
+              <div className="mt-3 text-center">
                 <button
                   onClick={() =>
                     setOpenComments(openComments === s._id ? null : s._id)
