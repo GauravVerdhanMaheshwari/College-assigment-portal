@@ -81,6 +81,11 @@ function AssignmentsList({ textCSS }) {
         ) : (
           // 📄 RENDER NORMAL LIST
           <div className="grid gap-4">
+            {!filteredAssignments.length && (
+              <p className="text-xl text-center text-gray-500 my-4">
+                No assignments available
+              </p>
+            )}
             {filteredAssignments.map((a) => (
               <AssignmentCard key={a._id} a={a} facultyId={facultyId} />
             ))}
@@ -93,11 +98,12 @@ function AssignmentsList({ textCSS }) {
 
 function AssignmentCard({ a, facultyId }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [allowLate, setAllowLate] = useState(a.allowLateSubmission);
 
   // Dropdown lists (same as AssignmentForm)
   const courses = ["CE", "IT", "AI/ML", "CS", "ME"];
   const sections = ["A", "B", "C", "D"];
-  const semesters = ["1", "2", "3", "4"];
+  const semesters = ["1", "2", "3", "4", "5", "6"];
 
   // Split assignedTo into parts if possible
   const [selectedCourse, setSelectedCourse] = useState(
@@ -116,12 +122,13 @@ function AssignmentCard({ a, facultyId }) {
     assignedTo: a.assignedTo,
     description: a.description,
     dueDate: a.dueDate,
+    gracePeriodMinutes: a.gracePeriodMinutes ?? 120,
   });
 
   // Update assignedTo when dropdowns change
   const updateAssignedTo = (course, sem, sec) => {
     if (!course || !sem || !sec) return;
-    const value = `${course}-${sem}-${sec}`;
+    const value = `${course}-${sem}-${sec}`; // CE-5-C
     setEditData({ ...editData, assignedTo: value });
   };
 
@@ -187,6 +194,24 @@ function AssignmentCard({ a, facultyId }) {
   };
 
   const canEdit = a.facultyId === facultyId;
+
+  const handleToggleLate = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:3000/assignments/${a._id}/toggle-late`,
+        { method: "PATCH" }
+      );
+
+      if (!res.ok) throw new Error("Failed");
+
+      const data = await res.json();
+
+      // ✅ correct React update
+      setAllowLate(data.allowLateSubmission);
+    } catch (err) {
+      alert("Failed to update late submission setting", err);
+    }
+  };
 
   return (
     <div className="p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-all">
@@ -297,6 +322,19 @@ function AssignmentCard({ a, facultyId }) {
                 }
                 className="border px-2 py-1 rounded w-full"
               />
+              <input
+                type="number"
+                min="0"
+                value={editData.gracePeriodMinutes}
+                onChange={(e) =>
+                  setEditData({
+                    ...editData,
+                    gracePeriodMinutes: Number(e.target.value),
+                  })
+                }
+                className="border px-2 py-1 rounded w-full"
+                placeholder="Grace period (minutes)"
+              />
             </div>
           ) : (
             /* VIEW MODE */
@@ -321,18 +359,33 @@ function AssignmentCard({ a, facultyId }) {
         {/* ACTION BUTTONS */}
         {canEdit && (
           <div className="flex flex-col my-auto space-y-2">
+            {/* 🕒 LATE SUBMISSION TOGGLE */}
+            {!isEditing && (
+              <button
+                onClick={handleToggleLate}
+                className={`text-xs font-semibold rounded px-2 py-1 transition-all
+              ${
+                allowLate
+                  ? "bg-green-500/10 text-green-600 hover:bg-green-500/20"
+                  : "bg-gray-400/10 text-gray-600 hover:bg-gray-400/20"
+              }`}
+              >
+                {allowLate ? "Late Submission: ON" : "Late Submission: OFF"}
+              </button>
+            )}
+
             {isEditing ? (
               <>
                 <button
                   onClick={handleSave}
-                  className="text-green-400 font-semibold bg-green-400/10 rounded px-2 py-1 hover:bg-green-400/20 cursor-pointer hover:shadow-md transition-all duration-200 ease-in-out  "
+                  className="text-green-400 font-semibold bg-green-400/10 rounded px-2 py-1"
                 >
                   Save
                 </button>
 
                 <button
                   onClick={handleCancel}
-                  className="text-gray-500 font-semibold bg-gray-500/10 rounded px-2 py-1 hover:bg-gray-500/20 cursor-pointer hover:shadow-md transition-all duration-200 ease-in-out"
+                  className="text-gray-500 font-semibold bg-gray-500/10 rounded px-2 py-1"
                 >
                   Cancel
                 </button>
@@ -341,14 +394,14 @@ function AssignmentCard({ a, facultyId }) {
               <>
                 <button
                   onClick={handleUpdateClick}
-                  className="text-blue-400 font-semibold bg-blue-400/10 rounded px-2 py-1 hover:bg-blue-400/20 cursor-pointer hover:shadow-md transition-all duration-200 ease-in-out"
+                  className="text-blue-400 font-semibold bg-blue-400/10 rounded px-2 py-1"
                 >
                   Update
                 </button>
 
                 <button
                   onClick={handleDelete}
-                  className="text-red-400 font-semibold bg-red-400/10 rounded px-2 py-1 hover:bg-red-400/20 cursor-pointer hover:shadow-md transition-all duration-200 ease-in-out"
+                  className="text-red-400 font-semibold bg-red-400/10 rounded px-2 py-1"
                 >
                   Delete
                 </button>
