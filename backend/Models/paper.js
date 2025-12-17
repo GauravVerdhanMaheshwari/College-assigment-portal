@@ -10,13 +10,22 @@ const PaperSchema = new Schema(
 
     fileId: { type: mongoose.Schema.Types.ObjectId, ref: "fs.files" },
 
-    grade: { type: Number, default: null }, // 0–100
+    grade: { type: Number, default: null },
 
     comments: [
       {
         facultyId: { type: mongoose.Schema.Types.ObjectId, ref: "Faculty" },
         text: String,
         createdAt: { type: Date, default: Date.now },
+      },
+    ],
+
+    // 🔥 NEW
+    downloads: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId },
+        role: { type: String, enum: ["student", "faculty"] },
+        downloadedAt: { type: Date, default: Date.now },
       },
     ],
 
