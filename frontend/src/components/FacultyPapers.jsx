@@ -119,10 +119,17 @@ function FacultyPapers({ papers }) {
       <h3 className="text-xl font-semibold">{paper.title}</h3>
       <h4 className="text-lg font-medium">{paper.assignmentTopic}</h4>
       {paper.isLate && (
-        <div className="mt-2 inline-block px-3 py-1 text-sm font-semibold text-red-700 bg-red-100 rounded">
-          ⚠ Submitted After Deadline
-        </div>
+        <span className="inline-block px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded">
+          ⚠ Submitted Late
+        </span>
       )}
+
+      {paper.withinGrace && (
+        <span className="inline-block px-2 py-0.5 text-xs bg-orange-100 text-orange-700 rounded ml-2">
+          ⏱ Grace Period
+        </span>
+      )}
+
       <DownloadHistory paperId={paper._id} role="faculty" />
       <p>Student: {paper.studentName}</p>
       <p>Enrollment: {paper.enrollment}</p>
@@ -201,6 +208,11 @@ function FacultyPapers({ papers }) {
         }}
       />
 
+      {filteredPapers.length === 0 && (
+        <p className="text-xl text-center text-gray-600 mt-7">
+          No papers found.
+        </p>
+      )}
       {isGrouped
         ? Object.entries(filteredPapers).map(([group, papers]) => (
             <div key={group} className="mb-6">
