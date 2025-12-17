@@ -117,6 +117,12 @@ function FacultyPapers({ papers }) {
   const renderPaper = (paper) => (
     <div key={paper._id} className="p-4 bg-white rounded-xl shadow mb-6">
       <h3 className="text-xl font-semibold">{paper.title}</h3>
+      <h4 className="text-lg font-medium">{paper.assignmentTopic}</h4>
+      {paper.isLate && (
+        <div className="mt-2 inline-block px-3 py-1 text-sm font-semibold text-red-700 bg-red-100 rounded">
+          ⚠ Submitted After Deadline
+        </div>
+      )}
       <DownloadHistory paperId={paper._id} role="faculty" />
       <p>Student: {paper.studentName}</p>
       <p>Enrollment: {paper.enrollment}</p>
