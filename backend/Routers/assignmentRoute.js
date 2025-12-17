@@ -14,5 +14,6 @@ router.get("/:id", assignmentController.getAssignmentById);
 router.put("/:id", assignmentController.updateAssignment);
 // Delete assignment by ID
 router.delete("/:id", assignmentController.deleteAssignment);
+router.patch("/:id/toggle-late", assignmentController.toggleLateSubmission);
 
 module.exports = router;
