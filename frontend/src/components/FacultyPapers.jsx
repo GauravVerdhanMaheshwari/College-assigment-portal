@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Filter from "./Filter";
+import DownloadHistory from "./DownloadHistory";
 
 function FacultyPapers({ papers }) {
   const user = JSON.parse(sessionStorage.getItem("user"));
@@ -36,7 +37,7 @@ function FacultyPapers({ papers }) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        facultyId: user.faculty._id,
+        facultyId: user.faculty?._id || user._id,
         text,
       }),
     });
@@ -106,14 +107,17 @@ function FacultyPapers({ papers }) {
 
   /* ===================== DOWNLOAD ===================== */
   const handleDownload = (paperId) => {
-    window.open(`http://localhost:3000/papers/${paperId}/download`, "_blank");
+    window.open(
+      `http://localhost:3000/papers/${paperId}/download?role=faculty`,
+      "_blank"
+    );
   };
 
   /* ===================== RENDER PAPER ===================== */
   const renderPaper = (paper) => (
     <div key={paper._id} className="p-4 bg-white rounded-xl shadow mb-6">
       <h3 className="text-xl font-semibold">{paper.title}</h3>
-
+      <DownloadHistory paperId={paper._id} role="faculty" />
       <p>Student: {paper.studentName}</p>
       <p>Enrollment: {paper.enrollment}</p>
       <p>Class: {paper.division}</p>
