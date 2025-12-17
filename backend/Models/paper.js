@@ -12,6 +12,16 @@ const PaperSchema = new Schema(
 
     grade: { type: Number, default: null },
 
+    submittedAt: {
+      type: Date,
+      default: Date.now,
+    },
+
+    isLate: {
+      type: Boolean,
+      default: false,
+    },
+
     comments: [
       {
         facultyId: { type: mongoose.Schema.Types.ObjectId, ref: "Faculty" },
@@ -20,7 +30,6 @@ const PaperSchema = new Schema(
       },
     ],
 
-    // 🔥 NEW
     downloads: [
       {
         userId: { type: mongoose.Schema.Types.ObjectId },
@@ -30,7 +39,6 @@ const PaperSchema = new Schema(
     ],
 
     isPublic: { type: Boolean, default: false },
-    visibilityUpdatedAt: { type: Date },
   },
   { timestamps: true }
 );
