@@ -12,6 +12,7 @@ import PapersList from "./PapersList.jsx";
 import AssignmentForm from "./AssignmentForm.jsx";
 import AssignmentsList from "./AssignmentsList.jsx";
 import FacultyPapers from "./FacultyPapers.jsx";
+import DownloadHistory from "./DownloadHistory";
 
 export {
   LoginPage,
@@ -28,4 +29,5 @@ export {
   AssignmentForm,
   AssignmentsList,
   FacultyPapers,
+  DownloadHistory,
 };
