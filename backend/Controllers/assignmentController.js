@@ -73,3 +73,21 @@ exports.getAssignmentsByFacultyId = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.toggleLateSubmission = async (req, res) => {
+  try {
+    const assignment = await Assignment.findById(req.params.id);
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    assignment.allowLateSubmission = !assignment.allowLateSubmission;
+    await assignment.save();
+
+    res.json({
+      allowLateSubmission: assignment.allowLateSubmission,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
