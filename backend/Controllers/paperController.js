@@ -123,17 +123,18 @@ exports.getPapersByAssignmentId = async (req, res) => {
 
 // Grade a paper
 exports.gradePaper = async (req, res) => {
-  try {
-    const paper = await Paper.findById(req.params.id);
-    if (!paper) {
-      return res.status(404).json({ message: "Paper not found" });
-    }
-    paper.grade = req.body.grade;
-    await paper.save();
-    res.status(200).json(paper);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
+  const { grade } = req.body;
+
+  if (grade < 0 || grade > 100)
+    return res.status(400).json({ message: "Grade must be 0–100" });
+
+  const paper = await Paper.findById(req.params.id);
+  if (!paper) return res.status(404).json({ message: "Paper not found" });
+
+  paper.grade = grade;
+  await paper.save();
+
+  res.json({ grade });
 };
 
 // Get all graded papers
@@ -222,11 +223,18 @@ exports.downloadPaper = async (req, res) => {
     const bucket = getGridFSBucket();
 
     const files = await bucket.find({ _id: paper.fileId }).toArray();
-    if (!files || files.length === 0) {
+    if (!files.length) {
       return res.status(404).json({ message: "File not found in GridFS" });
     }
 
     const file = files[0];
+    const role = req.query.role || "unknown";
+
+    paper.downloads.push({
+      userId: req.user ? req.user._id : null,
+      role,
+    });
+    await paper.save();
 
     res.set({
       "Content-Type": file.contentType || "application/pdf",
@@ -236,10 +244,8 @@ exports.downloadPaper = async (req, res) => {
     const stream = bucket.openDownloadStream(paper.fileId);
 
     stream.on("error", (err) => {
-      console.error("GridFS stream error:", err);
-      if (!res.headersSent) {
-        res.status(500).json({ message: "Error reading file" });
-      }
+      console.error(err);
+      res.status(500).json({ message: "Download error" });
     });
 
     stream.pipe(res);
@@ -247,6 +253,23 @@ exports.downloadPaper = async (req, res) => {
     console.error(err);
     res.status(500).json({ message: err.message });
   }
+};
+
+exports.getDownloadHistory = async (req, res) => {
+  const paper = await Paper.findById(req.params.id).populate(
+    "downloads.userId",
+    "name email"
+  );
+
+  if (!paper) return res.status(404).json({ message: "Paper not found" });
+
+  res.json(
+    paper.downloads.map((d) => ({
+      name: d.userId?.name || "Unknown",
+      role: d.role,
+      downloadedAt: d.downloadedAt,
+    }))
+  );
 };
 
 exports.getMySubmissions = async (req, res) => {
@@ -285,21 +308,6 @@ exports.getFacultyPapers = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
-};
-
-exports.gradePaper = async (req, res) => {
-  const { grade } = req.body;
-
-  if (grade < 0 || grade > 100)
-    return res.status(400).json({ message: "Grade must be 0–100" });
-
-  const paper = await Paper.findById(req.params.id);
-  if (!paper) return res.status(404).json({ message: "Paper not found" });
-
-  paper.grade = grade;
-  await paper.save();
-
-  res.json({ grade });
 };
 
 exports.addComment = async (req, res) => {
