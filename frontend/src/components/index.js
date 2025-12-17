@@ -13,6 +13,7 @@ import AssignmentForm from "./AssignmentForm.jsx";
 import AssignmentsList from "./AssignmentsList.jsx";
 import FacultyPapers from "./FacultyPapers.jsx";
 import DownloadHistory from "./DownloadHistory";
+import DeadlineTimer from "./DeadlineTimer";
 
 export {
   LoginPage,
@@ -30,4 +31,5 @@ export {
   AssignmentsList,
   FacultyPapers,
   DownloadHistory,
+  DeadlineTimer,
 };
