@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { DownloadHistory } from "../../components/index";
 
 function StudentAssignmentsList({
   submissions,
@@ -31,6 +32,7 @@ function StudentAssignmentsList({
         <ul className="space-y-4">
           {filtered.map((s) => (
             <li key={s._id} className="p-4 bg-white shadow-lg rounded-lg">
+              <DownloadHistory paperId={s._id} role="student" />
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className={`font-semibold ${textCSS}`}>{s.title}</h3>
