@@ -32,6 +32,14 @@ const AssignmentSchema = new Schema(
       type: Date,
       required: true,
     },
+    allowLateSubmission: {
+      type: Boolean,
+      default: false,
+    },
+    gracePeriodMinutes: {
+      type: Number,
+      default: 120, // 2 hours
+    },
   },
   {
     timestamps: true,
