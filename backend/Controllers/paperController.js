@@ -193,6 +193,12 @@ exports.uploadPaperFile = async (req, res) => {
     const submittedAt = new Date();
     const isLate = submittedAt > assignment.dueDate;
 
+    if (isLate && !assignment.allowLateSubmission) {
+      return res.status(403).json({
+        message: "Late submissions are not allowed for this assignment",
+      });
+    }
+
     const bucket = getGridFSBucket();
     const uploadStream = bucket.openUploadStream(req.file.originalname, {
       contentType: req.file.mimetype,
@@ -209,11 +215,7 @@ exports.uploadPaperFile = async (req, res) => {
         submittedAt,
         isLate,
         comments: isLate
-          ? [
-              {
-                text: "⚠️ Late Submission: This paper was submitted after the deadline.",
-              },
-            ]
+          ? [{ text: "⚠️ Late submission (after deadline)" }]
           : [],
       });
 
