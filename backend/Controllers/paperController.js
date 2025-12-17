@@ -1,5 +1,6 @@
 const Paper = require("../Models/paper");
 const { getGridFSBucket } = require("../config/gridfs");
+const Assignment = require("../Models/assignment");
 
 // Get all papers
 exports.getAllPapers = async (req, res) => {
@@ -87,7 +88,7 @@ exports.deletePaperById = async (req, res) => {
 exports.getPapersByStudentId = async (req, res) => {
   try {
     const papers = await Paper.find({ studentId: req.params.studentId })
-      .populate("assignmentId", "title")
+      .populate("assignmentId", "title dueDate")
       .populate("comments.facultyId", "name"); // ✅ POPULATE FACULTY NAME
 
     res.json(
@@ -98,6 +99,10 @@ exports.getPapersByStudentId = async (req, res) => {
         isPublic: p.isPublic,
         createdAt: p.createdAt,
         assignmentId: p.assignmentId?._id,
+        downloads: p.downloads || [],
+        submittedAt: p.submittedAt,
+        dueDate: p.assignmentId?.dueDate,
+        isLate: p.isLate,
         comments: p.comments.map((c) => ({
           _id: c._id,
           text: c.text,
@@ -180,18 +185,20 @@ exports.uploadPaperFile = async (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const bucket = getGridFSBucket();
+    const assignment = await Assignment.findById(req.body.assignmentId);
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
 
+    const submittedAt = new Date();
+    const isLate = submittedAt > assignment.dueDate;
+
+    const bucket = getGridFSBucket();
     const uploadStream = bucket.openUploadStream(req.file.originalname, {
       contentType: req.file.mimetype,
     });
 
-    uploadStream.end(req.file.buffer); // ✅ FIX HERE
-
-    uploadStream.on("error", (err) => {
-      console.error(err);
-      res.status(500).json({ message: "Upload failed" });
-    });
+    uploadStream.end(req.file.buffer);
 
     uploadStream.on("finish", async () => {
       const paper = new Paper({
@@ -199,17 +206,22 @@ exports.uploadPaperFile = async (req, res) => {
         studentId: req.body.studentId,
         assignmentId: req.body.assignmentId,
         fileId: uploadStream.id,
+        submittedAt,
+        isLate,
+        comments: isLate
+          ? [
+              {
+                text: "⚠️ Late Submission: This paper was submitted after the deadline.",
+              },
+            ]
+          : [],
       });
 
       await paper.save();
 
-      res.status(201).json({
-        success: true,
-        paper,
-      });
+      res.status(201).json({ success: true, paper });
     });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -290,12 +302,18 @@ exports.getFacultyPapers = async (req, res) => {
   try {
     const papers = await Paper.find()
       .populate("studentId", "name enrollmentNumber division course year")
-      .populate("assignmentId", "title");
+      .populate("assignmentId", "topic dueDate");
 
     res.json(
       papers.map((p) => ({
         _id: p._id,
-        title: p.assignmentId?.title || "Untitled Assignment",
+        title: p.title,
+        assignmentTopic: p.assignmentId?.topic || "General Submission",
+
+        isLate: p.isLate,
+        submittedAt: p.submittedAt,
+        dueDate: p.assignmentId?.dueDate,
+
         studentName: p.studentId?.name,
         enrollment: p.studentId?.enrollmentNumber,
         division: p.studentId?.division,
