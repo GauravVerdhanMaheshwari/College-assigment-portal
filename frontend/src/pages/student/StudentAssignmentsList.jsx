@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { DownloadHistory } from "../../components/index";
+import { DownloadHistory, DeadlineTimer } from "../../components/index";
 
 function StudentAssignmentsList({
   submissions,
@@ -37,7 +37,7 @@ function StudentAssignmentsList({
         <ul className="space-y-4">
           {filtered.map((s) => (
             <li key={s._id} className="p-4 bg-white shadow-lg rounded-lg">
-              <DownloadHistory paperId={s._id} />
+              <DeadlineTimer dueDate={s.dueDate} graceMinutes={120} />
               <div className="flex justify-between items-start">
                 <div>
                   <div className="flex items-center gap-2">
@@ -58,11 +58,13 @@ function StudentAssignmentsList({
                         : "Not graded / Yet to be graded"}
                     </span>
                   </p>
+                  <DeadlineTimer dueDate={s.dueDate} />
                   {s.isLate && (
-                    <p className="mt-1 text-sm text-red-600 font-medium">
-                      ⚠ Submitted after the deadline
-                    </p>
+                    <span className="mt-1 inline-block px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded">
+                      ⚠ Submitted Late
+                    </span>
                   )}
+
                   <p className="text-xs text-gray-400">
                     Uploaded: {new Date(s.createdAt).toLocaleString()}
                   </p>
