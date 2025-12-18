@@ -154,8 +154,6 @@ function UserManagerHomePage() {
     }
   };
 
-  console.log(user);
-
   return (
     <div className="w-full h-full bg-gradient-to-b from-[#C4B5FD] to-[#8B5CF6]">
       <div className="flex flex-col h-full">
