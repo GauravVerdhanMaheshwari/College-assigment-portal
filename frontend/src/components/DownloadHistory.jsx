@@ -15,7 +15,15 @@ function DownloadHistory({ paperId }) {
 
   if (history.length === 0 && open) {
     return (
-      <p className="text-xs italic text-gray-500 mt-1">No downloads yet.</p>
+      <div className="mb-2">
+        <p className="text-md italic text-gray-500 mt-1">No downloads yet.</p>
+        <button
+          onClick={() => setOpen(!open)}
+          className="text-xs text-blue-400 underline cursor-pointer"
+        >
+          {open ? "Hide Download History" : "View Download History"}
+        </button>
+      </div>
     );
   }
 
@@ -23,7 +31,7 @@ function DownloadHistory({ paperId }) {
     <div className="mb-2">
       <button
         onClick={() => setOpen(!open)}
-        className="text-xs text-blue-600 underline"
+        className="text-xs text-blue-400 underline cursor-pointer"
       >
         {open ? "Hide Download History" : "View Download History"}
       </button>
