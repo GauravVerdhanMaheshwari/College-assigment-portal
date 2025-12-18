@@ -41,7 +41,20 @@ function StudentAssignmentsList({
               <div className="flex justify-between items-start">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className={`font-semibold ${textCSS}`}>{s.title}</h3>
+                    <div className="flex flex-col">
+                      <h2 className={`font-semibold ${textCSS}`}>
+                        Title:{" "}
+                        <span className="underline underline-offset-2">
+                          {s.title}
+                        </span>
+                      </h2>
+                      <h3 className={`font-semibold ${textCSS}`}>
+                        Topic:{" "}
+                        <span className="underline underline-offset-2">
+                          {s.topic}
+                        </span>
+                      </h3>
+                    </div>
                     {/* 👀 Seen by Faculty */}
                     {seenByFaculty(s.downloads) && (
                       <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded">
