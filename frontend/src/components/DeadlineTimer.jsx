@@ -1,40 +1,50 @@
 import { useEffect, useState } from "react";
 
 function DeadlineTimer({ dueDate, graceMinutes = 120 }) {
-  const [timeLeft, setTimeLeft] = useState("");
+  const [label, setLabel] = useState("");
   const [status, setStatus] = useState("ok");
 
   useEffect(() => {
-    if (!dueDate) return;
+    if (!dueDate) {
+      setLabel("No deadline");
+      return;
+    }
 
-    const interval = setInterval(() => {
-      const now = new Date();
-      const due = new Date(dueDate);
-      const diff = due - now;
+    const update = () => {
+      const now = Date.now();
+      const due = new Date(dueDate).getTime();
+      const graceEnd = due + graceMinutes * 60 * 1000;
 
-      if (diff <= 0) {
-        const graceEnd = new Date(due.getTime() + graceMinutes * 60000);
-        if (now <= graceEnd) {
-          setStatus("grace");
-          setTimeLeft("⏳ Grace Period Active");
-        } else {
-          setStatus("late");
-          setTimeLeft("⛔ Deadline Passed");
-          clearInterval(interval);
-        }
+      if (now < due) {
+        // ⏳ ON TIME
+        const diff = due - now;
+        const mins = Math.floor(diff / 60000);
+        const hrs = Math.floor(mins / 60);
+
+        setStatus(hrs < 24 ? "warning" : "ok");
+        setLabel(
+          hrs > 0 ? `${hrs}h ${mins % 60}m remaining` : `${mins}m remaining`
+        );
         return;
       }
 
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const mins = Math.floor((diff / (1000 * 60)) % 60);
+      if (now >= due && now <= graceEnd) {
+        // ⚠ GRACE PERIOD
+        const diff = graceEnd - now;
+        const mins = Math.floor(diff / 60000);
+        setStatus("grace");
+        setLabel(`Grace ends in ${mins}m`);
+        return;
+      }
 
-      if (days === 0 && hours < 24) setStatus("warning");
-      else setStatus("ok");
+      // ❌ CLOSED
+      setStatus("late");
+      setLabel("Submission Closed");
+    };
 
-      setTimeLeft(`${days}d ${hours}h ${mins}m remaining`);
-    }, 60000);
+    update(); // 🔥 immediate render (NO DELAY)
 
+    const interval = setInterval(update, 60000);
     return () => clearInterval(interval);
   }, [dueDate, graceMinutes]);
 
@@ -47,7 +57,7 @@ function DeadlineTimer({ dueDate, graceMinutes = 120 }) {
       ? "text-orange-500"
       : "text-red-600";
 
-  return <p className={`text-sm font-semibold ${color}`}>⏳ {timeLeft}</p>;
+  return <p className={`text-sm font-semibold ${color}`}>⏳ {label}</p>;
 }
 
 export default DeadlineTimer;
