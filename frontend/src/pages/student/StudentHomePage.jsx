@@ -86,6 +86,7 @@ function StudentHomePage() {
     setSubmissions((prev) =>
       prev.map((p) => (p._id === updated._id ? updated : p))
     );
+    location.reload();
   };
 
   const handleDelete = async (paperId) => {
