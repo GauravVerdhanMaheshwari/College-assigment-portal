@@ -88,13 +88,14 @@ exports.deletePaperById = async (req, res) => {
 exports.getPapersByStudentId = async (req, res) => {
   try {
     const papers = await Paper.find({ studentId: req.params.studentId })
-      .populate("assignmentId", "title dueDate")
-      .populate("comments.facultyId", "name"); // ✅ POPULATE FACULTY NAME
+      .populate("assignmentId", "topic dueDate")
+      .populate("comments.facultyId", "name");
 
     res.json(
       papers.map((p) => ({
         _id: p._id,
-        title: p.assignmentId?.title || "Untitled Assignment",
+        topic: p.assignmentId?.topic || "General Submission",
+        title: p.title,
         grade: p.grade,
         isPublic: p.isPublic,
         createdAt: p.createdAt,
