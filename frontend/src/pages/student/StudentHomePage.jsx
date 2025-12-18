@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Header, Hero, NotificationPanel } from "../../components/index";
+import { Header, Hero } from "../../components/index";
 import { StudentAssignmentsList, FutureAssignmentsList } from "./index.js";
 
 function StudentHomePage() {
@@ -13,18 +13,6 @@ function StudentHomePage() {
   const [futureAssignments, setFutureAssignments] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  /* 🔔 requests MUST be declared before any return */
-  const [requests, setRequests] = useState([
-    {
-      id: "R1",
-      requesterName: "Bob",
-      requesterEmail: "bob@student.edu",
-      paperId: "S1",
-      message: "Please allow access to my React Basics submission",
-      status: "pending",
-    },
-  ]);
 
   /* 🔐 AUTH GUARD */
   useEffect(() => {
@@ -98,14 +86,6 @@ function StudentHomePage() {
     setSubmissions((prev) => prev.filter((p) => p._id !== paperId));
   };
 
-  /* 🔔 PEER REQUEST ACTION */
-  const handleRequestAction = (requestId, action) => {
-    setRequests((prev) =>
-      prev.map((r) => (r.id === requestId ? { ...r, status: action } : r))
-    );
-    alert(`Request ${action}`);
-  };
-
   /* ⏳ SAFE LOADING RENDER (AFTER ALL HOOKS) */
   if (loading) {
     return (
@@ -123,7 +103,6 @@ function StudentHomePage() {
         textColor="text-[#073B4C]"
         headerStyle="to-[#FFE9B5] from-[#FFD166]"
         profileNavigate="/student/profile"
-        dummyReports={requests}
         loginPage="/"
         menuLinks={[
           { name: "Home", href: "/student" },
@@ -162,15 +141,6 @@ function StudentHomePage() {
             textCSS="text-[#073B4C]"
             buttonCSS="bg-[#78350F] hover:bg-[#78350F]/80 text-white"
             onUpload={handleUpload}
-          />
-        </div>
-
-        <div id="peerSubmissions" className="my-6">
-          <NotificationPanel
-            reports={requests}
-            onApprove={(id) => handleRequestAction(id, "approved")}
-            onDeny={(id) => handleRequestAction(id, "denied")}
-            theme={{ bgColor: "#fff7ed", textColor: "#073B4C" }}
           />
         </div>
       </div>
