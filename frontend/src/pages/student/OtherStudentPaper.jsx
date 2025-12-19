@@ -22,7 +22,7 @@ function OtherStudentPaper({ studentId, textCSS }) {
     } catch (error) {
       console.error("Error fetching paper:", error);
     }
-  }, []);
+  }, [studentId]);
 
   console.log(paper);
 
