@@ -244,9 +244,10 @@ exports.downloadPaper = async (req, res) => {
 
     const file = files[0];
     const role = req.query.role || "unknown";
+    const userId = req.query.userId || null;
 
     paper.downloads.push({
-      userId: req.user ? req.user._id : null,
+      userId,
       role,
     });
     await paper.save();
@@ -271,10 +272,7 @@ exports.downloadPaper = async (req, res) => {
 };
 
 exports.getDownloadHistory = async (req, res) => {
-  const paper = await Paper.findById(req.params.id).populate(
-    "downloads.userId",
-    "name email"
-  );
+  const paper = await Paper.findById(req.params.paperId);
 
   if (!paper) return res.status(404).json({ message: "Paper not found" });
 
