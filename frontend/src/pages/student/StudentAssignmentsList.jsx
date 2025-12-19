@@ -15,8 +15,6 @@ function StudentAssignmentsList({
     s.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  console.log(submissions);
-
   const seenByFaculty = (downloads = []) =>
     downloads.some((d) => d.role === "faculty");
 
@@ -39,7 +37,7 @@ function StudentAssignmentsList({
             <li key={s._id} className="p-4 bg-white shadow-lg rounded-lg">
               <div className="flex justify-between items-center mb-4">
                 <DeadlineTimer dueDate={s.dueDate} />
-                <DownloadHistory submissionId={s._id} />
+                <DownloadHistory submissionId={s.downloads} />
               </div>
               <div className="flex justify-between items-start">
                 <div>
