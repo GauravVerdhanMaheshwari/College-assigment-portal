@@ -109,13 +109,7 @@ function StudentHomePage() {
         textColor="text-[#073B4C]"
         headerStyle="to-[#FFE9B5] from-[#FFD166]"
         profileNavigate="/student/profile"
-        loginPage="/"
-        menuLinks={[
-          { name: "Home", href: "/student" },
-          { name: "Assignments", href: "#studentAssignments" },
-          { name: "Future Assignments", href: "#futureAssignments" },
-          { name: "Peer Submissions", href: "#peerSubmissions" },
-        ]}
+        loginPage="/student/login"
         onSearch={(val) => setSearchTerm(val)}
       />
 
@@ -150,10 +144,7 @@ function StudentHomePage() {
           />
         </div>
         <div>
-          <OtherStudentPaper
-            studentId={studentId}
-            textCSS="text-[#073B4C]"
-          />
+          <OtherStudentPaper studentId={studentId} textCSS="text-[#073B4C]" />
         </div>
       </div>
     </div>
