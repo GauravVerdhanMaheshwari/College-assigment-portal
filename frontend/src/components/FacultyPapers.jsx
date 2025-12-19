@@ -108,7 +108,9 @@ function FacultyPapers({ papers }) {
   /* ===================== DOWNLOAD ===================== */
   const handleDownload = (paperId) => {
     window.open(
-      `http://localhost:3000/papers/${paperId}/download?role=faculty`,
+      `http://localhost:3000/papers/${paperId}/download?role=faculty&userId=${
+        user.faculty?._id || user._id
+      }`,
       "_blank"
     );
   };
