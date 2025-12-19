@@ -1,17 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
-function DownloadHistory({ paperId }) {
-  const [history, setHistory] = useState([]);
+function DownloadHistory({ submissionId }) {
+  const [history, setHistory] = useState(submissionId || []);
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-
-    fetch(`http://localhost:3000/papers/${paperId}/downloads`)
-      .then((res) => res.json())
-      .then(setHistory)
-      .catch(console.error);
-  }, [open, paperId]);
 
   if (history.length === 0 && open) {
     return (
