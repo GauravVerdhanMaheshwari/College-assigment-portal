@@ -104,7 +104,7 @@ function StudentAssignmentsList({
                   </button>
 
                   <a
-                    href={`http://localhost:3000/papers/${s._id}/download`}
+                    href={`http://localhost:3000/papers/${s._id}/download?studentId=${s.studentId}&role=student`}
                     className="px-3 py-1 rounded bg-blue-400 text-white text-center hover:bg-blue-500 transition-all duration-200 cursor-pointer"
                   >
                     Download
