@@ -369,3 +369,25 @@ exports.updateComment = async (req, res) => {
 
   res.json(comment);
 };
+
+exports.getPublicPapers = async (req, res) => {
+  try {
+    const papers = await Paper.find({ isPublic: true })
+      .populate("studentId", "name enrollmentNumber")
+      .populate("assignmentId", "topic subject");
+    res.json(
+      papers.map((p) => ({
+        _id: p._id,
+        title: p.title,
+        studentName: p.studentId?.name,
+        enrollment: p.studentId?.enrollmentNumber,
+        submittedAt: p.submittedAt,
+        studentId: p.studentId?._id,
+        subject: p.assignmentId?.subject || "General",
+        topic: p.assignmentId?.topic || "General Submission",
+      }))
+    );
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
