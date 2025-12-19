@@ -20,6 +20,13 @@ function DeadlineTimer({ dueDate, graceMinutes = 120 }) {
         const diff = due - now;
         const mins = Math.floor(diff / 60000);
         const hrs = Math.floor(mins / 60);
+        const days = Math.floor(hrs / 24);
+
+        if (days > 0) {
+          setStatus("ok");
+          setLabel(`${days}d ${hrs % 24}h remaining`);
+          return;
+        }
 
         setStatus(hrs < 24 ? "warning" : "ok");
         setLabel(
