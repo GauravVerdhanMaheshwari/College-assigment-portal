@@ -28,7 +28,10 @@ function StudentAssignmentsList({
   };
 
   return (
-    <div>
+    <div className="p-4">
+      <h1 className="my-2 text-2xl font-bold mb-4 text-[#073B4C]">
+        Your Submissions
+      </h1>
       {filtered.length === 0 ? (
         <p className={`${textCSS} italic`}>No submissions found.</p>
       ) : (
