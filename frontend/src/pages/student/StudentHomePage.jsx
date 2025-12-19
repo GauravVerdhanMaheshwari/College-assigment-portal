@@ -6,6 +6,7 @@ import {
   FutureAssignmentsList,
   OtherStudentPaper,
 } from "./index.js";
+import AccessControlPanel from "./AccessControlPanel.jsx";
 
 function StudentHomePage() {
   const navigate = useNavigate();
@@ -145,6 +146,9 @@ function StudentHomePage() {
         </div>
         <div>
           <OtherStudentPaper studentId={studentId} textCSS="text-[#073B4C]" />
+        </div>
+        <div>
+          <AccessControlPanel />
         </div>
       </div>
     </div>
