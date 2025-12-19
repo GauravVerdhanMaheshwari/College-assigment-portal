@@ -21,6 +21,7 @@ router.patch("/:paperId/comment/:commentId", paperController.updateComment);
 router.delete("/:paperId/comment/:commentId", paperController.deleteComment);
 
 router.get("/", paperController.getAllPapers);
+router.get("/public", paperController.getPublicPapers);
 router.get("/:id", paperController.getPaperById); // ⚠️ KEEP LAST
 router.put("/:id", upload.single("file"), paperController.updatePaperById);
 router.delete("/:id", paperController.deletePaperById);
