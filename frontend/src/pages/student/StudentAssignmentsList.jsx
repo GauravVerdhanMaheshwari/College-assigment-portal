@@ -38,6 +38,12 @@ function StudentAssignmentsList({
               <div className="flex justify-between items-center mb-4">
                 <DeadlineTimer dueDate={s.dueDate} />
                 <DownloadHistory submissionId={s.downloads} />
+                {/* 👀 Seen by Faculty */}
+                {seenByFaculty(s.downloads) && (
+                  <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded">
+                    Seen by Faculty
+                  </span>
+                )}
               </div>
               <div className="flex justify-between items-start">
                 <div>
@@ -56,12 +62,6 @@ function StudentAssignmentsList({
                         </span>
                       </h3>
                     </div>
-                    {/* 👀 Seen by Faculty */}
-                    {seenByFaculty(s.downloads) && (
-                      <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded">
-                        Seen by Faculty
-                      </span>
-                    )}
                   </div>
                   {/* 🎓 Grade */}
                   <p className="text-sm mt-1">
@@ -102,7 +102,7 @@ function StudentAssignmentsList({
 
                   <a
                     href={`http://localhost:3000/papers/${s._id}/download`}
-                    className="px-3 py-1 rounded bg-blue-600 text-white"
+                    className="px-3 py-1 rounded bg-blue-400 text-white text-center"
                   >
                     Download
                   </a>
