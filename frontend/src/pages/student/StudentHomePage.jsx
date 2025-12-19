@@ -1,13 +1,19 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header, Hero } from "../../components/index";
-import { StudentAssignmentsList, FutureAssignmentsList } from "./index.js";
+import {
+  StudentAssignmentsList,
+  FutureAssignmentsList,
+  OtherStudentPaper,
+} from "./index.js";
 
 function StudentHomePage() {
   const navigate = useNavigate();
 
   /* 🔐 stable user reference */
   const user = useMemo(() => JSON.parse(sessionStorage.getItem("user")), []);
+
+  const studentId = user.student._id;
 
   const [searchTerm, setSearchTerm] = useState("");
   const [futureAssignments, setFutureAssignments] = useState([]);
@@ -141,6 +147,12 @@ function StudentHomePage() {
             textCSS="text-[#073B4C]"
             buttonCSS="bg-[#78350F] hover:bg-[#78350F]/80 text-white"
             onUpload={handleUpload}
+          />
+        </div>
+        <div>
+          <OtherStudentPaper
+            studentId={studentId}
+            textCSS="text-[#073B4C]"
           />
         </div>
       </div>
