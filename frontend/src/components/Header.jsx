@@ -7,14 +7,12 @@ function Header({
   headerStyle,
   textColor,
   profileNavigate,
-  dummyReports = [],
   loginPage = "/",
   searchPlaceholder = "Search...",
   menuLinks = [],
   onSearch,
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const menuRef = useRef(null);
   const navigate = useNavigate();
@@ -23,14 +21,12 @@ function Header({
   useEffect(() => {
     // close menus when route changes
     setIsMenuOpen(false);
-    setIsNotifOpen(false);
   }, [location]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setIsMenuOpen(false);
-        setIsNotifOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -71,32 +67,6 @@ function Header({
       </div>
 
       <div className="flex-grow flex flex-row justify-end items-center gap-6 mr-7 relative">
-        <div className="relative">
-          <button
-            onClick={() => setIsNotifOpen((s) => !s)}
-            className="text-2xl font-semibold px-3 py-2 rounded-full hover:bg-gray-200 transition relative"
-            title="Notifications"
-          >
-            🔔
-            {dummyReports.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                {dummyReports.length}
-              </span>
-            )}
-          </button>
-
-          {isNotifOpen && (
-            <div className="absolute right-0 top-12 z-50">
-              <NotificationPanel
-                reports={dummyReports}
-                onRemove={(id) => console.log("remove", id)}
-                onSendEmail={(r) => console.log("email", r)}
-                theme={{ bgColor: "#fff", textColor: "#111" }}
-              />
-            </div>
-          )}
-        </div>
-
         <div>
           <img
             src="/user_profile.png"
