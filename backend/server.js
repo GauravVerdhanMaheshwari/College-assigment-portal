@@ -33,6 +33,8 @@ app.use("/admins", require("./Routers/adminRoute"));
 app.use("/assignments", require("./Routers/assignmentRoute"));
 // Import and use paper routes
 app.use("/papers", require("./Routers/paperRoute"));
+// Import and use access control routes
+app.use("/access-control", require("./Routers/access_controlRoute"));
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
