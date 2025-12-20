@@ -4,7 +4,7 @@ function OtherPaperBlock({
   paper,
   textCSS,
   onRequestPermission,
-  handleDownload,
+  onDownload,
   userID,
 }) {
   const [accessStatus, setAccessStatus] = useState(null);
@@ -62,7 +62,7 @@ function OtherPaperBlock({
         {accessStatus.hasAccess === "granted" ? (
           <button
             className="px-3 py-1 rounded bg-blue-400 text-white text-center hover:bg-blue-500 transition-all duration-200 cursor-pointer"
-            onClick={() => handleDownload(paper._id)}
+            onClick={() => onDownload(paper._id)}
           >
             Download Paper
           </button>

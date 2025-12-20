@@ -6,7 +6,7 @@ function OtherStudentPaper({ studentId, textCSS }) {
   const [loading, setLoading] = useState(true);
 
   const handleDownload = (paperId) => {
-    const downloadUrl = `http://localhost:3000/papers/${paperId}/download?studentId=${studentId}&role=student`;
+    const downloadUrl = `http://localhost:3000/papers/${paperId}/download?studentId=${studentId}&role=student&userId=${studentId}`;
     window.open(downloadUrl, "_blank");
   };
 
