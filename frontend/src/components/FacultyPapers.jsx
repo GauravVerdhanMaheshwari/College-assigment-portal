@@ -132,7 +132,8 @@ function FacultyPapers({ papers }) {
         </span>
       )}
 
-      <DownloadHistory paperId={paper._id} role="faculty" />
+      <DownloadHistory submissionId={paper} />
+
       <p>Student: {paper.studentName}</p>
       <p>Enrollment: {paper.enrollment}</p>
       <p>Class: {paper.division}</p>
