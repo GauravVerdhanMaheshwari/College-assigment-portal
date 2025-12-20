@@ -245,6 +245,9 @@ exports.downloadPaper = async (req, res) => {
     const file = files[0];
     const role = req.query.role || "unknown";
     const userId = req.query.userId || null;
+    const userName = req.query.userId.name || "Unknown User";
+
+    console.log(req.query.userId.name);
 
     paper.downloads.push({
       userId,
@@ -278,7 +281,7 @@ exports.getDownloadHistory = async (req, res) => {
 
   res.json(
     paper.downloads.map((d) => ({
-      name: d.userId?.name || "Unknown",
+      userId: d.userId,
       role: d.role,
       downloadedAt: d.downloadedAt,
     }))
