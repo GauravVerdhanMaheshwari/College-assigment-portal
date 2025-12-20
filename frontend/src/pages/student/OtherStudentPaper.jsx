@@ -31,6 +31,13 @@ function OtherStudentPaper({ studentId, textCSS }) {
       <h1 className="my-2 text-2xl font-bold mb-4 text-[#073B4C]">
         Other Student Paper
       </h1>
+
+      {!paper || paper.length === 0 ? (
+        <p className={`${textCSS} italic text-2xl text-center my-4`}>
+          No public papers available.
+        </p>
+      ) : null}
+
       {paper ? (
         paper.map((p) => (
           <div
