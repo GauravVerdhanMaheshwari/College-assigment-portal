@@ -1,11 +1,42 @@
 import React, { useState, useEffect } from "react";
+import OtherPaperBlock from "../../components/OtherPaperBlock";
 
 function OtherStudentPaper({ studentId, textCSS }) {
   const [paper, setPaper] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const handleDownload = (paperId) => {
     const downloadUrl = `http://localhost:3000/papers/${paperId}/download?studentId=${studentId}&role=student`;
     window.open(downloadUrl, "_blank");
+  };
+
+  const handlePermission = (paperId, requestedTo) => {
+    try {
+      const requestUrl = `http://localhost:3000/access-control/request/`;
+      fetch(requestUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          paperId: paperId,
+          requestedBy: studentId,
+          requestedTo: requestedTo,
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then(() => {
+          alert("Permission requested successfully!");
+          window.location.reload();
+        });
+    } catch (error) {
+      console.error("Error requesting permission:", error);
+    }
   };
 
   useEffect(() => {
@@ -16,6 +47,7 @@ function OtherStudentPaper({ studentId, textCSS }) {
         console.log(data);
 
         setPaper(data.filter((p) => p.studentId !== studentId));
+        setLoading(false);
       };
 
       fetchPaper();
@@ -24,45 +56,31 @@ function OtherStudentPaper({ studentId, textCSS }) {
     }
   }, [studentId]);
 
-  console.log(paper);
-
   return (
     <div className="p-4">
       <h1 className="my-2 text-2xl font-bold mb-4 text-[#073B4C]">
         Other Student Paper
       </h1>
-
+      {loading && (
+        <p className={`${textCSS} italic text-2xl text-center my-4`}>
+          Loading papers...
+        </p>
+      )}
       {!paper || paper.length === 0 ? (
         <p className={`${textCSS} italic text-2xl text-center my-4`}>
           No public papers available.
         </p>
       ) : null}
-
       {paper ? (
         paper.map((p) => (
-          <div
+          <OtherPaperBlock
             key={p._id}
-            className="p-4 bg-white shadow-lg rounded-lg flex justify-between items-center mb-4"
-          >
-            <div>
-              <p className="text-xl font-semibold text-[#073B4C]">{p.title}</p>
-              <p className="my-2 text-[#073B4C]">
-                Assignment: {p.topic || "General Submission"}
-              </p>
-              <p className="my-2 text-[#073B4C]">Subject: {p.subject}</p>
-              <p className={`my-2 text-mb font-semibold ${textCSS}`}>
-                Submitted by: {p.studentName}
-              </p>
-            </div>
-            <div>
-              <button
-                className="px-3 py-1 rounded bg-blue-400 text-white text-center hover:bg-blue-500 transition-all duration-200 cursor-pointer"
-                onClick={() => handleDownload(p._id)}
-              >
-                Download Paper
-              </button>
-            </div>
-          </div>
+            paper={p}
+            textCSS={textCSS}
+            onDownload={handleDownload}
+            onRequestPermission={handlePermission}
+            userID={studentId}
+          />
         ))
       ) : (
         <p>Loading paper...</p>
