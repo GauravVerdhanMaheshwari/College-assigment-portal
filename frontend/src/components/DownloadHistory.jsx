@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 
 function DownloadHistory({ submissionId }) {
-  const history = submissionId || [];
+  const history = submissionId.downloads || [];
   const [open, setOpen] = useState(false);
+
+  console.log(history);
 
   if (history.length === 0 && open) {
     return (
