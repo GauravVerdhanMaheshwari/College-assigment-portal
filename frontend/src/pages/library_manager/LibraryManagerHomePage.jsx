@@ -78,6 +78,8 @@ function LibraryManagerHomePage() {
         {/* Papers List Component */}
         <PapersList
           papers={papers}
+          papersAPI="libraryManager"
+          userID={user?.libraryManager?._id}
           textCSS="text-[#1E3A8A] text-shadow-[0_0_10px_rgba(30,58,138,0.5)]"
           buttonCSS="bg-[#6EE7B7] hover:bg-[#5CC198FF] hover:shadow-[4px_4px_16px_1px_rgba(7,59,76,0.4)] text-[#1E3A8A]"
         />
