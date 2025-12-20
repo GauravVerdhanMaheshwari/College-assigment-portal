@@ -1,18 +1,24 @@
 const AccessControl = require("../Models/access_control");
 const Paper = require("../Models/paper");
 const mongoose = require("mongoose");
-const ObjectId = mongoose.Types.ObjectId;
 
 exports.grantAccess = async (req, res) => {
   try {
     const { paperId, userId } = req.body;
-    const accessControl = new AccessControl({
-      paperId: ObjectId(paperId),
-      userId: ObjectId(userId),
-      accessStatus: "granted",
-    });
-    await accessControl.save();
-    res.status(201).json({ message: "Access granted successfully" });
+
+    await AccessControl.findOneAndUpdate(
+      {
+        paperId: new mongoose.Types.ObjectId(paperId),
+        requestedBy: new mongoose.Types.ObjectId(userId),
+      },
+      {
+        accessStatus: "granted",
+        grantedAt: new Date(),
+      },
+      { new: true }
+    );
+
+    res.status(200).json({ message: "Access granted successfully" });
   } catch (err) {
     console.error("Error granting access:", err);
     res.status(500).json({ error: "Internal server error" });
@@ -21,31 +27,65 @@ exports.grantAccess = async (req, res) => {
 
 exports.revokeAccess = async (req, res) => {
   try {
-    const { paperId, userId } = req.body;
-    const accessControl = new AccessControl({
-      paperId: ObjectId(paperId),
-      userId: ObjectId(userId),
-      accessStatus: "revoked",
-    });
-    await accessControl.save();
-    res.status(201).json({ message: "Access revoked successfully" });
+    const { paperId, requestedBy } = req.body;
+
+    await AccessControl.findOneAndUpdate(
+      {
+        paperId: new mongoose.Types.ObjectId(paperId),
+        requestedBy: new mongoose.Types.ObjectId(requestedBy),
+      },
+      {
+        accessStatus: "revoked",
+        revokedAt: new Date(),
+      }
+    );
+
+    res.status(200).json({ message: "Access revoked successfully" });
   } catch (err) {
     console.error("Error revoking access:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
+exports.requestAccess = async (req, res) => {
+  try {
+    const { paperId, requestedBy, requestedTo } = req.body;
+
+    await AccessControl.findOneAndUpdate(
+      {
+        paperId: new mongoose.Types.ObjectId(paperId),
+        requestedBy: new mongoose.Types.ObjectId(requestedBy),
+      },
+      {
+        requestedTo: new mongoose.Types.ObjectId(requestedTo),
+        accessStatus: "requested",
+        requestedAt: new Date(),
+      },
+      { upsert: true, new: true }
+    );
+
+    res.status(200).json({ message: "Access requested successfully" });
+  } catch (err) {
+    console.error("Error requesting access:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 exports.checkAccess = async (req, res) => {
   try {
-    const { paperId, userId } = req.params;
+    const { paperId } = req.params;
+
     const accessRecord = await AccessControl.findOne({
-      paperId: ObjectId(paperId),
-      userId: ObjectId(userId),
+      paperId: new mongoose.Types.ObjectId(paperId),
     }).sort({ createdAt: -1 });
-    if (!accessRecord || accessRecord.accessStatus === "revoked") {
-      return res.status(403).json({ hasAccess: false });
+
+    if (!accessRecord) {
+      return res.status(200).json({ hasAccess: "none" });
     }
-    res.status(200).json({ hasAccess: true });
+
+    return res.status(200).json({
+      hasAccess: accessRecord.accessStatus,
+    });
   } catch (err) {
     console.error("Error checking access:", err);
     res.status(500).json({ error: "Internal server error" });
@@ -56,7 +96,7 @@ exports.getAccessiblePapers = async (req, res) => {
   try {
     const { userId } = req.params;
     const accessRecords = await AccessControl.find({
-      userId: ObjectId(userId),
+      userId: new mongoose.Types.ObjectId(userId),
       accessStatus: "granted",
     }).select("paperId -_id");
     const paperIds = accessRecords.map((record) => record.paperId);
