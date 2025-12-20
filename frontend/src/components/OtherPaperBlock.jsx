@@ -10,8 +10,6 @@ function OtherPaperBlock({
   const [accessStatus, setAccessStatus] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  console.log(userID);
-
   useEffect(() => {
     try {
       fetch(
@@ -40,8 +38,6 @@ function OtherPaperBlock({
       console.error("Error logging paper:", error);
     }
   }, [paper._id, userID]);
-
-  console.log(accessStatus);
 
   return loading ? (
     <div className="p-4 bg-white shadow-lg rounded-lg flex justify-between items-center mb-4">
