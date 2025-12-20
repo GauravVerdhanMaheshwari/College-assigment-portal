@@ -4,15 +4,20 @@ const Schema = mongoose.Schema;
 const AccessControlSchema = new Schema(
   {
     paperId: { type: mongoose.Schema.Types.ObjectId, ref: "Paper" },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // User requesting access
+    requestedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Owner of the paper
     accessStatus: {
       type: String,
       enum: ["granted", "revoked", "requested"],
       default: "requested",
     },
-    grantedAt: {
+    requestedAt: {
       type: Date,
       default: Date.now,
+    },
+    grantedAt: {
+      type: Date,
+      default: null,
     },
     revokedAt: {
       type: Date,
