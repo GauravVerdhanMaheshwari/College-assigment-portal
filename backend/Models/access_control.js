@@ -7,8 +7,8 @@ const AccessControlSchema = new Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     accessStatus: {
       type: String,
-      enum: ["granted", "revoked"],
-      default: "granted",
+      enum: ["granted", "revoked", "requested"],
+      default: "requested",
     },
     grantedAt: {
       type: Date,
