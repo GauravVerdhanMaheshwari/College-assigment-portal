@@ -1,85 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Filter } from "../components/index";
 
-function PapersList({ papers, textCSS, buttonCSS, handleDelete, handleEdit }) {
+function PapersList({ papers, papersAPI, userID, textCSS, handleEdit }) {
   const [filteredPapers, setFilteredPapers] = useState([]);
   const [isGrouped, setIsGrouped] = useState(false);
   const [editingPaper, setEditingPaper] = useState(null);
-  const libraryManager = JSON.parse(
-    sessionStorage.getItem("user")
-  ).libraryManager;
 
   useEffect(() => {
     setFilteredPapers(papers);
     setIsGrouped(false);
   }, [papers]);
-
-  // helper to remove ids from local state
-  const removePapersFromState = (deletedIds) => {
-    setFilteredPapers((prev) => {
-      if (
-        isGrouped &&
-        prev &&
-        typeof prev === "object" &&
-        !Array.isArray(prev)
-      ) {
-        const newObj = {};
-        Object.entries(prev).forEach(([grp, items]) => {
-          const remaining = items.filter((p) => !deletedIds.includes(p._id));
-          if (remaining.length > 0) newObj[grp] = remaining;
-        });
-        return newObj;
-      }
-      if (Array.isArray(prev)) {
-        return prev.filter((p) => !deletedIds.includes(p._id));
-      }
-      return prev;
-    });
-  };
-
-  // single delete
-  const handleSingleDelete = async (paper) => {
-    const ok = window.confirm(
-      `Delete paper "${paper.title}"? This cannot be undone.`
-    );
-    if (!ok) return;
-
-    if (!handleDelete) {
-      removePapersFromState([paper._id]);
-      return;
-    }
-
-    try {
-      await handleDelete(paper);
-      removePapersFromState([paper._id]);
-    } catch (err) {
-      console.error(err);
-      alert("Error deleting paper. See console for details.");
-    }
-  };
-
-  // group delete
-  const handleDeleteGroup = async (items, groupName) => {
-    const ok = window.confirm(
-      `Delete ${items.length} paper(s) in group "${groupName}"?`
-    );
-    if (!ok) return;
-
-    const ids = items.map((p) => p._id);
-
-    if (!handleDelete) {
-      removePapersFromState(ids);
-      return;
-    }
-
-    try {
-      await Promise.all(items.map((p) => handleDelete(p)));
-      removePapersFromState(ids);
-    } catch (err) {
-      console.error(err);
-      alert(`Error deleting group "${groupName}". Some items may remain.`);
-    }
-  };
 
   // save edit
   const handleSaveEdit = async (updatedPaper) => {
@@ -122,7 +52,7 @@ function PapersList({ papers, textCSS, buttonCSS, handleDelete, handleEdit }) {
   const ActionButtons = ({ paper }) => (
     <div className="flex gap-2">
       <a
-        href={`http://localhost:3000/papers/${paper._id}/download?libraryManagerId=${libraryManager._id}&role=libraryManager&userId=${libraryManager._id}`}
+        href={`http://localhost:3000/papers/${paper._id}/download?${papersAPI}Id=${userID}&role=${papersAPI}&userId=${userID}`}
         className="px-3 py-1 rounded bg-blue-400 text-white text-center hover:bg-blue-500 transition-all duration-200 cursor-pointer"
       >
         Download
