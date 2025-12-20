@@ -5,6 +5,9 @@ function PapersList({ papers, textCSS, buttonCSS, handleDelete, handleEdit }) {
   const [filteredPapers, setFilteredPapers] = useState([]);
   const [isGrouped, setIsGrouped] = useState(false);
   const [editingPaper, setEditingPaper] = useState(null);
+  const libraryManager = JSON.parse(
+    sessionStorage.getItem("user")
+  ).libraryManager;
 
   useEffect(() => {
     setFilteredPapers(papers);
@@ -118,23 +121,9 @@ function PapersList({ papers, textCSS, buttonCSS, handleDelete, handleEdit }) {
   // row action buttons
   const ActionButtons = ({ paper }) => (
     <div className="flex gap-2">
-      <button
-        onClick={() => setEditingPaper({ ...paper })}
-        className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-all duration-200"
-      >
-        Edit
-      </button>
-      <button
-        onClick={() => handleSingleDelete(paper)}
-        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-all duration-200"
-      >
-        Delete
-      </button>
       <a
-        href={paper.fileLink}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`px-3 py-1 rounded font-semibold transition-all duration-200 ${buttonCSS}`}
+        href={`http://localhost:3000/papers/${paper._id}/download?libraryManagerId=${libraryManager._id}&role=libraryManager&userId=${libraryManager._id}`}
+        className="px-3 py-1 rounded bg-blue-400 text-white text-center hover:bg-blue-500 transition-all duration-200 cursor-pointer"
       >
         Download
       </a>
@@ -180,12 +169,6 @@ function PapersList({ papers, textCSS, buttonCSS, handleDelete, handleEdit }) {
             <div key={group} className="mb-6">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-bold">{group}</h3>
-                <button
-                  onClick={() => handleDeleteGroup(items, group)}
-                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-all duration-200"
-                >
-                  Delete Group
-                </button>
               </div>
 
               <table className="min-w-full border-collapse border-none mb-4">
