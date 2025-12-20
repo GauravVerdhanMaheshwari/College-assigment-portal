@@ -7,27 +7,29 @@ const AccessControlSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Paper",
       required: true,
-      duplicate: true,
     },
-    requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // User requesting access
-    requestedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Owner of the paper
+
+    requestedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Student", // ✅ FIXED
+      required: true,
+    },
+
+    requestedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Student", // or Faculty later
+      required: true,
+    },
+
     accessStatus: {
       type: String,
-      enum: ["granted", "revoked", "requested"],
+      enum: ["requested", "granted", "revoked"],
       default: "requested",
     },
-    requestedAt: {
-      type: Date,
-      default: Date.now,
-    },
-    grantedAt: {
-      type: Date,
-      default: null,
-    },
-    revokedAt: {
-      type: Date,
-      default: null,
-    },
+
+    requestedAt: Date,
+    grantedAt: Date,
+    revokedAt: Date,
   },
   { timestamps: true }
 );
