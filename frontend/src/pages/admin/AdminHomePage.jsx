@@ -12,6 +12,21 @@ function AdminHomePage() {
   document.title = "Admin Home";
   const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem("user"));
+  const [papers, setPapers] = React.useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3000/papers/userManager")
+      .then((res) => {
+        if (!res.ok) throw new Error("Network response was not ok");
+        return res.json();
+      })
+      .then((data) => {
+        setPapers(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching papers for Admin:", error);
+      });
+  }, []);
 
   useEffect(() => {
     if (!user?.admin) {
@@ -226,7 +241,9 @@ function AdminHomePage() {
         {/* PAPERS LIST */}
         <div id="papersList" className="mt-10">
           <PapersList
-            papers={[]} // fetch from API later
+            papersAPI="admin"
+            userID={user?.admin?._id}
+            papers={papers}
             textCSS="text-[#4D7BFAFF] text-shadow-[0_0_10px_rgba(30,58,138,0.5)]"
             buttonCSS="bg-[#3B96FFFF] hover:bg-[#55A3FCFF] hover:shadow-[4px_4px_16px_1px_rgba(7,59,76,0.4)] text-white"
             handleEdit={handleEdit}
