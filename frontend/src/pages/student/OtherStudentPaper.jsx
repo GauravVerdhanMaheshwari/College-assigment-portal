@@ -44,7 +44,6 @@ function OtherStudentPaper({ studentId, textCSS }) {
       const fetchPaper = async () => {
         const response = await fetch("http://localhost:3000/papers/public");
         const data = await response.json();
-        console.log(data);
 
         setPaper(data.filter((p) => p.studentId !== studentId));
         setLoading(false);
