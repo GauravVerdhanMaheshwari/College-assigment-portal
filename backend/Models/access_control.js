@@ -3,7 +3,12 @@ const Schema = mongoose.Schema;
 
 const AccessControlSchema = new Schema(
   {
-    paperId: { type: mongoose.Schema.Types.ObjectId, ref: "Paper" },
+    paperId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Paper",
+      required: true,
+      duplicate: true,
+    },
     requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // User requesting access
     requestedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Owner of the paper
     accessStatus: {
