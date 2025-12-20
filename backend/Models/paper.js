@@ -32,6 +32,7 @@ const PaperSchema = new Schema(
 
     downloads: [
       {
+        name: { type: String },
         userId: { type: mongoose.Schema.Types.ObjectId },
         role: { type: String, enum: ["student", "faculty"] },
         downloadedAt: { type: Date, default: Date.now },
