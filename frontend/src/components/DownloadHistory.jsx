@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 
 function DownloadHistory({ submissionId }) {
-  const history = submissionId.downloads || [];
+  const history = submissionId || [];
   const [open, setOpen] = useState(false);
-
-  console.log(history);
 
   if (history.length === 0 && open) {
     return (
@@ -33,6 +31,7 @@ function DownloadHistory({ submissionId }) {
         <div className="mt-2 bg-gray-50 border rounded p-2 space-y-1">
           {history.map((d, i) => (
             <p key={i} className="text-xs text-gray-700">
+              <b>{d.userId}</b>
               📥 <b>{d.role}</b> downloaded on{" "}
               {new Date(d.downloadedAt).toLocaleString()}
             </p>
