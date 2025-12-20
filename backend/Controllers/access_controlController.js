@@ -91,19 +91,3 @@ exports.checkAccess = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
-exports.getAccessiblePapers = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const accessRecords = await AccessControl.find({
-      userId: new mongoose.Types.ObjectId(userId),
-      accessStatus: "granted",
-    }).select("paperId -_id");
-    const paperIds = accessRecords.map((record) => record.paperId);
-    const papers = await Paper.find({ _id: { $in: paperIds } });
-    res.status(200).json(papers);
-  } catch (err) {
-    console.error("Error fetching accessible papers:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
