@@ -132,7 +132,7 @@ function FacultyPapers({ papers }) {
         </span>
       )}
 
-      <DownloadHistory submissionId={paper} />
+      <DownloadHistory submissionId={paper.downloads} />
 
       <p>Student: {paper.studentName}</p>
       <p>Enrollment: {paper.enrollment}</p>
