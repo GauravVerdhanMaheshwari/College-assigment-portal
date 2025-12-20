@@ -303,7 +303,7 @@ exports.getFacultyPapers = async (req, res) => {
   try {
     const papers = await Paper.find()
       .populate("studentId", "name enrollmentNumber division course year")
-      .populate("assignmentId", "topic dueDate");
+      .populate("assignmentId", "topic dueDate ");
 
     res.json(
       papers.map((p) => ({
@@ -314,6 +314,7 @@ exports.getFacultyPapers = async (req, res) => {
         isLate: p.isLate,
         submittedAt: p.submittedAt,
         dueDate: p.assignmentId?.dueDate,
+        downloads: p.downloads || [],
 
         studentName: p.studentId?.name,
         enrollment: p.studentId?.enrollmentNumber,
