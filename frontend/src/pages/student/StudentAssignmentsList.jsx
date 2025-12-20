@@ -10,6 +10,7 @@ function StudentAssignmentsList({
   buttonCSS,
 }) {
   const [openComments, setOpenComments] = useState(null);
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   const filtered = submissions.filter((s) =>
     s.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -104,7 +105,7 @@ function StudentAssignmentsList({
                   </button>
 
                   <a
-                    href={`http://localhost:3000/papers/${s._id}/download?studentId=${s.studentId}&role=student`}
+                    href={`http://localhost:3000/papers/${s._id}/download?studentId=${user.student._id}&role=student&userId=${user.student._id}`}
                     className="px-3 py-1 rounded bg-blue-400 text-white text-center hover:bg-blue-500 transition-all duration-200 cursor-pointer"
                   >
                     Download
