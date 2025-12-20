@@ -73,21 +73,34 @@ exports.requestAccess = async (req, res) => {
 
 exports.checkAccess = async (req, res) => {
   try {
-    const { paperId } = req.params;
+    const { paperId, requestedBy } = req.params;
 
-    const accessRecord = await AccessControl.findOne({
+    const record = await AccessControl.findOne({
       paperId: new mongoose.Types.ObjectId(paperId),
-    }).sort({ createdAt: -1 });
+      requestedBy: new mongoose.Types.ObjectId(requestedBy),
+    });
 
-    if (!accessRecord) {
+    if (!record) {
       return res.status(200).json({ hasAccess: "none" });
     }
 
-    return res.status(200).json({
-      hasAccess: accessRecord.accessStatus,
-    });
+    res.status(200).json({ hasAccess: record.accessStatus });
   } catch (err) {
     console.error("Error checking access:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.getAccessRequests = async (req, res) => {
+  try {
+    const { ownerId } = req.params;
+    const requests = await AccessControl.find({
+      requestedTo: new mongoose.Types.ObjectId(ownerId),
+    });
+
+    res.status(200).json(requests);
+  } catch (err) {
+    console.error("Error fetching access requests:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
