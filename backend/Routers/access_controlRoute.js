@@ -6,7 +6,6 @@ router.put("/grant", accessControlController.grantAccess);
 router.put("/revoke", accessControlController.revokeAccess);
 router.put("/request", accessControlController.requestAccess);
 router.get("/check/:paperId/:requestedBy", accessControlController.checkAccess);
-
-// router.get("/requests/:ownerId", accessControlController.getAccessRequests);
+router.get("/requests/:ownerId", accessControlController.getAccessRequests);
 
 module.exports = router;
