@@ -395,3 +395,75 @@ exports.getPublicPapers = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+exports.getUserManagerPapers = async (req, res) => {
+  try {
+    const papers = await Paper.find()
+      .populate("studentId", "name enrollmentNumber division course year")
+      .populate("assignmentId", "topic dueDate ");
+    res.json(
+      papers.map((p) => ({
+        _id: p._id,
+        title: p.title,
+        name: p.studentId?.name,
+        assignmentId: p.assignmentId?._id,
+        class: p.studentId?.division,
+        section: p.studentId?.year,
+        course: p.studentId?.course,
+        assignmentTopic: p.assignmentId?.topic || "General Submission",
+        isLate: p.isLate,
+        submissionDate: p.submittedAt.toDateString(),
+        dueDate: p.assignmentId?.dueDate,
+        studentName: p.studentId?.name,
+        enrollment: p.studentId?.enrollmentNumber,
+        division: p.studentId?.division,
+        course: p.studentId?.course,
+        semester: p.studentId?.year,
+        grade: p.grade,
+        comments: p.comments,
+      }))
+    );
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.downloadPaperForUserManager = async (req, res) => {
+  try {
+    const paper = await Paper.findById(req.params.id);
+    if (!paper) {
+      return res.status(404).json({ message: "Paper not found" });
+    }
+
+    const bucket = getGridFSBucket();
+
+    const files = await bucket.find({ _id: paper.fileId }).toArray();
+    if (!files.length) {
+      return res.status(404).json({ message: "File not found in GridFS" });
+    }
+
+    const file = files[0];
+
+    // log download
+    paper.downloads.push({
+      userId: req.query.userId || null,
+      role: req.query.role || "unknown",
+    });
+    await paper.save();
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${file.filename}"`
+    );
+    res.setHeader(
+      "Content-Type",
+      file.contentType || "application/octet-stream"
+    );
+
+    const downloadStream = bucket.openDownloadStream(paper.fileId);
+    downloadStream.pipe(res);
+  } catch (err) {
+    console.error("Download error:", err);
+    res.status(500).json({ message: "Download failed" });
+  }
+};
