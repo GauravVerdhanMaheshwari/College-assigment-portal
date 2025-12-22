@@ -113,7 +113,7 @@ exports.getAccessRequests = async (req, res) => {
         select: "title subject assignmentId",
         populate: {
           path: "assignmentId",
-          select: "title subject",
+          select: "title topic subject",
         },
       })
       .populate({

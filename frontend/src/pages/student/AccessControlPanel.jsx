@@ -78,7 +78,7 @@ function AccessControlPanel() {
         <thead>
           <tr className="bg-gray-100">
             <th className="p-3 text-left">Paper Title</th>
-            <th className="p-3 text-left">Assignment</th>
+            <th className="p-3 text-left">Assignment Title</th>
             <th className="p-3 text-left">Subject</th>
             <th className="p-3 text-left">Requested By</th>
             <th className="p-3 text-left">Status</th>
@@ -90,8 +90,10 @@ function AccessControlPanel() {
           {permissions.map((perm) => (
             <tr key={perm._id} className="border-b">
               <td className="p-3">{perm.paperId.title}</td>
-              <td className="p-3">{perm.paperId.assignmentId?.title || "—"}</td>
-              <td className="p-3">{perm.paperId.subject || "—"}</td>
+              <td className="p-3">{perm.paperId.assignmentId?.topic || "—"}</td>
+              <td className="p-3">
+                {perm.paperId.assignmentId?.subject || "—"}
+              </td>
               <td className="p-3">
                 {perm.requestedBy.name}
                 <div className="text-xs text-gray-500">
