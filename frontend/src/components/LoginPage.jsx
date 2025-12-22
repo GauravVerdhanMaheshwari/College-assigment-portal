@@ -176,12 +176,12 @@ function LoginPage({
           </button>
 
           {/* Forget password */}
-          <Link
+          {/* <Link
             to={forgetPasswordLink}
             className={`text-center text-sm hover:underline ${aLinkCSS}`}
           >
             Forgot your password?
-          </Link>
+          </Link> */}
         </form>
       </div>
 
