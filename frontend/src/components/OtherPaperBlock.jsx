@@ -60,12 +60,17 @@ function OtherPaperBlock({
       </div>
       <div>
         {accessStatus.hasAccess === "granted" ? (
-          <button
-            className="px-3 py-1 rounded bg-blue-400 text-white text-center hover:bg-blue-500 transition-all duration-200 cursor-pointer"
-            onClick={() => onDownload(paper._id)}
-          >
-            Download Paper
-          </button>
+          <div className="flex flex-col gap-2">
+            <p className="text-blue-400 text-shadow-[3px_2px_3px_#62C0E060]">
+              Access Granted You Can Download It
+            </p>
+            <button
+              className="px-3 py-1 rounded bg-blue-400 text-white text-center hover:bg-blue-500 transition-all duration-200 cursor-pointer"
+              onClick={() => onDownload(paper._id)}
+            >
+              Download Paper
+            </button>
+          </div>
         ) : accessStatus.hasAccess === "revoked" ? (
           <button
             className="px-3 py-1 rounded bg-green-400 text-white text-center hover:bg-green-500 transition-all duration-200 cursor-pointer"

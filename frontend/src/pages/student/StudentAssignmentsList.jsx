@@ -99,14 +99,14 @@ function StudentAssignmentsList({
                 <div className="flex flex-col gap-2">
                   <button
                     onClick={() => onTogglePublic(s._id)}
-                    className={`px-3 py-1 rounded ${buttonCSS} cursor-pointer`}
+                    className={`px-3 py-1 rounded ${buttonCSS} transition-all duration-200 ease-in-out cursor-pointer`}
                   >
                     {s.isPublic ? "Make Private" : "Make Public"}
                   </button>
 
                   <a
                     href={`http://localhost:3000/papers/${s._id}/download?studentId=${user.student._id}&role=student&userId=${user.student._id}`}
-                    className="px-3 py-1 rounded bg-blue-400 text-white text-center hover:bg-blue-500 transition-all duration-200 cursor-pointer"
+                    className="px-3 py-1 rounded bg-blue-400 text-white text-center hover:bg-blue-500 transition-all duration-200 ease-in-out  cursor-pointer"
                   >
                     Download
                   </a>
@@ -122,7 +122,7 @@ function StudentAssignmentsList({
                       s.grade !== null && s.grade !== undefined
                         ? "bg-gray-400 cursor-not-allowed"
                         : "bg-red-600 hover:bg-red-700 cursor-pointer"
-                    } duration-200 transition-all`}
+                    } duration-200 ease-in-out transition-all`}
                   >
                     Delete
                   </button>

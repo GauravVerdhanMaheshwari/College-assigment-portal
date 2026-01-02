@@ -62,9 +62,11 @@ exports.updatePaperById = async (req, res) => {
 };
 
 // Delete a paper by ID
+const AccessControl = require("../Models/access_control");
 exports.deletePaperById = async (req, res) => {
   try {
     const paper = await Paper.findById(req.params.id);
+    const access_control = await AccessControl.find({ paperId: req.params.id });
 
     if (!paper) {
       return res.status(404).json({ message: "Paper not found" });
@@ -77,7 +79,22 @@ exports.deletePaperById = async (req, res) => {
       });
     }
 
-    await paper.deleteOne();
+    try {
+      await paper.deleteOne();
+    } catch (error) {
+      console.log(error);
+    }
+
+    accessDelete = async (a) => {
+      await a.deleteOne();
+    };
+
+    try {
+      access_control.map((a) => accessDelete(a));
+    } catch (e) {
+      console.error(e);
+    }
+
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ message: err.message });

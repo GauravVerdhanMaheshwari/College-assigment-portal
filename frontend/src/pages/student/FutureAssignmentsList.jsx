@@ -10,6 +10,9 @@ function FutureAssignmentsList({
   onUpload,
 }) {
   const user = JSON.parse(sessionStorage.getItem("user"))?.student;
+  console.log(assignments);
+
+  const allowLateSubmission = assignments?.allowLateSubmission;
 
   const hasSubmitted = (assignmentId) =>
     submissions.some((s) => s.assignmentId === assignmentId);
@@ -32,11 +35,18 @@ function FutureAssignmentsList({
     const due = new Date(dueDate).getTime();
     const now = Date.now();
     const graceEnd = due + graceMinutes * 60 * 1000;
+    let closed;
+
+    if (allowLateSubmission) {
+      closed = now > graceEnd;
+    } else {
+      closed = null;
+    }
 
     return {
       isLate: now > due,
       withinGrace: now > due && now <= graceEnd,
-      closed: now > graceEnd,
+      closed,
     };
   }
 
