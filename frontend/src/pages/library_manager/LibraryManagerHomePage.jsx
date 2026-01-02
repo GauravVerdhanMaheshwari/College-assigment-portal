@@ -67,7 +67,7 @@ function LibraryManagerHomePage() {
         {/* Hero */}
         <div className="mb-10">
           <Hero
-            user={user}
+            user={user.libraryManager}
             userRole={"Library Manager"}
             userObjectName="libraryManager"
             heroImg="library_manager_hero.jpg"

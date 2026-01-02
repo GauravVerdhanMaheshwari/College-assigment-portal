@@ -152,7 +152,7 @@ function AdminHomePage() {
         {/* HERO */}
         <div className="mb-10">
           <Hero
-            user={user}
+            user={user.admin}
             userRole={"Admin"}
             userObjectName="admin"
             heroImg="admin_hero.png"

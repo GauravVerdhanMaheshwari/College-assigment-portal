@@ -66,7 +66,7 @@ function FacultiesHomePage() {
         {/* HERO */}
         <div className="mb-10">
           <Hero
-            user={user}
+            user={user.faculty}
             userRole={"Faculty"}
             userObjectName="faculty"
             heroImg="faculty_hero.jpg"
