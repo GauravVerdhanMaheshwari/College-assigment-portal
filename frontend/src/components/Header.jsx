@@ -85,16 +85,28 @@ function Header({
                 <a
                   onClick={(e) => {
                     e.preventDefault();
-                    if (link.href.startsWith("#")) {
-                      const id = link.href.replace("#", "");
+
+                    // Use either href or path
+                    const target = link.href || link.path;
+
+                    if (!target) return;
+
+                    if (target.startsWith("#")) {
+                      // Scroll to element by ID
+                      const id = target.replace("#", "");
                       const el = document.getElementById(id);
-                      if (el) el.scrollIntoView({ behavior: "smooth" });
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth" });
+                      }
                     } else {
-                      handleNavigate(link.href);
+                      // Navigate to route
+                      handleNavigate(target);
                     }
+
+                    // Close menu after click
                     setIsMenuOpen(false);
                   }}
-                  href={link.href}
+                  href={link.href || link.path || "#"}
                   className="block px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-800 font-medium transition cursor-pointer"
                 >
                   {link.name}
