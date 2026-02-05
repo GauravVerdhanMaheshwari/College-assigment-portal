@@ -8,6 +8,20 @@ function AddUsers({ userToAdd, userDataBaseEntry, handleAddUser }) {
   const [uploadSummary, setUploadSummary] = useState(null);
   const [uploading, setUploading] = useState(false);
 
+  const getPreviewHeaders = () => {
+    if (!userDataBaseEntry[user]) return [];
+    return userDataBaseEntry[user].map((f) => f.field);
+  };
+
+  const getPreviewRow = () => {
+    if (!userDataBaseEntry[user]) return {};
+    const row = {};
+    userDataBaseEntry[user].forEach((f) => {
+      row[f.field] = "example";
+    });
+    return row;
+  };
+
   const normalizeRow = (row) => {
     const normalized = {};
     Object.keys(row).forEach((key) => {
@@ -137,6 +151,49 @@ function AddUsers({ userToAdd, userDataBaseEntry, handleAddUser }) {
             onChange={handleFileUpload}
             className="p-2 border rounded w-full max-w-sm"
           />
+
+          {/* Excel Format Preview */}
+          {userDataBaseEntry[user] && (
+            <div className="mt-6 w-full max-w-4xl bg-gray-50 border rounded p-4">
+              <h3 className="text-lg font-semibold mb-2 text-gray-700">
+                Excel Format Preview ({user})
+              </h3>
+
+              <p className="text-sm text-gray-500 mb-3">
+                Excel headers must match these field names
+              </p>
+
+              <div className="overflow-x-auto">
+                <table className="w-full border border-gray-300 text-sm">
+                  <thead className="bg-gray-200">
+                    <tr>
+                      {getPreviewHeaders().map((key) => (
+                        <th
+                          key={key}
+                          className="border px-3 py-2 text-left font-semibold"
+                        >
+                          {key}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr className="bg-white">
+                      {Object.values(getPreviewRow()).map((val, idx) => (
+                        <td
+                          key={idx}
+                          className="border px-3 py-2 text-gray-500"
+                        >
+                          {val}
+                        </td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {uploading && (
             <p className="text-blue-600 mt-2">⏳ Uploading users…</p>
