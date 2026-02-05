@@ -10,7 +10,7 @@ function FutureAssignmentsList({
   onUpload,
 }) {
   const user = JSON.parse(sessionStorage.getItem("user"))?.student;
-  console.log(assignments);
+  // console.log(assignments);
 
   const allowLateSubmission = assignments?.allowLateSubmission;
 
@@ -18,7 +18,7 @@ function FutureAssignmentsList({
     submissions.some((s) => s.assignmentId === assignmentId);
 
   const filtered = assignments.filter((a) =>
-    a.topic.toLowerCase().includes(searchTerm.toLowerCase())
+    a.topic.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const [, forceUpdate] = React.useState(0);
@@ -78,7 +78,7 @@ function FutureAssignmentsList({
           {filtered.map((a) => {
             const { isLate, withinGrace, closed } = isWithinGrace(
               a.dueDate,
-              a.gracePeriodMinutes
+              a.gracePeriodMinutes,
             );
 
             return (

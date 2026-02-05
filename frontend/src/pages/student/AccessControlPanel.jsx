@@ -10,7 +10,7 @@ function AccessControlPanel() {
     const fetchPermissions = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3000/access-control/requests/${user._id}`
+          `http://localhost:3000/access-control/requests/${user._id}`,
         );
         const data = await res.json();
         setPermissions(data);
@@ -36,7 +36,7 @@ function AccessControlPanel() {
             requestedBy:
               typeof requestedBy === "string" ? requestedBy : requestedBy._id,
           }),
-        }
+        },
       );
 
       const data = await res.json();
@@ -56,15 +56,15 @@ function AccessControlPanel() {
                 ...p,
                 accessStatus: action === "grant" ? "granted" : "revoked",
               }
-            : p
-        )
+            : p,
+        ),
       );
     } catch (err) {
       console.error("Update access failed:", err);
     }
   };
 
-  console.log(permissions);
+  // console.log(permissions);
 
   if (loading) return <p>Loading access requests...</p>;
 
@@ -108,7 +108,7 @@ function AccessControlPanel() {
                       updateAccess(
                         perm.paperId._id,
                         perm.requestedBy._id,
-                        "grant"
+                        "grant",
                       )
                     }
                     className="px-3 py-1 mr-2 bg-green-500 text-white rounded"
@@ -122,7 +122,7 @@ function AccessControlPanel() {
                       updateAccess(
                         perm.paperId._id,
                         perm.requestedBy._id,
-                        "revoke"
+                        "revoke",
                       )
                     }
                     className="px-3 py-1 bg-red-500 text-white rounded"
