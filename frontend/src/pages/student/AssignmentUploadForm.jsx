@@ -21,21 +21,21 @@ function AssignmentUploadForm({
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-
-    if (!selectedFile) {
-      setFile(null);
-      return;
-    }
+    if (!selectedFile) return;
 
     if (!allowedTypes.includes(selectedFile.type)) {
       setError("Only PDF or ZIP files are allowed.");
-      setFile(null);
       e.target.value = "";
       return;
     }
 
     setError("");
     setFile(selectedFile);
+  };
+
+  const removeFile = () => {
+    setFile(null);
+    setError("");
   };
 
   /* ================= SUBMIT ================= */
@@ -46,11 +46,6 @@ function AssignmentUploadForm({
 
     if (!title || !file) {
       setError("Please provide a title and select a valid file.");
-      return;
-    }
-
-    if (!allowedTypes.includes(file.type)) {
-      setError("Invalid file type. Only PDF or ZIP files are allowed.");
       return;
     }
 
@@ -78,7 +73,6 @@ function AssignmentUploadForm({
       setFile(null);
       onUpload && onUpload(data.paper);
     } catch (err) {
-      console.error(err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -96,24 +90,37 @@ function AssignmentUploadForm({
         required
       />
 
-      <input
-        type="file"
-        accept=".pdf,.zip"
-        onChange={handleFileChange}
-        className="border px-3 py-2 rounded"
-        required
-      />
+      {/* 📁 FILE INPUT / FILE NAME DISPLAY */}
+      {!file ? (
+        <input
+          type="file"
+          accept=".pdf,.zip"
+          onChange={handleFileChange}
+          className="border px-3 py-2 rounded"
+          required
+        />
+      ) : (
+        <div className="flex items-center justify-between border px-3 py-2 rounded bg-gray-50">
+          <span className="text-sm truncate">📄 {file.name}</span>
+          <button
+            type="button"
+            onClick={removeFile}
+            className="text-red-600 text-sm hover:underline"
+          >
+            ❌ Remove
+          </button>
+        </div>
+      )}
 
       <button
         type="submit"
-        className={`px-4 py-2 rounded bg-blue-600 text-white ${buttonCSS} transition-all duration-300`}
+        className={`px-4 py-2 rounded text-white ${buttonCSS} transition-all duration-300`}
         disabled={loading}
       >
         {loading ? "Uploading..." : "Upload"}
       </button>
 
       {error && <p className="text-sm text-center text-red-600">{error}</p>}
-
       {message && (
         <p className="text-sm text-center text-green-600">{message}</p>
       )}
