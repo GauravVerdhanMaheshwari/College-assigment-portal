@@ -1,6 +1,13 @@
 const Paper = require("../Models/paper");
-const { getGridFSBucket } = require("../config/gridfs");
 const Assignment = require("../Models/assignment");
+
+const Student = require("../Models/student");
+const AccessControl = require("../Models/access_control");
+const Faculty = require("../Models/faculties");
+const Admin = require("../Models/admin");
+const LibraryManager = require("../Models/library_manager");
+
+const { getGridFSBucket } = require("../config/gridfs");
 
 // Get all papers
 exports.getAllPapers = async (req, res) => {
@@ -62,7 +69,6 @@ exports.updatePaperById = async (req, res) => {
 };
 
 // Delete a paper by ID
-const AccessControl = require("../Models/access_control");
 exports.deletePaperById = async (req, res) => {
   try {
     const paper = await Paper.findById(req.params.id);
@@ -275,7 +281,6 @@ exports.uploadPaperFile = async (req, res) => {
   }
 };
 
-// Download a paper file
 exports.downloadPaper = async (req, res) => {
   try {
     const paper = await Paper.findById(req.params.id);
@@ -284,36 +289,42 @@ exports.downloadPaper = async (req, res) => {
     const bucket = getGridFSBucket();
 
     const files = await bucket.find({ _id: paper.fileId }).toArray();
-    if (!files.length) {
-      return res.status(404).json({ message: "File not found in GridFS" });
+    if (!files.length)
+      return res.status(404).json({ message: "File not found" });
+
+    const { userId, role } = req.query;
+
+    let userName = "Unknown User";
+
+    if (role === "student") {
+      const s = await Student.findById(userId).select("name");
+      userName = s?.name || userName;
+    } else if (role === "faculty") {
+      const f = await Faculty.findById(userId).select("name");
+      userName = f?.name || userName;
+    } else if (role === "admin") {
+      const a = await Admin.findById(userId).select("name");
+      userName = a?.name || userName;
+    } else if (role === "libraryManager") {
+      const lm = await LibraryManager.findById(userId).select("name");
+      userName = lm?.name || "Library Manager";
     }
 
-    const file = files[0];
-    const role = req.query.role || "unknown";
-    const userId = req.query.userId || null;
-    const userName = req.query.userId.name || "Unknown User";
-
-    console.log(req.query.userId.name);
-
+    // ✅ save snapshot
     paper.downloads.push({
+      name: userName,
       userId,
       role,
     });
+
     await paper.save();
 
     res.set({
-      "Content-Type": file.contentType || "application/pdf",
-      "Content-Disposition": `attachment; filename="${file.filename}"`,
+      "Content-Type": files[0].contentType || "application/pdf",
+      "Content-Disposition": `attachment; filename="${files[0].filename}"`,
     });
 
-    const stream = bucket.openDownloadStream(paper.fileId);
-
-    stream.on("error", (err) => {
-      console.error(err);
-      res.status(500).json({ message: "Download error" });
-    });
-
-    stream.pipe(res);
+    bucket.openDownloadStream(paper.fileId).pipe(res);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
