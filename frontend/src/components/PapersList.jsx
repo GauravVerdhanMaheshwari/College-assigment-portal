@@ -4,13 +4,14 @@ import { Filter } from "../components/index";
 function PapersList({ papers, papersAPI, userID, textCSS }) {
   const [filteredPapers, setFilteredPapers] = useState([]);
   const [isGrouped, setIsGrouped] = useState(false);
+  const [reportsMap, setReportsMap] = useState({}); // 🔹 paperId -> reports[]
 
   useEffect(() => {
     setFilteredPapers(papers);
     setIsGrouped(false);
   }, [papers]);
 
-  // 🔹 Delete comment (uses your backend route)
+  // 🔹 Delete comment
   const deleteComment = async (paperId, commentId) => {
     try {
       await fetch(
@@ -43,6 +44,40 @@ function PapersList({ papers, papersAPI, userID, textCSS }) {
     }
   };
 
+  // 🔹 Fetch reports for a paper
+  const fetchReports = async (paperId) => {
+    if (reportsMap[paperId]) return;
+
+    try {
+      const res = await fetch(`http://localhost:3000/reports/paper/${paperId}`);
+      const data = await res.json();
+
+      setReportsMap((prev) => ({
+        ...prev,
+        [paperId]: data,
+      }));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // 🔹 Delete report
+  const deleteReport = async (paperId, reportId) => {
+    try {
+      await fetch(`http://localhost:3000/reports/${reportId}`, {
+        method: "DELETE",
+      });
+
+      setReportsMap((prev) => ({
+        ...prev,
+        [paperId]: prev[paperId].filter((r) => r._id !== reportId),
+      }));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete report");
+    }
+  };
+
   // 🔹 Action Buttons
   const ActionButtons = ({ paper }) => (
     <a
@@ -53,7 +88,7 @@ function PapersList({ papers, papersAPI, userID, textCSS }) {
     </a>
   );
 
-  // 🔹 Render rows (shared by grouped + flat)
+  // 🔹 Render rows
   const renderRows = (papersArray) =>
     papersArray.map((paper) => (
       <tr key={paper._id} className="hover:bg-gray-100">
@@ -70,7 +105,7 @@ function PapersList({ papers, papersAPI, userID, textCSS }) {
           </td>
         ))}
 
-        {/* 🔹 COMMENTS (INLINE, NO DROPDOWN) */}
+        {/* 🔹 COMMENTS */}
         <td className="px-4 py-2 border max-w-md">
           <div className="space-y-2">
             {paper.comments?.length ? (
@@ -79,30 +114,69 @@ function PapersList({ papers, papersAPI, userID, textCSS }) {
                   key={c._id}
                   className="border rounded p-2 bg-gray-50 text-sm"
                 >
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-gray-700">
+                  <div className="flex justify-between">
+                    <span className="font-semibold">
                       {c.facultyName || "Faculty"}
                     </span>
                     <button
-                      onClick={() => {
-                        window.confirm("do you want to delete this comment?") &&
-                          deleteComment(paper._id, c._id);
-                      }}
-                      className="text-red-500 hover:text-red-700 text-xs"
+                      className="text-red-500 text-xs"
+                      onClick={() =>
+                        window.confirm("Delete comment?") &&
+                        deleteComment(paper._id, c._id)
+                      }
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  <p>{c.text}</p>
+                </div>
+              ))
+            ) : (
+              <span className="text-gray-400 text-sm">No comments</span>
+            )}
+          </div>
+        </td>
+
+        {/* 🔹 REPORTS SECTION */}
+        <td className="px-4 py-2 border max-w-md">
+          <button
+            onClick={() => fetchReports(paper._id)}
+            className="text-blue-500 text-xs mb-2"
+          >
+            Load Reports
+          </button>
+
+          <div className="space-y-2">
+            {reportsMap[paper._id]?.length ? (
+              reportsMap[paper._id].map((r) => (
+                <div
+                  key={r._id}
+                  className="border rounded p-2 bg-red-50 text-sm"
+                >
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-red-700">
+                      {r.reporterId?.name || "Student"}
+                    </span>
+                    <button
+                      className="text-red-500 text-xs"
+                      onClick={() =>
+                        window.confirm("Delete report?") &&
+                        deleteReport(paper._id, r._id)
+                      }
                     >
                       Delete
                     </button>
                   </div>
 
-                  <p className="mt-1 text-gray-800">{c.text}</p>
+                  <p className="text-gray-800">{r.description}</p>
 
                   <span className="text-xs text-gray-500">
-                    {new Date(c.createdAt).toLocaleString()}
+                    {new Date(r.createdAt).toLocaleString()}
                   </span>
                 </div>
               ))
             ) : (
-              <span className="text-gray-400 text-sm">No comments</span>
+              <span className="text-gray-400 text-sm">No reports</span>
             )}
           </div>
         </td>
@@ -120,7 +194,6 @@ function PapersList({ papers, papersAPI, userID, textCSS }) {
         Submitted Papers
       </h2>
 
-      {/* 🔍 FILTER */}
       <Filter
         data={papers}
         entityFields={[
@@ -145,57 +218,23 @@ function PapersList({ papers, papersAPI, userID, textCSS }) {
         }}
       />
 
-      {/* 📑 TABLE */}
       <div className="max-h-96 overflow-y-auto border rounded-lg p-4 bg-white shadow">
-        {isGrouped ? (
-          Object.entries(filteredPapers).map(([group, items]) => (
-            <div key={group} className="mb-6">
-              <h3 className="text-lg font-bold mb-2">{group}</h3>
-
-              <table className="min-w-full border-collapse">
-                <thead className="sticky top-0 bg-gray-100">
-                  <tr>
-                    <th className="px-4 py-2 border">Title</th>
-                    <th className="px-4 py-2 border">Student</th>
-                    <th className="px-4 py-2 border">Class</th>
-                    <th className="px-4 py-2 border">Section</th>
-                    <th className="px-4 py-2 border">Course</th>
-                    <th className="px-4 py-2 border">Submitted</th>
-                    <th className="px-4 py-2 border">Comments</th>
-                    <th className="px-4 py-2 border">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>{renderRows(items)}</tbody>
-              </table>
-            </div>
-          ))
-        ) : (
-          <table className="min-w-full border-collapse">
-            <thead className="sticky top-0 bg-gray-100">
-              <tr>
-                <th className="px-4 py-2 border">Title</th>
-                <th className="px-4 py-2 border">Student</th>
-                <th className="px-4 py-2 border">Class</th>
-                <th className="px-4 py-2 border">Section</th>
-                <th className="px-4 py-2 border">Course</th>
-                <th className="px-4 py-2 border">Submitted</th>
-                <th className="px-4 py-2 border">Comments</th>
-                <th className="px-4 py-2 border">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.isArray(filteredPapers) && renderRows(filteredPapers)}
-
-              {Array.isArray(filteredPapers) && filteredPapers.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="text-center text-gray-500 py-4">
-                    No papers submitted yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        )}
+        <table className="min-w-full border-collapse">
+          <thead className="sticky top-0 bg-gray-100">
+            <tr>
+              <th className="px-4 py-2 border">Title</th>
+              <th className="px-4 py-2 border">Student</th>
+              <th className="px-4 py-2 border">Class</th>
+              <th className="px-4 py-2 border">Section</th>
+              <th className="px-4 py-2 border">Course</th>
+              <th className="px-4 py-2 border">Submitted</th>
+              <th className="px-4 py-2 border">Comments</th>
+              <th className="px-4 py-2 border">Reports</th>
+              <th className="px-4 py-2 border">Actions</th>
+            </tr>
+          </thead>
+          <tbody>{renderRows(filteredPapers)}</tbody>
+        </table>
       </div>
     </div>
   );

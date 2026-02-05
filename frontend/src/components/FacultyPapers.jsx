@@ -9,6 +9,10 @@ function FacultyPapers({ papers }) {
   const [filteredPapers, setFilteredPapers] = useState([]);
   const [isGrouped, setIsGrouped] = useState(false);
 
+  // 🔴 Reports state
+  const [reportsMap, setReportsMap] = useState({});
+  const [loadingReports, setLoadingReports] = useState({});
+
   useEffect(() => {
     setLocalPapers(papers || []);
     setFilteredPapers(papers || []);
@@ -24,7 +28,7 @@ function FacultyPapers({ papers }) {
 
     if (res.ok) {
       setLocalPapers((prev) =>
-        prev.map((p) => (p._id === paperId ? { ...p, grade } : p))
+        prev.map((p) => (p._id === paperId ? { ...p, grade } : p)),
       );
     }
   };
@@ -50,8 +54,8 @@ function FacultyPapers({ papers }) {
       prev.map((p) =>
         p._id === paperId
           ? { ...p, comments: [...(p.comments || []), newComment] }
-          : p
-      )
+          : p,
+      ),
     );
 
     input.value = "";
@@ -67,7 +71,7 @@ function FacultyPapers({ papers }) {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: newText }),
-      }
+      },
     );
 
     if (!res.ok) return;
@@ -78,11 +82,11 @@ function FacultyPapers({ papers }) {
           ? {
               ...p,
               comments: p.comments.map((c) =>
-                c._id === commentId ? { ...c, text: newText } : c
+                c._id === commentId ? { ...c, text: newText } : c,
               ),
             }
-          : p
-      )
+          : p,
+      ),
     );
   };
 
@@ -90,7 +94,7 @@ function FacultyPapers({ papers }) {
   const handleDeleteComment = async (paperId, commentId) => {
     await fetch(
       `http://localhost:3000/papers/${paperId}/comment/${commentId}`,
-      { method: "DELETE" }
+      { method: "DELETE" },
     );
 
     setLocalPapers((prev) =>
@@ -100,9 +104,44 @@ function FacultyPapers({ papers }) {
               ...p,
               comments: p.comments.filter((c) => c._id !== commentId),
             }
-          : p
-      )
+          : p,
+      ),
     );
+  };
+
+  /* ===================== FETCH REPORTS ===================== */
+  const fetchReports = async (paperId) => {
+    if (reportsMap[paperId]) return;
+
+    setLoadingReports((p) => ({ ...p, [paperId]: true }));
+
+    try {
+      const res = await fetch(`http://localhost:3000/reports/paper/${paperId}`);
+      const data = await res.json();
+
+      setReportsMap((prev) => ({
+        ...prev,
+        [paperId]: data,
+      }));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingReports((p) => ({ ...p, [paperId]: false }));
+    }
+  };
+
+  /* ===================== DELETE REPORT ===================== */
+  const handleDeleteReport = async (paperId, reportId) => {
+    if (!window.confirm("Delete this report?")) return;
+
+    await fetch(`http://localhost:3000/reports/${reportId}`, {
+      method: "DELETE",
+    });
+
+    setReportsMap((prev) => ({
+      ...prev,
+      [paperId]: prev[paperId].filter((r) => r._id !== reportId),
+    }));
   };
 
   /* ===================== DOWNLOAD ===================== */
@@ -111,7 +150,7 @@ function FacultyPapers({ papers }) {
       `http://localhost:3000/papers/${paperId}/download?role=faculty&userId=${
         user.faculty?._id || user._id
       }`,
-      "_blank"
+      "_blank",
     );
   };
 
@@ -120,6 +159,7 @@ function FacultyPapers({ papers }) {
     <div key={paper._id} className="p-4 bg-white rounded-xl shadow mb-6">
       <h3 className="text-xl font-semibold">{paper.title}</h3>
       <h4 className="text-lg font-medium">{paper.assignmentTopic}</h4>
+
       {paper.isLate && (
         <span className="inline-block px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded">
           ⚠ Submitted Late
@@ -178,7 +218,6 @@ function FacultyPapers({ papers }) {
                 handleEditComment(paper._id, c._id, e.target.value)
               }
             />
-
             <button
               className="text-red-500"
               onClick={() => handleDeleteComment(paper._id, c._id)}
@@ -189,10 +228,57 @@ function FacultyPapers({ papers }) {
         ))}
       </div>
 
+      {/* 🚩 REPORTS */}
+      <div className="mt-4 border-t pt-3">
+        <div className="flex justify-between items-center">
+          <h4 className="font-semibold text-red-600">🚩 Reports</h4>
+          <button
+            onClick={() => fetchReports(paper._id)}
+            className="text-sm text-blue-500 hover:underline"
+          >
+            View Reports
+          </button>
+        </div>
+
+        {loadingReports[paper._id] && (
+          <p className="text-sm text-gray-500 mt-1">Loading reports...</p>
+        )}
+
+        {reportsMap[paper._id]?.length === 0 && (
+          <p className="text-sm text-gray-500 mt-1">
+            No reports for this paper.
+          </p>
+        )}
+
+        {(reportsMap[paper._id] || []).map((r) => (
+          <div
+            key={r._id}
+            className="mt-2 p-3 bg-red-50 border border-red-200 rounded"
+          >
+            <div className="flex justify-between">
+              <span className="font-medium text-red-700">
+                {r.reporterId?.name || "Student"}
+              </span>
+              <button
+                onClick={() => handleDeleteReport(paper._id, r._id)}
+                className="text-red-500 hover:text-red-700"
+              >
+                ❌
+              </button>
+            </div>
+
+            <p className="text-sm mt-1">{r.description}</p>
+            <span className="text-xs text-gray-500">
+              {new Date(r.createdAt).toLocaleString()}
+            </span>
+          </div>
+        ))}
+      </div>
+
       {/* 📥 Download */}
       <button
         onClick={() => handleDownload(paper._id)}
-        className="mt-3 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
       >
         ⬇ Download Paper
       </button>
@@ -216,6 +302,7 @@ function FacultyPapers({ papers }) {
           No papers found.
         </p>
       )}
+
       {isGrouped
         ? Object.entries(filteredPapers).map(([group, papers]) => (
             <div key={group} className="mb-6">

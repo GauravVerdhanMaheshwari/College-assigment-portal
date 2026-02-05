@@ -10,7 +10,7 @@ app.use(express.json());
 
 // Connect to MongoDB
 mongoose.connect(
-  "mongodb://localhost:27017/CollegeProjectPaperManagementSystem"
+  "mongodb://localhost:27017/CollegeProjectPaperManagementSystem",
 );
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
@@ -35,6 +35,8 @@ app.use("/assignments", require("./Routers/assignmentRoute"));
 app.use("/papers", require("./Routers/paperRoute"));
 // Import and use access control routes
 app.use("/access-control", require("./Routers/access_controlRoute"));
+// Import and use report routes
+app.use("/reports", require("./Routers/reportRoute"));
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
