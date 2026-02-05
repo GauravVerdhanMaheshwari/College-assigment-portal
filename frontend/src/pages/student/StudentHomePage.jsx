@@ -113,6 +113,12 @@ function StudentHomePage() {
         profileNavigate="/student/profile"
         loginPage="/student/login"
         onSearch={(val) => setSearchTerm(val)}
+        menuLinks={[
+          { name: "My Assignments", path: "#studentAssignments" },
+          { name: "Future Assignments", path: "#futureAssignments" },
+          { name: "Other Papers", path: "#otherPapers" },
+          { name: "Access Control", path: "#accessControl" },
+        ]}
       />
 
       <div className="p-8">
