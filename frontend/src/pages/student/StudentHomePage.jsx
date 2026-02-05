@@ -106,7 +106,7 @@ function StudentHomePage() {
   return (
     <div className="bg-gradient-to-b from-[#FFF6E0] to-[#FFE39E] min-h-screen w-full">
       <Header
-        wantSearch={true}
+        wantSearch={false}
         searchPlaceholder="Search assignments..."
         textColor="text-[#073B4C]"
         headerStyle="to-[#FFE9B5] from-[#FFD166]"
