@@ -10,6 +10,7 @@ import AccessControlPanel from "./AccessControlPanel.jsx";
 
 function StudentHomePage() {
   const navigate = useNavigate();
+  document.title = "Student Home";
 
   /* 🔐 stable user reference */
   const user = useMemo(() => JSON.parse(sessionStorage.getItem("user")), []);
@@ -49,7 +50,7 @@ function StudentHomePage() {
         const assignments = await assignmentsRes.json();
         const papers = await submissionsRes.json();
 
-        const studentClass = `${user.student.course}-${user.student.year}-${user.student.division}`;
+        const studentClass = `${user.student.course}-${user.student.semester}-${user.student.division}`;
 
         setFutureAssignments(
           assignments.filter((a) => a.assignedTo === studentClass),
