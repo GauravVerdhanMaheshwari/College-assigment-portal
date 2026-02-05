@@ -127,7 +127,7 @@ exports.getPapersByStudentId = async (req, res) => {
           facultyName: c.facultyId?.name || "Faculty",
           createdAt: c.createdAt,
         })),
-      }))
+      })),
     );
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -199,15 +199,31 @@ exports.getPapersByDateRange = async (req, res) => {
 // Upload a paper file
 exports.uploadPaperFile = async (req, res) => {
   try {
+    /* ================= FILE EXISTENCE ================= */
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
+    /* ================= FILE TYPE VALIDATION ================= */
+    const allowedMimeTypes = [
+      "application/pdf",
+      "application/zip",
+      "application/x-zip-compressed",
+    ];
+
+    if (!allowedMimeTypes.includes(req.file.mimetype)) {
+      return res.status(400).json({
+        message: "Invalid file type. Only PDF and ZIP files are allowed.",
+      });
+    }
+
+    /* ================= ASSIGNMENT CHECK ================= */
     const assignment = await Assignment.findById(req.body.assignmentId);
     if (!assignment) {
       return res.status(404).json({ message: "Assignment not found" });
     }
 
+    /* ================= LATE SUBMISSION LOGIC ================= */
     const submittedAt = new Date();
     const isLate = submittedAt > assignment.dueDate;
 
@@ -217,9 +233,15 @@ exports.uploadPaperFile = async (req, res) => {
       });
     }
 
+    /* ================= GRIDFS UPLOAD ================= */
     const bucket = getGridFSBucket();
+
     const uploadStream = bucket.openUploadStream(req.file.originalname, {
       contentType: req.file.mimetype,
+      metadata: {
+        studentId: req.body.studentId,
+        assignmentId: req.body.assignmentId,
+      },
     });
 
     uploadStream.end(req.file.buffer);
@@ -239,7 +261,14 @@ exports.uploadPaperFile = async (req, res) => {
 
       await paper.save();
 
-      res.status(201).json({ success: true, paper });
+      res.status(201).json({
+        success: true,
+        paper,
+      });
+    });
+
+    uploadStream.on("error", (err) => {
+      res.status(500).json({ message: "File upload failed", error: err });
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -301,7 +330,7 @@ exports.getDownloadHistory = async (req, res) => {
       userId: d.userId,
       role: d.role,
       downloadedAt: d.downloadedAt,
-    }))
+    })),
   );
 };
 
@@ -343,7 +372,7 @@ exports.getFacultyPapers = async (req, res) => {
         semester: p.studentId?.year,
         grade: p.grade,
         comments: p.comments,
-      }))
+      })),
     );
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -406,7 +435,7 @@ exports.getPublicPapers = async (req, res) => {
         studentId: p.studentId?._id,
         subject: p.assignmentId?.subject || "General",
         topic: p.assignmentId?.topic || "General Submission",
-      }))
+      })),
     );
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -438,7 +467,7 @@ exports.getUserManagerPapers = async (req, res) => {
         semester: p.studentId?.year,
         grade: p.grade,
         comments: p.comments,
-      }))
+      })),
     );
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -470,11 +499,11 @@ exports.downloadPaperForUserManager = async (req, res) => {
 
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${file.filename}"`
+      `attachment; filename="${file.filename}"`,
     );
     res.setHeader(
       "Content-Type",
-      file.contentType || "application/octet-stream"
+      file.contentType || "application/octet-stream",
     );
 
     const downloadStream = bucket.openDownloadStream(paper.fileId);
