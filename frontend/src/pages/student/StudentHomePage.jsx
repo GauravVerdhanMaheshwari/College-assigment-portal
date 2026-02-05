@@ -23,11 +23,11 @@ function StudentHomePage() {
 
   /* 🔐 AUTH GUARD */
   useEffect(() => {
-    if (!user?.student || user.student.role !== "student") {
+    if (!user?.student || user.student.role !== "student" || !user) {
       sessionStorage.clear();
       navigate("/");
     }
-  }, [user, navigate]);
+  }, []);
 
   /* 📦 FETCH DATA (RUNS ONCE) */
   useEffect(() => {
@@ -52,7 +52,7 @@ function StudentHomePage() {
         const studentClass = `${user.student.course}-${user.student.year}-${user.student.division}`;
 
         setFutureAssignments(
-          assignments.filter((a) => a.assignedTo === studentClass)
+          assignments.filter((a) => a.assignedTo === studentClass),
         );
         setSubmissions(papers);
       } catch (err) {
@@ -74,12 +74,12 @@ function StudentHomePage() {
   const togglePublic = async (paperId) => {
     const res = await fetch(
       `http://localhost:3000/papers/${paperId}/toggle-visibility`,
-      { method: "PATCH" }
+      { method: "PATCH" },
     );
     const updated = await res.json();
 
     setSubmissions((prev) =>
-      prev.map((p) => (p._id === updated._id ? updated : p))
+      prev.map((p) => (p._id === updated._id ? updated : p)),
     );
     location.reload();
   };
@@ -116,7 +116,7 @@ function StudentHomePage() {
 
       <div className="p-8">
         <Hero
-          user={user.student}
+          user={user}
           userRole="Student"
           userObjectName="student"
           heroImg="student_hero.png"
