@@ -8,6 +8,13 @@ function UserManagerHomePage() {
   const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem("user"));
 
+  const [status, setStatus] = React.useState({
+    loading: false,
+    success: "",
+    error: "",
+  });
+  const [uploadSummary, setUploadSummary] = React.useState(null);
+
   useEffect(() => {
     if (!user?.userManager) {
       sessionStorage.clear();
@@ -22,85 +29,68 @@ function UserManagerHomePage() {
     }
   }, [user, navigate]);
 
-  const dummyReports = [
-    {
-      id: 1,
-      userName: "John Doe",
-      userEmail: "john@example.com",
-      message: "Reported inappropriate behavior",
-    },
-    {
-      id: 2,
-      userName: "Jane Smith",
-      userEmail: "jane@example.com",
-      message: "Reported missing submission",
-    },
-    {
-      id: 3,
-      userName: "Jane Smith",
-      userEmail: "jane@example.com",
-      message: "Reported missing submission",
-    },
-  ];
-
-  const handleAddUser = (newUser, userAPI, userDetails) => {
+  const handleAddUser = async (newUser, userAPI, userDetails) => {
     if (!userDetails || Object.keys(userDetails).length === 0) {
-      alert("Please fill in the user details.");
-      return;
+      return { success: false, message: "Empty row" };
     }
-    if (!userAPI) {
-      alert("Invalid user type.");
-      return;
-    }
+
+    // 🔐 AUTO ROLE
+    userDetails.role = userAPI === "students" ? "student" : "faculty";
+
+    // Email validation
     if (userDetails.email && !/\S+@\S+\.\S+/.test(userDetails.email)) {
-      alert("Please enter a valid email address.");
-      return;
+      return { success: false, message: "Invalid email" };
     }
-    if (userDetails.year) {
-      const year = parseInt(userDetails.year, 10);
-      if (isNaN(year) || year < 1 || year > 5) {
-        alert("Please enter a valid year (1-5).");
-        return;
+
+    // Semester validation
+    if (userDetails.semester) {
+      const sem = parseInt(userDetails.semester, 10);
+      if (isNaN(sem) || sem < 1 || sem > 8) {
+        return { success: false, message: "Invalid semester" };
       }
-      userDetails.year = year;
-    }
-    if (userDetails.enrollmentNumber) {
-      const enrollmentNumber = parseInt(userDetails.enrollmentNumber, 10);
-      if (isNaN(enrollmentNumber) || enrollmentNumber <= 0) {
-        alert("Please enter a valid enrollment number.");
-        return;
-      }
-      userDetails.enrollmentNumber = enrollmentNumber;
+      userDetails.semester = sem;
     }
 
-    userDetails.password = userDetails.name + "@" + userDetails.year;
+    // Enrollment number normalization
+    if (userDetails.enrollmentnumber) {
+      userDetails.enrollmentNumber = String(userDetails.enrollmentnumber);
+      delete userDetails.enrollmentnumber;
+    }
 
-    userDetails.course = userDetails.course.toUpperCase();
-    userDetails.division = userDetails.division.toUpperCase();
+    if (!userDetails.enrollmentNumber && userAPI === "students") {
+      return { success: false, message: "Missing enrollmentNumber" };
+    }
 
-    fetch(`http://localhost:3000/${userAPI}/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(userDetails),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const contentType = response.headers.get("content-type") || "";
-        if (!contentType.includes("application/json")) return null;
-        return response.json().catch(() => null);
-      })
-      .then((data) => {
-        console.log("Success:", data);
-        alert(`${newUser} added successfully!`);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        alert(`Failed to add ${newUser}. Please try again.`);
+    if (userDetails.course)
+      userDetails.course = String(userDetails.course).toUpperCase();
+
+    if (userDetails.division)
+      userDetails.division = String(userDetails.division).toUpperCase();
+
+    userDetails.password = `${userDetails.name}@${
+      userDetails.enrollmentNumber?.toString().slice(-4) || "1234"
+    }`;
+
+    try {
+      const response = await fetch(`http://localhost:3000/${userAPI}/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userDetails),
       });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data?.message || "Backend rejected",
+        };
+      }
+
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: "Network error" };
+    }
   };
 
   const handleEdit = async (user, type) => {
@@ -167,7 +157,7 @@ function UserManagerHomePage() {
               { name: "Add User", href: "#addUsers" },
             ]}
             wantSearch={false}
-            dummyReports={dummyReports}
+            dummyReports={[]}
             profileNavigate="/userManager/profile"
             loginPage="/userManager/login"
           />
@@ -237,6 +227,51 @@ function UserManagerHomePage() {
             }}
             handleAddUser={handleAddUser}
           />
+          {(status.loading || status.success || status.error) && (
+            <div className="mx-20 mb-4">
+              {status.loading && (
+                <div className="p-3 bg-yellow-100 text-yellow-800 rounded">
+                  ⏳ Processing request...
+                </div>
+              )}
+
+              {status.success && (
+                <div className="p-3 bg-green-100 text-green-800 rounded">
+                  ✅ {status.success}
+                </div>
+              )}
+
+              {status.error && (
+                <div className="p-3 bg-red-100 text-red-800 rounded">
+                  ❌ {status.error}
+                </div>
+              )}
+            </div>
+          )}
+          {uploadSummary && (
+            <div className="mx-20 mb-6 p-4 rounded bg-white shadow">
+              <h3 className="text-lg font-bold mb-2">📊 Upload Summary</h3>
+
+              <p>📁 Total Rows: {uploadSummary.total}</p>
+              <p className="text-green-600">
+                ✅ Success: {uploadSummary.success}
+              </p>
+              <p className="text-red-600">❌ Failed: {uploadSummary.failed}</p>
+
+              {uploadSummary.errors.length > 0 && (
+                <div className="mt-3">
+                  <h4 className="font-semibold mb-1">Failed Rows:</h4>
+                  <ul className="text-sm text-red-700 list-disc pl-5">
+                    {uploadSummary.errors.map((err, index) => (
+                      <li key={index}>
+                        Row {err.row}: {err.message}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
