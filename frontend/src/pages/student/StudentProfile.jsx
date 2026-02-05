@@ -24,11 +24,11 @@ function StudentProfile() {
       })
       .then((data) => {
         console.log("Success:", data);
-        alert("Profile saved successfully!");
+        // alert("Profile saved successfully!");
       })
       .catch((error) => {
         console.error("Error:", error);
-        alert("Failed to update profile.");
+        // alert("Failed to update profile.");
       });
   };
 
