@@ -111,7 +111,7 @@ function UserManagerHomePage() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(user),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -137,7 +137,7 @@ function UserManagerHomePage() {
         `http://localhost:3000/${type}/${user._id}`,
         {
           method: "DELETE",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -187,8 +187,15 @@ function UserManagerHomePage() {
           <List
             entityNames={["Students", "Faculties"]}
             entityFields={[
-              ["Enrollment No", "Name", "Email", "Course", "Division", "Year"],
-              ["Name", "Email", "Subject", "Course", "Year", "Division"],
+              [
+                "Enrollment No",
+                "Name",
+                "Email",
+                "Course",
+                "Division",
+                "Semester",
+              ],
+              ["Name", "Email", "Subject", "Course", "Semester", "Division"],
             ]}
             entityKeys={[
               [
@@ -197,9 +204,9 @@ function UserManagerHomePage() {
                 "email",
                 "course",
                 "division",
-                "year",
+                "semester",
               ],
-              ["name", "email", "subject", "course", "year", "division"],
+              ["name", "email", "subject", "course", "semester", "division"],
             ]}
             entityEndpoints={["students", "faculties"]}
             handleDelete={handleDelete}
@@ -217,14 +224,14 @@ function UserManagerHomePage() {
                 { field: "email", type: "email" },
                 { field: "course", type: "text" },
                 { field: "division", type: "text" },
-                { field: "year", type: "number" },
+                { field: "semester", type: "number" },
               ],
               Faculties: [
                 { field: "name", type: "text" },
                 { field: "email", type: "email" },
                 { field: "subject", type: "text" },
                 { field: "course", type: "text" },
-                { field: "year", type: "number" },
+                { field: "semester", type: "number" },
                 { field: "division", type: "text" },
               ],
             }}

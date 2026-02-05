@@ -8,8 +8,8 @@ const studentSchema = new Schema({
   enrollmentNumber: { type: Number, required: true, unique: true },
   course: { type: String, required: true },
   division: { type: String, required: true },
-  year: { type: Number, required: true },
-  role: { type: String, required: true }
+  semester: { type: Number, required: true },
+  role: { type: String, required: true },
 });
 
 module.exports = mongoose.model("Student", studentSchema);

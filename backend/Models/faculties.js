@@ -8,7 +8,7 @@ const facultySchema = new Schema({
   course: { type: String, required: true },
   division: { type: String, required: true },
   subject: { type: String, required: true },
-  year: { type: Number, required: true },
+  semester: { type: Number, required: true },
   role: { type: String, required: true },
 });
 
