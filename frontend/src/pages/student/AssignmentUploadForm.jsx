@@ -72,6 +72,7 @@ function AssignmentUploadForm({
       setTitle("");
       setFile(null);
       onUpload && onUpload(data.paper);
+      location.reload();
     } catch (err) {
       setError(err.message);
     } finally {
