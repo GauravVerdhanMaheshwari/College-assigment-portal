@@ -23,7 +23,7 @@ function UserManagerProfile() {
       })
       .then((data) => {
         console.log("Success:", data);
-        alert("Profile saved successfully!");
+        // alert("Profile saved successfully!");
       })
       .catch((error) => {
         console.error("Error:", error);

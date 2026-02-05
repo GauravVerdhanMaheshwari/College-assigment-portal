@@ -19,7 +19,7 @@ function FacultiesProfile() {
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
-        alert("Profile saved successfully!");
+        // alert("Profile saved successfully!");
       })
       .catch((error) => {
         console.error("There was a problem with the fetch operation:", error);
