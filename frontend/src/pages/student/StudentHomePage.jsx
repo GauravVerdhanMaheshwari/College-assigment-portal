@@ -117,7 +117,7 @@ function StudentHomePage() {
 
       <div className="p-8">
         <Hero
-          user={user}
+          user={user.student}
           userRole="Student"
           userObjectName="student"
           heroImg="student_hero.png"
