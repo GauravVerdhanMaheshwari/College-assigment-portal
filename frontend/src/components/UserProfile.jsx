@@ -1,17 +1,69 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 function UserProfile({ userDetails, onSave, theme }) {
   const [user, setUser] = useState(userDetails);
   const [showPassword, setShowPassword] = useState(false);
 
+  const [showNameError, setShowNameError] = useState(false);
+  const [showPasswordError, setShowPasswordError] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const [nameErrorMessage, setNameErrorMessage] = useState("");
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
+
+  const errorCSS = "pl-2 pt-2 text-red-400 text-lg";
+
+  /* Sync state if userDetails prop changes */
+  useEffect(() => {
+    setUser(userDetails);
+  }, [userDetails]);
+
+  /* Hide success message when user edits again */
+  useEffect(() => {
+    setShowSuccess(false);
+  }, [user.name, user.password]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setUser((prev) => ({ ...prev, [name]: value.trim() }));
+
+    setUser((prev) => ({
+      ...prev,
+      [name]: name === "password" ? value : value.trim(),
+    }));
+  };
+
+  const checkChanges = ({ name, password }) => {
+    let isValid = true;
+
+    if (!name) {
+      setNameErrorMessage("Error: Enter a name");
+      setShowNameError(true);
+      isValid = false;
+    } else {
+      setShowNameError(false);
+    }
+
+    if (!password) {
+      setPasswordErrorMessage("Error: Enter a password");
+      setShowPasswordError(true);
+      isValid = false;
+    } else {
+      setShowPasswordError(false);
+    }
+
+    return isValid;
   };
 
   const handleSave = () => {
-    if (onSave) {
+    if (!onSave) return;
+
+    const isValid = checkChanges(user);
+
+    if (isValid) {
+      setShowSuccess(true);
       onSave(user);
+    } else {
+      setShowSuccess(false);
     }
   };
 
@@ -44,21 +96,7 @@ function UserProfile({ userDetails, onSave, theme }) {
           className="w-full p-3 rounded-xl border border-gray-300 bg-[#ffffff68] text-black placeholder-white focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-transparent backdrop-blur-sm transition-all duration-300 shadow-[0_0px_29px_10px_rgba(50,50,50,0.2)] hover:shadow-[0_4px_40px_15px_rgba(50,50,50,0.3)] active:shadow-[0_2px_20px_7px_rgba(50,50,50,0.25)]"
           placeholder="Enter name"
         />
-      </div>
-
-      {/* Email */}
-      <div className="mb-6">
-        <label className="block mb-2 font-semibold text-white text-lg">
-          Email
-        </label>
-        <input
-          type="email"
-          name="email"
-          value={user.email}
-          onChange={handleChange}
-          className="w-full p-3 rounded-xl border border-gray-300 bg-[#ffffff68] text-black placeholder-white focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-transparent backdrop-blur-sm transition-all duration-300 shadow-[0_0px_29px_10px_rgba(50,50,50,0.2)] hover:shadow-[0_4px_40px_15px_rgba(50,50,50,0.3)] active:shadow-[0_2px_20px_7px_rgba(50,50,50,0.25)]"
-          placeholder="Enter email"
-        />
+        <p className={errorCSS}>{showNameError && nameErrorMessage}</p>
       </div>
 
       {/* Password */}
@@ -81,12 +119,14 @@ function UserProfile({ userDetails, onSave, theme }) {
         >
           {showPassword ? "Hide" : "Show"}
         </button>
+        <p className={errorCSS}>{showPasswordError && passwordErrorMessage}</p>
       </div>
 
       {/* Save Button */}
       <button
         onClick={handleSave}
-        className="w-full py-3 px-5 rounded-2xl text-white font-bold text-lg transition-all duration-500 shadow-lg hover:shadow-2xl cursor-pointer"
+        disabled={!user.name || !user.password}
+        className="w-full py-3 px-5 rounded-2xl text-white font-bold text-lg transition-all duration-500 shadow-lg hover:shadow-2xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         style={{ backgroundColor: theme.buttonColor }}
         onMouseOver={(e) =>
           (e.currentTarget.style.backgroundColor = theme.buttonHoverColor)
@@ -97,6 +137,12 @@ function UserProfile({ userDetails, onSave, theme }) {
       >
         Save Changes
       </button>
+
+      {showSuccess && (
+        <p className="mt-4 text-xl text-center text-lime-400">
+          Changes Saved Successfully!
+        </p>
+      )}
     </div>
   );
 }
