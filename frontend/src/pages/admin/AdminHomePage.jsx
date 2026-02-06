@@ -57,36 +57,68 @@ function AdminHomePage() {
   ];
 
   // 📌 ADD USERS
-  const handleAddUser = (newUser, userAPI, userDetails) => {
+  const handleAddUser = async (newUser, userAPI, userDetails) => {
     if (!userDetails || Object.keys(userDetails).length === 0) {
-      alert("Please fill in the user details.");
-      return;
-    }
-    if (!userAPI) {
-      alert("Invalid user type.");
-      return;
+      return { success: false, message: "Empty row" };
     }
 
-    // validate email
+    // 🔐 AUTO ROLE
+    userDetails.role = userAPI === "students" ? "student" : "faculty";
+
+    // Email validation
     if (userDetails.email && !/\S+@\S+\.\S+/.test(userDetails.email)) {
-      alert("Please enter a valid email address.");
-      return;
+      return { success: false, message: "Invalid email" };
     }
 
-    // generate default password
-    userDetails.password = userDetails.name + "@123";
+    // Semester validation
+    if (userDetails.semester) {
+      const sem = parseInt(userDetails.semester, 10);
+      if (isNaN(sem) || sem < 1 || sem > 8) {
+        return { success: false, message: "Invalid semester" };
+      }
+      userDetails.semester = sem;
+    }
 
-    fetch(`http://localhost:3000/${userAPI}/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(userDetails),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Network error");
-        return res.json().catch(() => null);
-      })
-      .then(() => alert(`${newUser} added successfully!`))
-      .catch(() => alert(`Failed to add ${newUser}. Please try again.`));
+    // Enrollment number normalization
+    if (userDetails.enrollmentnumber) {
+      userDetails.enrollmentNumber = String(userDetails.enrollmentnumber);
+      delete userDetails.enrollmentnumber;
+    }
+
+    if (!userDetails.enrollmentNumber && userAPI === "students") {
+      return { success: false, message: "Missing enrollmentNumber" };
+    }
+
+    if (userDetails.course)
+      userDetails.course = String(userDetails.course).toUpperCase();
+
+    if (userDetails.division)
+      userDetails.division = String(userDetails.division).toUpperCase();
+
+    userDetails.password = `${userDetails.name}@${
+      userDetails.enrollmentNumber?.toString().slice(-4) || "1234"
+    }`;
+
+    try {
+      const response = await fetch(`http://localhost:3000/${userAPI}/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userDetails),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data?.message || "Backend rejected",
+        };
+      }
+
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: "Network error" };
+    }
   };
 
   // 📌 EDIT
@@ -110,7 +142,7 @@ function AdminHomePage() {
   // 📌 DELETE
   const handleDelete = async (entity, type) => {
     const ok = window.confirm(
-      `Are you sure you want to delete ${entity.name || entity.title}?`
+      `Are you sure you want to delete ${entity.name || entity.title}?`,
     );
     if (!ok) return;
 
@@ -223,14 +255,14 @@ function AdminHomePage() {
                 { field: "email", type: "email" },
                 { field: "course", type: "text" },
                 { field: "division", type: "text" },
-                { field: "year", type: "number" },
+                { field: "semesters", type: "number" },
               ],
               Faculties: [
                 { field: "name", type: "text" },
                 { field: "email", type: "email" },
                 { field: "subject", type: "text" },
                 { field: "course", type: "text" },
-                { field: "year", type: "number" },
+                { field: "semesters", type: "number" },
                 { field: "division", type: "text" },
               ],
             }}
