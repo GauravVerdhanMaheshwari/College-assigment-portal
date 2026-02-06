@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 
 function UserProfile({ userDetails, onSave, theme }) {
   const [user, setUser] = useState(userDetails);
+  const [originalUser, setOriginalUser] = useState(userDetails);
+
   const [showPassword, setShowPassword] = useState(false);
 
   const [showNameError, setShowNameError] = useState(false);
@@ -16,6 +18,7 @@ function UserProfile({ userDetails, onSave, theme }) {
   /* Sync state if userDetails prop changes */
   useEffect(() => {
     setUser(userDetails);
+    setOriginalUser(userDetails);
   }, [userDetails]);
 
   /* Hide success message when user edits again */
@@ -32,9 +35,33 @@ function UserProfile({ userDetails, onSave, theme }) {
     }));
   };
 
+  /* Password validation rules */
+  const validatePassword = (password) => {
+    if (password.length < 8)
+      return "Password must be at least 8 characters long";
+
+    if (!/[A-Z]/.test(password))
+      return "Password must contain at least 1 uppercase letter";
+
+    if (!/[a-z]/.test(password))
+      return "Password must contain at least 1 lowercase letter";
+
+    if (!/[0-9]/.test(password))
+      return "Password must contain at least 1 number";
+
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password))
+      return "Password must contain at least 1 special character";
+
+    if (password === originalUser.password)
+      return "New password must be different from the old password";
+
+    return "";
+  };
+
   const checkChanges = ({ name, password }) => {
     let isValid = true;
 
+    /* Name validation */
     if (!name) {
       setNameErrorMessage("Error: Enter a name");
       setShowNameError(true);
@@ -43,8 +70,10 @@ function UserProfile({ userDetails, onSave, theme }) {
       setShowNameError(false);
     }
 
-    if (!password) {
-      setPasswordErrorMessage("Error: Enter a password");
+    /* Password validation */
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setPasswordErrorMessage(passwordError);
       setShowPasswordError(true);
       isValid = false;
     } else {
@@ -62,10 +91,14 @@ function UserProfile({ userDetails, onSave, theme }) {
     if (isValid) {
       setShowSuccess(true);
       onSave(user);
+      setOriginalUser(user); // update reference after save
     } else {
       setShowSuccess(false);
     }
   };
+
+  const isUnchanged =
+    user.name === originalUser.name && user.password === originalUser.password;
 
   return (
     <div
@@ -93,7 +126,7 @@ function UserProfile({ userDetails, onSave, theme }) {
           name="name"
           value={user.name}
           onChange={handleChange}
-          className="w-full p-3 rounded-xl border border-gray-300 bg-[#ffffff68] text-black placeholder-white focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-transparent backdrop-blur-sm transition-all duration-300 shadow-[0_0px_29px_10px_rgba(50,50,50,0.2)] hover:shadow-[0_4px_40px_15px_rgba(50,50,50,0.3)] active:shadow-[0_2px_20px_7px_rgba(50,50,50,0.25)]"
+          className="w-full p-3 rounded-xl border border-gray-300 bg-[#ffffff68] text-black"
           placeholder="Enter name"
         />
         <p className={errorCSS}>{showNameError && nameErrorMessage}</p>
@@ -109,13 +142,13 @@ function UserProfile({ userDetails, onSave, theme }) {
           name="password"
           value={user.password}
           onChange={handleChange}
-          className="w-full p-3 rounded-xl border border-gray-300 bg-[#ffffff68] text-black placeholder-white focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:border-transparent backdrop-blur-sm transition-all duration-300 shadow-[0_0px_29px_10px_rgba(50,50,50,0.2)] hover:shadow-[0_4px_40px_15px_rgba(50,50,50,0.3)] active:shadow-[0_2px_20px_7px_rgba(50,50,50,0.25)]"
-          placeholder="Enter password"
+          className="w-full p-3 rounded-xl border border-gray-300 bg-[#ffffff68] text-black"
+          placeholder="Enter new password"
         />
         <button
           type="button"
           onClick={() => setShowPassword((prev) => !prev)}
-          className="absolute right-3 mt-6 transform -translate-y-1/2 text-white font-semibold hover:text-gray-200 transition-colors"
+          className="absolute right-3 mt-6 transform -translate-y-1/2 text-white font-semibold"
         >
           {showPassword ? "Hide" : "Show"}
         </button>
@@ -125,8 +158,8 @@ function UserProfile({ userDetails, onSave, theme }) {
       {/* Save Button */}
       <button
         onClick={handleSave}
-        disabled={!user.name || !user.password}
-        className="w-full py-3 px-5 rounded-2xl text-white font-bold text-lg transition-all duration-500 shadow-lg hover:shadow-2xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={!user.name || !user.password || isUnchanged}
+        className="w-full py-3 px-5 rounded-2xl text-white font-bold text-lg transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
         style={{ backgroundColor: theme.buttonColor }}
         onMouseOver={(e) =>
           (e.currentTarget.style.backgroundColor = theme.buttonHoverColor)
