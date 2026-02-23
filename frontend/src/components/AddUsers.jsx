@@ -1,304 +1,275 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 
+// 🔥 Courses → Subjects mapping
+const COURSE_SUBJECT_MAP = {
+  IT: ["DBMS", "OS", "CN", "SE", "DS"],
+  CE: ["Thermodynamics", "Fluid Mechanics", "Structural Analysis"],
+  BCA: ["C Programming", "Java", "Web Development"],
+  MCA: ["Advanced Java", "Cloud Computing", "AI", "Big Data"],
+};
+
+const DIVISIONS = ["A", "B", "C", "D"];
+const SEMESTERS = [1, 2, 3, 4, 5, 6];
+
 function AddUsers({
-  userToAdd = [],
+  userToAdd = ["Library Managers", "User Managers", "Students", "Faculties"],
   userDataBaseEntry = {},
-  selectOptions = {},
-  courseSubjectMap = {},
   handleAddUser,
 }) {
-  const [user, setUser] = useState(userToAdd?.[0] || "");
-  const [userAPI, setUserAPI] = useState((userToAdd?.[0] || "").toLowerCase());
+  const [selectedUser, setSelectedUser] = useState(userToAdd[0]);
+  const [userAPI, setUserAPI] = useState(
+    userToAdd[0].toLowerCase().replace(" ", "-"),
+  );
   const [userDetails, setUserDetails] = useState({});
+  const [facultySmart, setFacultySmart] = useState({}); // for courses/subjects multi-select
   const [uploadSummary, setUploadSummary] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const selectedCourses = userDetails.course || [];
 
-  // 🛡️ SAFE FIELD LIST
-  const currentFields = useMemo(() => {
-    return userDataBaseEntry?.[user] || [];
-  }, [userDataBaseEntry, user]);
+  // 📌 Allowed subjects dynamically based on courses
+  const allowedSubjects = useMemo(() => {
+    if (!facultySmart.course?.length) return [];
+    const subjectsSet = new Set();
+    facultySmart.course.forEach((course) => {
+      (COURSE_SUBJECT_MAP[course] || []).forEach((s) => subjectsSet.add(s));
+    });
+    return Array.from(subjectsSet);
+  }, [facultySmart.course]);
 
-  const MultiSelect = ({
-    label,
-    options = [],
-    value = [],
-    onChange,
-    disabled = false,
-  }) => {
-    const toggleValue = (val) => {
-      if (disabled) return;
+  const areSubjectsEnabled = allowedSubjects.length > 0;
 
-      if (value.includes(val)) {
-        onChange(value.filter((v) => v !== val));
-      } else {
-        onChange([...value, val]);
+  // 📂 Handle multi-select change
+  const handleMultiSelect = (e) => {
+    const { name, options } = e.target;
+    const values = Array.from(options)
+      .filter((o) => o.selected)
+      .map((o) => o.value);
+    setFacultySmart((prev) => {
+      let updated = { ...prev, [name]: values };
+      if (name === "course") {
+        updated.subject =
+          prev.subject?.filter((sub) =>
+            values.some((course) =>
+              (COURSE_SUBJECT_MAP[course] || []).includes(sub),
+            ),
+          ) || [];
       }
-    };
-
-    return (
-      <div
-        className={`border rounded-xl p-3 transition
-        ${disabled ? "bg-gray-100 opacity-60" : "bg-gray-50"}
-      `}
-      >
-        <p className="font-medium text-gray-700 mb-2">
-          {label}
-          {disabled && (
-            <span className="text-xs text-red-500 ml-2">
-              (Select IT course first)
-            </span>
-          )}
-        </p>
-
-        <div className="flex flex-wrap gap-2">
-          {options.map((opt, i) => (
-            <button
-              key={i}
-              type="button"
-              disabled={disabled}
-              onClick={() => toggleValue(opt)}
-              className={`px-3 py-1 rounded-full text-sm transition
-              ${
-                value.includes(opt)
-                  ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white"
-                  : "bg-white border hover:bg-gray-100"
-              }
-              ${disabled ? "cursor-not-allowed" : ""}
-            `}
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  // 📊 Preview helpers
-  const getPreviewHeaders = () => currentFields.map((f) => f.field);
-
-  const getAllowedSubjects = () => {
-    if (!selectedCourses.length) return [];
-
-    const allowed = new Set();
-
-    selectedCourses.forEach((course) => {
-      const mapped = courseSubjectMap?.[course];
-      if (mapped) {
-        mapped.forEach((s) => allowed.add(s));
-      }
+      return updated;
     });
-
-    return Array.from(allowed);
   };
 
-  const getPreviewRow = () => {
-    const row = {};
-    currentFields.forEach((f) => {
-      row[f.field] = "example";
-    });
-    return row;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setUserDetails((prev) => ({ ...prev, [name]: value }));
   };
 
-  const normalizeRow = (row) => {
-    const normalized = {};
-    Object.keys(row).forEach((key) => {
-      normalized[key.trim().toLowerCase()] = row[key];
-    });
-    return normalized;
+  // 📂 Submit single user
+  const handleSingleAdd = async () => {
+    const finalData = { ...userDetails };
+    // For Students/Faculties, include multi-select fields
+    if (selectedUser === "Students" || selectedUser === "Faculties") {
+      finalData.course = facultySmart.course || [];
+      finalData.division = facultySmart.division || [];
+      finalData.semester = facultySmart.semester || [];
+      finalData.subject = facultySmart.subject || [];
+    }
+
+    const res = await handleAddUser(selectedUser, userAPI, finalData);
+    if (res.success) {
+      alert(`${selectedUser} added successfully`);
+      setUserDetails({});
+      setFacultySmart({});
+    } else alert(res.message);
   };
 
-  // 📂 Excel Upload
+  // 📂 Excel upload handler
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setUploading(true);
     setUploadSummary(null);
 
     const reader = new FileReader();
-
     reader.onload = async (event) => {
       const data = new Uint8Array(event.target.result);
       const workbook = XLSX.read(data, { type: "array" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(sheet);
 
-      let successCount = 0;
+      let success = 0;
       let failed = [];
 
       for (let i = 0; i < rows.length; i++) {
-        try {
-          const cleanRow = normalizeRow(rows[i]);
-          const result = await handleAddUser(user, userAPI, cleanRow);
-
-          if (result?.success) {
-            successCount++;
-          } else {
-            failed.push({
-              row: i + 2,
-              reason: result?.message || "Unknown error",
-            });
-          }
-        } catch (err) {
-          failed.push({
-            row: i + 2,
-            reason: "Processing error",
-          });
-        }
+        const cleanRow = Object.fromEntries(
+          Object.entries(rows[i]).map(([k, v]) => [k.trim().toLowerCase(), v]),
+        );
+        const result = await handleAddUser(selectedUser, userAPI, cleanRow);
+        if (result.success) success++;
+        else failed.push({ row: i + 2, reason: result.message });
       }
 
-      setUploadSummary({
-        total: rows.length,
-        success: successCount,
-        failed,
-      });
-
+      setUploadSummary({ total: rows.length, success, failed });
       setUploading(false);
     };
-
     reader.readAsArrayBuffer(file);
     e.target.value = "";
   };
 
+  // 📂 Preview headers
+  const getPreviewHeaders = () =>
+    userDataBaseEntry[selectedUser]?.map((f) => f.field) || [];
+  const getPreviewRow = () => {
+    const row = {};
+    (userDataBaseEntry[selectedUser] || []).forEach((f) => {
+      row[f.field] = "example";
+    });
+    return row;
+  };
+
   return (
-    <div className="w-full px-4">
-      {/* Header */}
-      <h2 className="text-3xl font-bold text-center text-white mb-6">
-        ✨ Add Users
+    <div className="w-full p-6">
+      <h2 className="text-3xl text-center font-bold mb-6 text-white">
+        Add Users
       </h2>
 
-      {/* Card */}
-      <div className="backdrop-blur-lg bg-white/90 border border-white/30 shadow-2xl rounded-2xl p-6 mx-auto max-w-5xl">
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-3 justify-center mb-6">
-          {userToAdd?.map((u, index) => (
-            <button
-              key={index}
-              className={`px-4 py-2 rounded-xl font-medium transition-all duration-200
-                ${
-                  user === u
-                    ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg scale-105"
-                    : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                }`}
-              onClick={() => {
-                setUser(u);
-                setUserAPI(u.toLowerCase());
-                setUserDetails({});
-                setUploadSummary(null);
-              }}
-            >
-              {u}
-            </button>
-          ))}
-        </div>
-
-        {/* Manual Form */}
-        <div className="w-full max-w-md mx-auto flex flex-col gap-3">
-          {currentFields.length === 0 ? (
-            <p className="text-center text-red-500 font-medium">
-              ⚠ No fields configured for this user type
-            </p>
-          ) : (
-            currentFields.map((field, index) => {
-              // ✅ MULTISELECT FIELD
-              if (field.type === "multiselect") {
-                // 🎯 SUBJECT SPECIAL LOGIC
-                if (field.field === "subject") {
-                  const allowedSubjects = getAllowedSubjects();
-                  const isDisabled = !selectedCourses.includes("IT");
-
-                  return (
-                    <MultiSelect
-                      key={index}
-                      label="Subject"
-                      options={allowedSubjects}
-                      value={userDetails.subject || []}
-                      disabled={isDisabled}
-                      onChange={(val) =>
-                        setUserDetails({
-                          ...userDetails,
-                          subject: val,
-                        })
-                      }
-                    />
-                  );
-                }
-
-                // ✅ NORMAL MULTISELECT
-                return (
-                  <MultiSelect
-                    key={index}
-                    label={
-                      field.field.charAt(0).toUpperCase() + field.field.slice(1)
-                    }
-                    options={selectOptions?.[field.field] || []}
-                    value={userDetails[field.field] || []}
-                    onChange={(val) =>
-                      setUserDetails({
-                        ...userDetails,
-                        [field.field]: val,
-                      })
-                    }
-                  />
-                );
-              }
-            })
-          )}
-        </div>
-
-        {/* Add Button */}
-        <div className="flex justify-center">
+      {/* Tabs */}
+      <div className="flex justify-center gap-4 mb-6">
+        {userToAdd.map((u) => (
           <button
-            className="mt-5 bg-gradient-to-r from-sky-500 to-blue-600 hover:scale-105 transition text-white px-6 py-2 rounded-xl shadow-lg font-semibold"
-            onClick={async () => {
-              const result = await handleAddUser(user, userAPI, userDetails);
-              if (result?.success) {
-                alert(`${user} added successfully`);
-                setUserDetails({});
-              } else {
-                alert(result?.message || "Failed to add user");
-              }
+            key={u}
+            className={`px-4 py-2 rounded-full font-semibold text-white shadow-lg ${
+              selectedUser === u
+                ? "bg-blue-500"
+                : "bg-gray-400 hover:bg-gray-500"
+            }`}
+            onClick={() => {
+              setSelectedUser(u);
+              setUserAPI(u.toLowerCase().replace(" ", "-"));
+              setUserDetails({});
+              setFacultySmart({});
+              setUploadSummary(null);
             }}
           >
-            🚀 Add {user}
+            {u}
           </button>
-        </div>
+        ))}
+      </div>
+
+      {/* Form */}
+      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-xl p-6 flex flex-col gap-4">
+        {/* Common Fields */}
+        {userDataBaseEntry[selectedUser]?.map((field, idx) => (
+          <input
+            key={idx}
+            type={field.type}
+            placeholder={field.field}
+            name={field.field}
+            value={userDetails[field.field] || ""}
+            onChange={handleChange}
+            className="border px-3 py-2 rounded w-full"
+          />
+        ))}
+
+        {/* Students/Faculties Multi-select */}
+        {(selectedUser === "Students" || selectedUser === "Faculties") && (
+          <>
+            {/* Course */}
+            <label>Course(s)</label>
+            <select
+              multiple
+              name="course"
+              value={facultySmart.course || []}
+              onChange={handleMultiSelect}
+              className="border rounded w-full p-2 min-h-[80px]"
+            >
+              {Object.keys(COURSE_SUBJECT_MAP).map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+
+            {/* Division */}
+            <label>Division(s)</label>
+            <select
+              multiple
+              name="division"
+              value={facultySmart.division || []}
+              onChange={handleMultiSelect}
+              className="border rounded w-full p-2 min-h-[60px]"
+            >
+              {DIVISIONS.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+
+            {/* Semester */}
+            <label>Semester(s)</label>
+            <select
+              multiple
+              name="semester"
+              value={facultySmart.semester || []}
+              onChange={handleMultiSelect}
+              className="border rounded w-full p-2 min-h-[60px]"
+            >
+              {SEMESTERS.map((s) => (
+                <option key={s} value={s}>
+                  Semester {s}
+                </option>
+              ))}
+            </select>
+
+            {/* Subject */}
+            <label>Subject(s)</label>
+            <select
+              multiple
+              name="subject"
+              value={facultySmart.subject || []}
+              onChange={handleMultiSelect}
+              disabled={!areSubjectsEnabled}
+              className={`border rounded w-full p-2 min-h-[80px] ${
+                !areSubjectsEnabled ? "bg-gray-100 cursor-not-allowed" : ""
+              }`}
+            >
+              {allowedSubjects.map((sub) => (
+                <option key={sub} value={sub}>
+                  {sub}
+                </option>
+              ))}
+            </select>
+            {!areSubjectsEnabled && (
+              <p className="text-gray-500 text-sm">
+                Select course(s) first to enable subjects
+              </p>
+            )}
+          </>
+        )}
+
+        <button
+          onClick={handleSingleAdd}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded"
+        >
+          Add {selectedUser}
+        </button>
 
         {/* Excel Upload */}
-        <div className="mt-8 text-center">
-          <label className="font-semibold text-gray-700">
-            📂 Or Upload Excel File
-          </label>
-
+        <div>
+          <label className="font-semibold">Upload Excel:</label>
           <input
             type="file"
             accept=".xlsx,.xls"
             onChange={handleFileUpload}
-            className="mt-3 p-2 border rounded-lg w-full max-w-sm mx-auto"
+            className="border p-2 rounded w-full"
           />
-
-          {uploading && (
-            <p className="text-blue-600 mt-2 font-medium">
-              ⏳ Uploading users…
-            </p>
-          )}
-
-          {/* Summary */}
+          {uploading && <p className="text-blue-600 mt-2">⏳ Uploading...</p>}
           {uploadSummary && (
-            <div className="mt-4 border rounded-xl p-4 max-w-md mx-auto bg-gray-50">
-              <p className="font-bold text-gray-800">✅ Upload Completed</p>
-              <p className="text-green-700">
-                ✔ Success: {uploadSummary.success}
-              </p>
-              <p className="text-red-700">
-                ✖ Failed: {uploadSummary.failed.length}
-              </p>
-
+            <div className="mt-2 border p-2 rounded">
+              <p>Success: {uploadSummary.success}</p>
+              <p>Failed: {uploadSummary.failed.length}</p>
               {uploadSummary.failed.length > 0 && (
-                <ul className="mt-2 text-sm text-red-600 list-disc ml-5 text-left">
+                <ul className="text-red-600 ml-4 list-disc">
                   {uploadSummary.failed.map((f, i) => (
                     <li key={i}>
                       Row {f.row}: {f.reason}
@@ -309,6 +280,33 @@ function AddUsers({
             </div>
           )}
         </div>
+
+        {/* Excel Preview */}
+        {userDataBaseEntry[selectedUser] && (
+          <div className="mt-4 border p-2 rounded bg-gray-50">
+            <p className="font-semibold">Excel Format Preview</p>
+            <table className="min-w-full border border-gray-300 text-sm">
+              <thead className="bg-gray-200">
+                <tr>
+                  {getPreviewHeaders().map((h) => (
+                    <th key={h} className="border px-2">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  {Object.values(getPreviewRow()).map((val, i) => (
+                    <td key={i} className="border px-2 text-gray-500">
+                      {val}
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
