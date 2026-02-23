@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Filter } from "../components/index";
 
 function List({
@@ -15,109 +15,89 @@ function List({
   const [activeEntity, setActiveEntity] = useState(entityEndpoints[0]);
   const [editingUser, setEditingUser] = useState(null);
 
+  // 🔥 senior states
+  const [loading, setLoading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
+
+  // ✅ memoized entity index
+  const entityIndex = useMemo(
+    () => entityEndpoints.indexOf(activeEntity),
+    [entityEndpoints, activeEntity],
+  );
+
+  // ✅ SAFE FETCH (race protected)
   useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+
+        const response = await fetch(`http://localhost:3000/${activeEntity}`, {
+          signal: controller.signal,
+        });
+
+        const data = await response.json();
+
+        setUsers(data);
+        setFilteredUsers(data);
+        setIsGrouped(false);
+        setSelectedIds([]);
+        setCurrentPage(1);
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.error("Error fetching users:", error);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    return () => controller.abort();
   }, [activeEntity]);
 
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch(`http://localhost:3000/${activeEntity}`);
-      const data = await response.json();
-      setUsers(data);
-      setFilteredUsers(data);
-      setIsGrouped(false);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
+  // ✅ stable filter handler (VERY IMPORTANT)
+  const handleFilter = useCallback((result, grouped) => {
+    setFilteredUsers(result);
+    setIsGrouped(grouped);
+    setCurrentPage(1);
+    setSelectedIds([]);
+  }, []);
 
-  const entityIndex = entityEndpoints.indexOf(activeEntity);
+  // ✅ pagination math
+  const totalPages = useMemo(() => {
+    if (!Array.isArray(filteredUsers)) return 1;
+    return Math.max(1, Math.ceil(filteredUsers.length / pageSize));
+  }, [filteredUsers]);
 
-  // helper to remove ids from local state (works for grouped or flat filteredUsers)
-  const removeUsersFromState = (deletedIds) => {
-    setUsers((prev) => prev.filter((u) => !deletedIds.includes(u._id)));
+  // ✅ clamp page
+  useEffect(() => {
+    setCurrentPage((p) => Math.min(p, totalPages));
+  }, [totalPages]);
 
-    setFilteredUsers((prev) => {
-      // grouped -> object of arrays
-      if (
-        isGrouped &&
-        prev &&
-        typeof prev === "object" &&
-        !Array.isArray(prev)
-      ) {
-        const newObj = {};
-        Object.entries(prev).forEach(([grp, items]) => {
-          const remaining = items.filter((u) => !deletedIds.includes(u._id));
-          if (remaining.length > 0) newObj[grp] = remaining;
-        });
-        return newObj;
-      }
-      // flat -> array
-      if (Array.isArray(prev)) {
-        return prev.filter((u) => !deletedIds.includes(u._id));
-      }
-      return prev;
-    });
-  };
+  // ✅ paginated data
+  const paginatedUsers = useMemo(() => {
+    if (!Array.isArray(filteredUsers)) return [];
+    const start = (currentPage - 1) * pageSize;
+    return filteredUsers.slice(start, start + pageSize);
+  }, [filteredUsers, currentPage]);
 
-  // single delete (with confirm)
-  const handleSingleDelete = async (user) => {
-    const name = user.name || user._id;
-    const ok = window.confirm(`Delete ${name}? This action cannot be undone.`);
-    if (!ok) return;
-
-    if (!handleDelete) {
-      removeUsersFromState([user._id]);
-      return;
-    }
-
-    try {
-      await handleDelete(user, activeEntity);
-      removeUsersFromState([user._id]);
-    } catch (err) {
-      console.error(err);
-      alert(`Error deleting ${name}. See console for details.`);
-    }
-  };
-
-  // group delete (with confirm, waits for all deletes)
-  const handleDeleteGroup = async (items, groupName) => {
-    const ok = window.confirm(
-      `Delete ${items.length} item(s) in group "${groupName}"? This action cannot be undone.`
+  // ✅ selection helper
+  const allVisibleSelected = useMemo(() => {
+    return (
+      paginatedUsers.length > 0 &&
+      paginatedUsers.every((u) => selectedIds.includes(u._id))
     );
-    if (!ok) return;
+  }, [paginatedUsers, selectedIds]);
 
-    const ids = items.map((u) => u._id);
-
-    if (!handleDelete) {
-      removeUsersFromState(ids);
-      return;
-    }
-
-    try {
-      // wait for all delete requests
-      await Promise.all(items.map((u) => handleDelete(u, activeEntity)));
-      removeUsersFromState(ids);
-    } catch (err) {
-      console.error(err);
-      alert(
-        `Error deleting group "${groupName}". Some items may not have been deleted.`
-      );
-    }
-  };
-
-  const handleSaveEdit = async (updatedUser) => {
-    if (!updatedUser) return;
-
-    try {
-      const serverData = await handleEdit(updatedUser, activeEntity);
-      const finalUser = serverData && serverData._id ? serverData : updatedUser;
-
-      // update state with final data
-      setUsers((prev) =>
-        prev.map((u) => (u._id === finalUser._id ? finalUser : u))
-      );
+  // helper to remove ids from state
+  const removeUsersFromState = useCallback(
+    (deletedIds) => {
+      setUsers((prev) => prev.filter((u) => !deletedIds.includes(u._id)));
 
       setFilteredUsers((prev) => {
         if (
@@ -128,37 +108,96 @@ function List({
         ) {
           const newObj = {};
           Object.entries(prev).forEach(([grp, items]) => {
-            newObj[grp] = items.map((u) =>
-              u._id === finalUser._id ? finalUser : u
-            );
+            const remaining = items.filter((u) => !deletedIds.includes(u._id));
+            if (remaining.length > 0) newObj[grp] = remaining;
           });
           return newObj;
         }
+
         if (Array.isArray(prev)) {
-          return prev.map((u) => (u._id === finalUser._id ? finalUser : u));
+          return prev.filter((u) => !deletedIds.includes(u._id));
         }
+
         return prev;
       });
+    },
+    [isGrouped],
+  );
 
-      setEditingUser(null);
+  // ✅ single delete
+  const handleSingleDelete = useCallback(
+    async (user) => {
+      const ok = window.confirm(
+        `Delete ${user.name || user._id}? This action cannot be undone.`,
+      );
+      if (!ok) return;
+
+      try {
+        await handleDelete?.(user, activeEntity);
+        removeUsersFromState([user._id]);
+        setSelectedIds((prev) => prev.filter((id) => id !== user._id));
+      } catch (err) {
+        console.error(err);
+        alert("Error deleting item.");
+      }
+    },
+    [activeEntity, handleDelete, removeUsersFromState],
+  );
+
+  // ✅ bulk delete
+  const handleBulkDelete = useCallback(async () => {
+    const ok = window.confirm(`Delete ${selectedIds.length} selected items?`);
+    if (!ok) return;
+
+    try {
+      const toDelete = users.filter((u) => selectedIds.includes(u._id));
+      await Promise.all(toDelete.map((u) => handleDelete?.(u, activeEntity)));
+      removeUsersFromState(selectedIds);
+      setSelectedIds([]);
     } catch (err) {
       console.error(err);
-      alert(`Error saving changes. See console for details.`);
+      alert("Bulk delete failed.");
     }
-  };
+  }, [selectedIds, users, handleDelete, activeEntity, removeUsersFromState]);
 
-  // row action buttons (use local handlers to add confirm & state updates)
+  // ✅ save edit
+  const handleSaveEdit = useCallback(
+    async (updatedUser) => {
+      try {
+        const serverData = await handleEdit(updatedUser, activeEntity);
+        const finalUser = serverData?._id ? serverData : updatedUser;
+
+        setUsers((prev) =>
+          prev.map((u) => (u._id === finalUser._id ? finalUser : u)),
+        );
+
+        setFilteredUsers((prev) => {
+          if (Array.isArray(prev)) {
+            return prev.map((u) => (u._id === finalUser._id ? finalUser : u));
+          }
+          return prev;
+        });
+
+        setEditingUser(null);
+      } catch (err) {
+        console.error(err);
+        alert("Error saving changes.");
+      }
+    },
+    [activeEntity, handleEdit],
+  );
+
   const ActionButtons = ({ user }) => (
     <div className="flex gap-2">
       <button
         onClick={() => setEditingUser({ ...user })}
-        className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-all duration-200"
+        className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
       >
         Edit
       </button>
       <button
         onClick={() => handleSingleDelete(user)}
-        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-all duration-200"
+        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
       >
         Delete
       </button>
@@ -167,18 +206,18 @@ function List({
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-center text-white text-shadow-[0px_0px_10px_rgba(255,255,255,0.8)]">
-        User List
+      <h2 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-sky-400 to-blue-600 bg-clip-text text-transparent">
+        User Management
       </h2>
 
-      {/* Switch buttons */}
+      {/* entity switch */}
       <div className="flex justify-center my-5 gap-6">
         {entityNames.map((name, index) => (
           <button
             key={name}
-            className={`px-6 py-2 rounded-full font-semibold text-white transition-all shadow-xl hover:shadow-lg duration-300 ${
+            className={`px-6 py-2 rounded-full font-semibold text-white transition-all shadow-xl ${
               activeEntity === entityEndpoints[index]
-                ? "bg-[#38BDF8] hover:bg-[#0A9FE0FF]"
+                ? "bg-sky-500"
                 : "bg-gray-400 hover:bg-gray-500"
             }`}
             onClick={() => setActiveEntity(entityEndpoints[index])}
@@ -188,53 +227,118 @@ function List({
         ))}
       </div>
 
-      {/* Filter */}
+      {/* filter */}
       <Filter
         data={users}
         entityFields={entityFields[entityIndex]}
         entityKeys={entityKeys[entityIndex]}
-        onFilter={(result, grouped) => {
-          setFilteredUsers(result);
-          setIsGrouped(grouped);
-        }}
+        groupableKeys={["subject", "course", "semester", "division"]}
+        onFilter={handleFilter}
       />
 
-      {/* Table */}
-      <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-4 shadow-md bg-white mx-20 mb-10">
-        {isGrouped ? (
-          // grouped mode: filteredUsers is an object { groupName: [items] }
-          Object.entries(filteredUsers).map(([group, items]) => (
-            <div key={group} className="mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-bold">{group}</h3>
-                <button
-                  onClick={() => handleDeleteGroup(items, group)}
-                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-all duration-200"
-                >
-                  Delete Group
-                </button>
-              </div>
+      {/* bulk bar */}
+      {!isGrouped && (
+        <div className="flex justify-between items-center mx-6 lg:mx-20 mb-3">
+          <p className="text-sm text-gray-500">
+            {Array.isArray(filteredUsers) ? filteredUsers.length : 0} records
+          </p>
 
-              <table className="min-w-full border-collapse border-none mb-4">
-                <thead className="sticky top-0 bg-gray-100">
+          {selectedIds.length > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 shadow-sm"
+            >
+              Delete Selected ({selectedIds.length})
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* table */}
+      <div className="mx-20 mb-10 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+        <div className="max-h-[420px] overflow-y-auto">
+          {!isGrouped ? (
+            <table className="min-w-full">
+              <thead className="sticky top-0 bg-white">
+                <tr>
+                  <th className="px-4 py-2 border">
+                    <input
+                      type="checkbox"
+                      checked={allVisibleSelected}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedIds((prev) => [
+                            ...new Set([
+                              ...prev,
+                              ...paginatedUsers.map((u) => u._id),
+                            ]),
+                          ]);
+                        } else {
+                          setSelectedIds((prev) =>
+                            prev.filter(
+                              (id) => !paginatedUsers.some((u) => u._id === id),
+                            ),
+                          );
+                        }
+                      }}
+                    />
+                  </th>
+
+                  {entityFields[entityIndex].map((field) => (
+                    <th key={field} className="px-4 py-2 border">
+                      {field}
+                    </th>
+                  ))}
+
+                  <th className="px-4 py-2 border">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {loading && (
                   <tr>
-                    {entityFields[entityIndex].map((field) => (
-                      <th key={field} className="px-4 py-2 border">
-                        {field}
-                      </th>
-                    ))}
-                    <th className="px-4 py-2 border">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((user) => (
-                    <tr
-                      key={user._id}
-                      className="hover:bg-gray-100 transition-all duration-200"
+                    <td
+                      colSpan="100%"
+                      className="text-center py-6 text-gray-500"
                     >
+                      Loading data...
+                    </td>
+                  </tr>
+                )}
+
+                {!loading && paginatedUsers.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan="100%"
+                      className="text-center py-6 text-gray-400"
+                    >
+                      No records found
+                    </td>
+                  </tr>
+                )}
+
+                {!loading &&
+                  paginatedUsers.map((user) => (
+                    <tr key={user._id} className="hover:bg-gray-100">
+                      <td className="px-4 py-2 border">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(user._id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedIds((prev) => [...prev, user._id]);
+                            } else {
+                              setSelectedIds((prev) =>
+                                prev.filter((id) => id !== user._id),
+                              );
+                            }
+                          }}
+                        />
+                      </td>
+
                       {entityKeys[entityIndex].map((key) => (
                         <td key={key} className="px-4 py-2 border">
-                          {editingUser && editingUser._id === user._id ? (
+                          {editingUser?._id === user._id ? (
                             <input
                               type="text"
                               value={editingUser[key] ?? ""}
@@ -251,18 +355,19 @@ function List({
                           )}
                         </td>
                       ))}
+
                       <td className="px-4 py-2 border">
-                        {editingUser && editingUser._id === user._id ? (
+                        {editingUser?._id === user._id ? (
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleSaveEdit(editingUser)}
-                              className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                              className="bg-green-500 text-white px-3 py-1 rounded"
                             >
                               Save
                             </button>
                             <button
                               onClick={() => setEditingUser(null)}
-                              className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
+                              className="bg-gray-500 text-white px-3 py-1 rounded"
                             >
                               Cancel
                             </button>
@@ -273,73 +378,53 @@ function List({
                       </td>
                     </tr>
                   ))}
-                </tbody>
-              </table>
+              </tbody>
+            </table>
+          ) : (
+            // ✅ GROUPED VIEW
+            <div className="p-4 space-y-6">
+              {Object.entries(filteredUsers).map(([group, items]) => (
+                <div key={group}>
+                  <h3 className="text-lg font-bold mb-2 bg-gray-100 px-3 py-2 rounded">
+                    {group} ({items.length})
+                  </h3>
+
+                  <table className="min-w-full border mb-4">
+                    <tbody>
+                      {items.map((user) => (
+                        <tr key={user._id} className="hover:bg-gray-100">
+                          {entityKeys[entityIndex].map((key) => (
+                            <td key={key} className="px-4 py-2 border">
+                              {user[key]}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
             </div>
-          ))
-        ) : (
-          // flat list mode
-          <table className="min-w-full border-collapse border-none">
-            <thead className="sticky top-0 bg-white">
-              <tr>
-                {entityFields[entityIndex].map((field) => (
-                  <th key={field} className="px-4 py-2 border">
-                    {field}
-                  </th>
-                ))}
-                <th className="px-4 py-2 border">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.isArray(filteredUsers) &&
-                filteredUsers.map((user) => (
-                  <tr
-                    key={user._id}
-                    className="hover:bg-gray-100 transition-all duration-200"
-                  >
-                    {entityKeys[entityIndex].map((key) => (
-                      <td key={key} className="px-4 py-2 border">
-                        {editingUser && editingUser._id === user._id ? (
-                          <input
-                            type="text"
-                            value={editingUser[key] ?? ""}
-                            onChange={(e) =>
-                              setEditingUser({
-                                ...editingUser,
-                                [key]: e.target.value,
-                              })
-                            }
-                            className="border rounded px-2 py-1 w-full"
-                          />
-                        ) : (
-                          user[key]
-                        )}
-                      </td>
-                    ))}
-                    <td className="px-4 py-2 border">
-                      {editingUser && editingUser._id === user._id ? (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleSaveEdit(editingUser)}
-                            className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                          >
-                            Save
-                          </button>
-                          <button
-                            onClick={() => setEditingUser(null)}
-                            className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <ActionButtons user={user} />
-                      )}
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
+          )}
+        </div>
+
+        {/* pagination */}
+        {!isGrouped && Array.isArray(filteredUsers) && (
+          <div className="flex justify-center gap-2 py-4">
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`px-3 py-1 rounded ${
+                  currentPage === i + 1
+                    ? "bg-sky-500 text-white"
+                    : "bg-gray-200"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
         )}
       </div>
     </div>
