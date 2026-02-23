@@ -9,6 +9,26 @@ function AssignmentsList({ textCSS }) {
   const user = JSON.parse(sessionStorage.getItem("user"));
   const facultyId = user?.faculty?._id || null;
 
+  /* ===================== DELETE GROUP ===================== */
+  const handleDeleteGroup = (groupName, groupItems) => {
+    if (!window.confirm(`Delete all assignments in "${groupName}" group?`))
+      return;
+
+    const idsToDelete = new Set(groupItems.map((a) => a._id));
+
+    // remove from main list
+    setAssignments((prev) => prev.filter((a) => !idsToDelete.has(a._id)));
+
+    // update filtered view
+    setFilteredAssignments((prev) => {
+      if (!isGrouped) return prev;
+
+      const updated = { ...prev };
+      delete updated[groupName];
+      return updated;
+    });
+  };
+
   useEffect(() => {
     const fetchAssignments = async () => {
       try {
@@ -58,21 +78,35 @@ function AssignmentsList({ textCSS }) {
         data={assignments}
         entityFields={entityFields}
         entityKeys={entityKeys}
+        groupableKeys={""}
         onFilter={(data, grouped) => {
           setFilteredAssignments(data);
           setIsGrouped(grouped);
         }}
+        onDeleteGroup={handleDeleteGroup}
       />
 
       {/* 📄 Assignments */}
       <div className="mt-6">
         {isGrouped ? (
-          // 📦 RENDER GROUPED
-          Object.keys(filteredAssignments).map((group) => (
+          Object.entries(filteredAssignments).map(([group, items]) => (
             <div key={group} className="mb-8">
-              <h3 className="text-xl font-semibold mb-3">{group}</h3>
+              {/* ✅ GROUP HEADER WITH DELETE */}
+              <div className="flex justify-between items-center mb-3 bg-gray-100 px-3 py-2 rounded">
+                <h3 className="text-xl font-semibold">
+                  {group} ({items.length})
+                </h3>
+
+                <button
+                  onClick={() => handleDeleteGroup(group, items)}
+                  className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md"
+                >
+                  Delete Group
+                </button>
+              </div>
+
               <div className="grid gap-4">
-                {filteredAssignments[group].map((a) => (
+                {items.map((a) => (
                   <AssignmentCard key={a._id} a={a} facultyId={facultyId} />
                 ))}
               </div>
@@ -107,13 +141,13 @@ function AssignmentCard({ a, facultyId }) {
 
   // Split assignedTo into parts if possible
   const [selectedCourse, setSelectedCourse] = useState(
-    a.assignedTo.split("-")[0] || ""
+    a.assignedTo.split("-")[0] || "",
   );
   const [selectedSemester, setSelectedSemester] = useState(
-    a.assignedTo.split("-")[1] || ""
+    a.assignedTo.split("-")[1] || "",
   );
   const [selectedSection, setSelectedSection] = useState(
-    a.assignedTo.split("-")[2] || ""
+    a.assignedTo.split("-")[2] || "",
   );
 
   const [editData, setEditData] = useState({
@@ -199,7 +233,7 @@ function AssignmentCard({ a, facultyId }) {
     try {
       const res = await fetch(
         `http://localhost:3000/assignments/${a._id}/toggle-late`,
-        { method: "PATCH" }
+        { method: "PATCH" },
       );
 
       if (!res.ok) throw new Error("Failed");
@@ -248,7 +282,7 @@ function AssignmentCard({ a, facultyId }) {
                     updateAssignedTo(
                       e.target.value,
                       selectedSemester,
-                      selectedSection
+                      selectedSection,
                     );
                   }}
                   className="border px-2 py-1 rounded"
@@ -269,7 +303,7 @@ function AssignmentCard({ a, facultyId }) {
                     updateAssignedTo(
                       selectedCourse,
                       e.target.value,
-                      selectedSection
+                      selectedSection,
                     );
                   }}
                   className="border px-2 py-1 rounded"
@@ -290,7 +324,7 @@ function AssignmentCard({ a, facultyId }) {
                     updateAssignedTo(
                       selectedCourse,
                       selectedSemester,
-                      e.target.value
+                      e.target.value,
                     );
                   }}
                   className="border px-2 py-1 rounded"

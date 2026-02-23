@@ -89,7 +89,7 @@ function UserManagerHomePage() {
 
       return { success: true };
     } catch (err) {
-      return { success: false, message: "Network error" };
+      return { success: false, message: "Network error: " + err.message };
     }
   };
 
@@ -119,9 +119,6 @@ function UserManagerHomePage() {
   };
 
   const handleDelete = async (user, type) => {
-    const ok = window.confirm(`Are you sure you want to delete ${user.name}?`);
-    if (!ok) return;
-
     try {
       const response = await fetch(
         `http://localhost:3000/${type}/${user._id}`,
@@ -135,7 +132,6 @@ function UserManagerHomePage() {
       }
 
       await response.json();
-      alert(`${user.name} deleted successfully!`);
       return true; // return success so List can update state
     } catch (error) {
       console.error("Error:", error);
