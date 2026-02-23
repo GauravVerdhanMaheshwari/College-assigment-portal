@@ -362,7 +362,7 @@ exports.toggleVisibility = async (req, res) => {
 exports.getFacultyPapers = async (req, res) => {
   try {
     const papers = await Paper.find()
-      .populate("studentId", "name enrollmentNumber division course year")
+      .populate("studentId", "name enrollmentNumber division course semester")
       .populate("assignmentId", "topic dueDate ");
 
     res.json(
@@ -380,7 +380,7 @@ exports.getFacultyPapers = async (req, res) => {
         enrollment: p.studentId?.enrollmentNumber,
         division: p.studentId?.division,
         course: p.studentId?.course,
-        semester: p.studentId?.year,
+        semester: p.studentId?.semester,
         grade: p.grade,
         comments: p.comments,
       })),
@@ -456,7 +456,7 @@ exports.getPublicPapers = async (req, res) => {
 exports.getUserManagerPapers = async (req, res) => {
   try {
     const papers = await Paper.find()
-      .populate("studentId", "name enrollmentNumber division course year")
+      .populate("studentId", "name enrollmentNumber division course semester")
       .populate("assignmentId", "topic dueDate ");
     res.json(
       papers.map((p) => ({
@@ -465,7 +465,7 @@ exports.getUserManagerPapers = async (req, res) => {
         name: p.studentId?.name,
         assignmentId: p.assignmentId?._id,
         class: p.studentId?.division,
-        section: p.studentId?.year,
+        semester: p.studentId?.semester,
         course: p.studentId?.course,
         assignmentTopic: p.assignmentId?.topic || "General Submission",
         isLate: p.isLate,
@@ -475,7 +475,6 @@ exports.getUserManagerPapers = async (req, res) => {
         enrollment: p.studentId?.enrollmentNumber,
         division: p.studentId?.division,
         course: p.studentId?.course,
-        semester: p.studentId?.year,
         grade: p.grade,
         comments: p.comments,
       })),
