@@ -1,11 +1,119 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Filter } from "../components/index";
 
+/* ===================== HELPERS ===================== */
+
 const formatValue = (val) => {
   if (Array.isArray(val)) return val.join(", ");
   if (val === undefined || val === null || val === "") return "-";
   return val;
 };
+
+/* 🔥 fields that are multi-select */
+const MULTI_FIELDS = ["course", "division", "subject", "semester"];
+
+/* 🔧 options (edit freely later) */
+const SELECT_OPTIONS = {
+  course: ["BCA", "MCA", "IT"],
+  division: ["A", "B", "C"],
+  subject: ["Maths", "DBMS", "OS", "CN"],
+  semester: [1, 2, 3, 4, 5, 6],
+};
+
+/* ===================== PREMIUM MULTISELECT ===================== */
+
+const PremiumMultiSelect = ({ value = [], options = [], onChange }) => {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => {
+    return options.filter((opt) =>
+      String(opt).toLowerCase().includes(search.toLowerCase()),
+    );
+  }, [options, search]);
+
+  const toggle = (val) => {
+    if (value.includes(val)) {
+      onChange(value.filter((v) => v !== val));
+    } else {
+      onChange([...value, val]);
+    }
+  };
+
+  const removeChip = (val) => {
+    onChange(value.filter((v) => v !== val));
+  };
+
+  return (
+    <div className="relative w-full">
+      {/* selected box */}
+      <div
+        onClick={() => setOpen((o) => !o)}
+        className="min-h-[38px] border rounded-xl px-2 py-1 bg-white cursor-pointer flex flex-wrap gap-1 hover:border-sky-400 transition"
+      >
+        {value.length === 0 && (
+          <span className="text-gray-400 text-sm">Select...</span>
+        )}
+
+        {value.map((v, i) => (
+          <span
+            key={i}
+            className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1 shadow"
+          >
+            {v}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                removeChip(v);
+              }}
+              className="hover:text-gray-200"
+            >
+              ✕
+            </button>
+          </span>
+        ))}
+      </div>
+
+      {/* dropdown */}
+      {open && (
+        <div className="absolute z-50 mt-1 w-full bg-white border rounded-2xl shadow-xl p-2">
+          <input
+            className="w-full mb-2 px-2 py-1 border rounded-lg focus:ring-2 focus:ring-sky-400 outline-none"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+
+          <div className="max-h-44 overflow-y-auto flex flex-wrap gap-1">
+            {filtered.length === 0 && (
+              <p className="text-sm text-gray-400 px-2">No options</p>
+            )}
+
+            {filtered.map((opt, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => toggle(opt)}
+                className={`px-2 py-1 rounded text-sm transition
+                  ${
+                    value.includes(opt)
+                      ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-200"
+                  }
+                `}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ===================== MAIN COMPONENT ===================== */
 
 function List({
   entityNames,
@@ -21,9 +129,7 @@ function List({
   const [activeEntity, setActiveEntity] = useState(entityEndpoints[0]);
   const [editingUser, setEditingUser] = useState(null);
 
-  
   const [loading, setLoading] = useState(false);
-  const [selectedIds, setSelectedIds] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
 
@@ -32,7 +138,8 @@ function List({
     [entityEndpoints, activeEntity],
   );
 
-  // ✅ FETCH
+  /* ================= FETCH ================= */
+
   useEffect(() => {
     const controller = new AbortController();
 
@@ -45,7 +152,6 @@ function List({
         const data = await res.json();
         setUsers(data);
         setFilteredUsers(data);
-        setSelectedIds([]);
         setCurrentPage(1);
       } catch (err) {
         if (err.name !== "AbortError") console.error(err);
@@ -53,77 +159,85 @@ function List({
         setLoading(false);
       }
     };
-    
+
     fetchUsers();
     return () => controller.abort();
   }, [activeEntity]);
-  
-  // ✅ FILTER
+
+  /* ================= FILTER ================= */
+
   const handleFilter = useCallback((result, grouped) => {
     setFilteredUsers(result);
     setIsGrouped(grouped);
     setCurrentPage(1);
-    setSelectedIds([]);
   }, []);
-  
-  // ✅ PAGINATION
+
+  /* ================= PAGINATION ================= */
+
   const totalPages = useMemo(() => {
     if (!Array.isArray(filteredUsers)) return 1;
     return Math.max(1, Math.ceil(filteredUsers.length / pageSize));
   }, [filteredUsers]);
-  
+
   const paginatedUsers = useMemo(() => {
     if (!Array.isArray(filteredUsers)) return [];
     const start = (currentPage - 1) * pageSize;
     return filteredUsers.slice(start, start + pageSize);
   }, [filteredUsers, currentPage]);
 
-  // ✅ DELETE
+  /* ================= DELETE ================= */
+
   const handleSingleDelete = async (user) => {
     const ok = window.confirm(`Delete ${user.name}?`);
     if (!ok) return;
-    
+
     await handleDelete(user, activeEntity);
+
     setUsers((prev) => prev.filter((u) => u._id !== user._id));
     setFilteredUsers((prev) =>
       Array.isArray(prev) ? prev.filter((u) => u._id !== user._id) : prev,
-  );
-};
+    );
+  };
 
-// ✅ SAVE EDIT
-const handleSaveEdit = async (updatedUser) => {
-  const serverData = await handleEdit(updatedUser, activeEntity);
+  /* ================= SAVE ================= */
+
+  const handleSaveEdit = async (updatedUser) => {
+    const serverData = await handleEdit(updatedUser, activeEntity);
     const finalUser = serverData?._id ? serverData : updatedUser;
-    
+
     setUsers((prev) =>
       prev.map((u) => (u._id === finalUser._id ? finalUser : u)),
-  );
-  
-  setFilteredUsers((prev) =>
-    Array.isArray(prev)
-  ? prev.map((u) => (u._id === finalUser._id ? finalUser : u))
-  : prev,
-);
+    );
 
-setEditingUser(null);
-};
+    setFilteredUsers((prev) =>
+      Array.isArray(prev)
+        ? prev.map((u) => (u._id === finalUser._id ? finalUser : u))
+        : prev,
+    );
 
-return (
-  <div>
+    setEditingUser(null);
+  };
+
+  /* ================= RENDER ================= */
+
+  return (
+    <div>
       <h2 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-sky-400 to-blue-600 bg-clip-text text-transparent">
         User Management
       </h2>
 
-      {/* SWITCH */}
-      <div className="flex justify-center my-5 gap-6">
+      {/* ENTITY SWITCH */}
+      <div className="flex justify-center my-5 gap-6 flex-wrap">
         {entityNames.map((name, index) => (
           <button
             key={name}
-            className={`px-6 py-2 rounded-full font-semibold text-white shadow-lg ${
-              activeEntity === entityEndpoints[index]
-                ? "bg-sky-500"
-                : "bg-gray-400 hover:bg-gray-500"
-            }`}
+            className={`px-6 py-2 rounded-full font-semibold text-white shadow-lg transition
+              ${
+                activeEntity === entityEndpoints[index]
+                  ? "bg-gradient-to-r from-sky-500 to-blue-600"
+                  : "bg-gray-400 hover:bg-gray-500"
+              }
+            `}
             onClick={() => setActiveEntity(entityEndpoints[index])}
           >
             {name}
@@ -162,16 +276,33 @@ return (
                     {entityKeys[entityIndex].map((key) => (
                       <td key={key} className="px-4 py-2 border">
                         {editingUser?._id === user._id ? (
-                          <input
-                            value={editingUser[key] ?? ""}
-                            onChange={(e) =>
-                              setEditingUser({
-                                ...editingUser,
-                                [key]: e.target.value,
-                              })
-                            }
-                            className="border rounded px-2 py-1 w-full"
-                          />
+                          MULTI_FIELDS.includes(key) ? (
+                            <PremiumMultiSelect
+                              value={
+                                Array.isArray(editingUser[key])
+                                  ? editingUser[key]
+                                  : []
+                              }
+                              options={SELECT_OPTIONS[key] || []}
+                              onChange={(val) =>
+                                setEditingUser({
+                                  ...editingUser,
+                                  [key]: val,
+                                })
+                              }
+                            />
+                          ) : (
+                            <input
+                              value={editingUser[key] ?? ""}
+                              onChange={(e) =>
+                                setEditingUser({
+                                  ...editingUser,
+                                  [key]: e.target.value,
+                                })
+                              }
+                              className="border rounded px-2 py-1 w-full"
+                            />
+                          )
                         ) : (
                           formatValue(user[key])
                         )}
@@ -219,16 +350,18 @@ return (
 
         {/* PAGINATION */}
         {!isGrouped && (
-          <div className="flex justify-center gap-2 py-4">
+          <div className="flex justify-center gap-2 py-4 flex-wrap">
             {Array.from({ length: totalPages }, (_, i) => (
               <button
                 key={i}
                 onClick={() => setCurrentPage(i + 1)}
-                className={`px-3 py-1 rounded ${
-                  currentPage === i + 1
-                    ? "bg-sky-500 text-white"
-                    : "bg-gray-200"
-                }`}
+                className={`px-3 py-1 rounded transition
+                  ${
+                    currentPage === i + 1
+                      ? "bg-sky-500 text-white"
+                      : "bg-gray-200 hover:bg-gray-300"
+                  }
+                `}
               >
                 {i + 1}
               </button>
