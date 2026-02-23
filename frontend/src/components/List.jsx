@@ -14,6 +14,7 @@ function List({
   const [isGrouped, setIsGrouped] = useState(false);
   const [activeEntity, setActiveEntity] = useState(entityEndpoints[0]);
   const [editingUser, setEditingUser] = useState(null);
+  const [currentGroupField, setCurrentGroupField] = useState("");
 
   // 🔥 senior states
   const [loading, setLoading] = useState(false);
@@ -61,9 +62,10 @@ function List({
   }, [activeEntity]);
 
   // ✅ stable filter handler (VERY IMPORTANT)
-  const handleFilter = useCallback((result, grouped) => {
+  const handleFilter = useCallback((result, grouped, groupField) => {
     setFilteredUsers(result);
     setIsGrouped(grouped);
+    setCurrentGroupField(groupField || "");
     setCurrentPage(1);
     setSelectedIds([]);
   }, []);
@@ -123,6 +125,23 @@ function List({
     },
     [isGrouped],
   );
+
+  const handleDeleteGroup = async (groupKey, items) => {
+    const ok = window.confirm(
+      `Delete all records in "${groupKey}"? This cannot be undone.`,
+    );
+    if (!ok) return;
+
+    try {
+      await Promise.all(items.map((u) => handleDelete?.(u, activeEntity)));
+
+      const ids = items.map((i) => i._id);
+      removeUsersFromState(ids);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete group");
+    }
+  };
 
   // ✅ single delete
   const handleSingleDelete = useCallback(
@@ -381,13 +400,22 @@ function List({
               </tbody>
             </table>
           ) : (
-            // ✅ GROUPED VIEW
+            /* ✅ GROUPED VIEW */
             <div className="p-4 space-y-6">
               {Object.entries(filteredUsers).map(([group, items]) => (
                 <div key={group}>
-                  <h3 className="text-lg font-bold mb-2 bg-gray-100 px-3 py-2 rounded">
-                    {group} ({items.length})
-                  </h3>
+                  <div className="flex justify-between items-center bg-gray-100 px-3 py-2 rounded mb-2">
+                    <h3 className="text-lg font-bold">
+                      {group} ({items.length})
+                    </h3>
+
+                    <button
+                      onClick={() => handleDeleteGroup(group, items)}
+                      className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md"
+                    >
+                      Delete Group
+                    </button>
+                  </div>
 
                   <table className="min-w-full border mb-4">
                     <tbody>
@@ -408,7 +436,7 @@ function List({
           )}
         </div>
 
-        {/* pagination */}
+        {/* ✅ pagination OUTSIDE scroll */}
         {!isGrouped && Array.isArray(filteredUsers) && (
           <div className="flex justify-center gap-2 py-4">
             {Array.from({ length: totalPages }, (_, i) => (

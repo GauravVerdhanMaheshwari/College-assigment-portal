@@ -7,6 +7,7 @@ function Filter({
   entityKeys = [],
   groupableKeys = [],
   onFilter,
+  onDeleteGroup, // ✅ NEW
   API_URL = "",
 }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -14,7 +15,6 @@ function Filter({
   const [sortField, setSortField] = useState(entityKeys[0] || "");
   const [sortOrder, setSortOrder] = useState("asc");
   const [groupField, setGroupField] = useState("");
-  const [collapsedGroups, setCollapsedGroups] = useState({});
 
   // ✅ debounce search
   useEffect(() => {
@@ -24,7 +24,7 @@ function Filter({
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // ✅ memoized processing (PURE)
+  // ✅ PURE processing
   const processedData = useMemo(() => {
     if (!Array.isArray(data)) {
       return { grouped: false, data: [] };
@@ -73,39 +73,8 @@ function Filter({
 
   // ✅ notify parent
   useEffect(() => {
-    onFilter?.(processedData.data, processedData.grouped);
-  }, [processedData, onFilter]);
-
-  // 🔽 toggle collapse
-  const toggleGroup = (groupKey) => {
-    setCollapsedGroups((prev) => ({
-      ...prev,
-      [groupKey]: !prev[groupKey],
-    }));
-  };
-
-  // 🗑 delete group (safe)
-  const handleDeleteGroup = async (groupKey, items) => {
-    if (!window.confirm(`Delete all records in "${groupKey}"?`)) return;
-
-    try {
-      if (API_URL) {
-        const ids = items.map((i) => i._id).filter(Boolean);
-
-        await Promise.all(
-          ids.map((id) =>
-            fetch(`${API_URL}/users/${id}`, { method: "DELETE" }),
-          ),
-        );
-      }
-
-      // notify parent to refresh if needed
-      console.log(`Group "${groupKey}" deleted`);
-    } catch (err) {
-      console.error("Group delete failed:", err);
-      alert("Failed to delete group");
-    }
-  };
+    onFilter?.(processedData.data, processedData.grouped, groupField);
+  }, [processedData, onFilter, groupField]);
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-4 mx-6 lg:mx-20 mb-6 border border-gray-200">
@@ -153,67 +122,6 @@ function Filter({
           </select>
         </div>
       </div>
-
-      {/* ✅ GROUPED VIEW */}
-      {processedData.grouped && (
-        <div className="p-4 space-y-4">
-          {Object.entries(processedData.data).map(([group, items]) => {
-            const isCollapsed = collapsedGroups[group];
-
-            return (
-              <div
-                key={group}
-                className="border rounded-xl overflow-hidden bg-white shadow-sm"
-              >
-                {/* 🔷 header */}
-                <div className="flex items-center justify-between bg-gray-100 px-4 py-3">
-                  <div
-                    className="flex items-center gap-3 cursor-pointer select-none"
-                    onClick={() => toggleGroup(group)}
-                  >
-                    <span className="text-lg">{isCollapsed ? "▶" : "▼"}</span>
-
-                    <h3 className="font-semibold text-gray-800">{group}</h3>
-
-                    <span className="text-sm text-gray-500">
-                      ({items.length})
-                    </span>
-                  </div>
-
-                  <button
-                    onClick={() => handleDeleteGroup(group, items)}
-                    className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md"
-                  >
-                    Delete Group
-                  </button>
-                </div>
-
-                {/* 📊 rows */}
-                {!isCollapsed && (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full">
-                      <tbody>
-                        {items.map((item, idx) => (
-                          <tr
-                            key={item._id || idx}
-                            className="hover:bg-gray-50 transition"
-                          >
-                            {entityKeys.map((key) => (
-                              <td key={key} className="px-4 py-2 border">
-                                {item?.[key]}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }
