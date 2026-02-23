@@ -65,6 +65,24 @@ function AdminHomePage() {
     // 🔐 AUTO ROLE
     userDetails.role = userAPI === "students" ? "student" : "faculty";
 
+    if (userAPI === "faculties") {
+      userDetails.course = Array.isArray(userDetails.course)
+        ? userDetails.course
+        : [userDetails.course].filter(Boolean);
+
+      userDetails.semester = Array.isArray(userDetails.semester)
+        ? userDetails.semester
+        : [userDetails.semester].filter(Boolean);
+
+      userDetails.subject = Array.isArray(userDetails.subject)
+        ? userDetails.subject
+        : [userDetails.subject].filter(Boolean);
+
+      userDetails.division = Array.isArray(userDetails.division)
+        ? userDetails.division
+        : [userDetails.division].filter(Boolean);
+    }
+
     // Email validation
     if (userDetails.email && !/\S+@\S+\.\S+/.test(userDetails.email)) {
       return { success: false, message: "Invalid email" };
