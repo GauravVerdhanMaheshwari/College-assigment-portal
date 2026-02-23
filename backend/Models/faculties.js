@@ -5,10 +5,12 @@ const facultySchema = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  course: { type: String, required: true },
-  division: { type: String, required: true },
-  subject: { type: String, required: true },
-  semester: { type: Number, required: true },
+
+  course: { type: [String], required: true },
+  division: { type: [String], required: true },
+  subject: { type: [String], required: true },
+  semester: { type: [Number], required: true },
+
   role: { type: String, required: true },
 });
 
