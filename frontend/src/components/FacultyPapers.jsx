@@ -130,6 +130,24 @@ function FacultyPapers({ papers }) {
     }
   };
 
+  /* ===================== DELETE GROUP ===================== */
+  const handleDeleteGroup = (groupName, groupItems) => {
+    if (!window.confirm(`Delete all papers in "${groupName}" group?`)) return;
+
+    const idsToDelete = new Set(groupItems.map((p) => p._id));
+
+    setLocalPapers((prev) => prev.filter((p) => !idsToDelete.has(p._id)));
+
+    // also update filtered view
+    setFilteredPapers((prev) => {
+      if (!isGrouped) return prev;
+
+      const updated = { ...prev };
+      delete updated[groupName];
+      return updated;
+    });
+  };
+
   /* ===================== DELETE REPORT ===================== */
   const handleDeleteReport = async (paperId, reportId) => {
     if (!window.confirm("Delete this report?")) return;
@@ -310,8 +328,21 @@ function FacultyPapers({ papers }) {
 
       {isGrouped
         ? Object.entries(filteredPapers).map(([group, papers]) => (
-            <div key={group} className="mb-6">
-              <h3 className="text-lg font-bold mb-2">{group}</h3>
+            <div key={group} className="mb-8">
+              {/* ✅ GROUP HEADER WITH DELETE */}
+              <div className="flex justify-between items-center mb-2 bg-gray-100 px-3 py-2 rounded">
+                <h3 className="text-lg font-bold">
+                  {group} ({papers.length})
+                </h3>
+
+                <button
+                  onClick={() => handleDeleteGroup(group, papers)}
+                  className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md"
+                >
+                  Delete Group
+                </button>
+              </div>
+
               {papers.map(renderPaper)}
             </div>
           ))
