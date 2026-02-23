@@ -5,6 +5,7 @@ import {
   List,
   AddUsers,
   PapersList,
+  AssignmentsList,
 } from "../../components/index";
 import { useNavigate } from "react-router-dom";
 
@@ -306,6 +307,10 @@ function AdminHomePage() {
             handleEdit={handleEdit}
             handleDelete={handleDelete}
           />
+        </div>
+
+        <div>
+          <AssignmentsList />
         </div>
       </div>
     </div>
