@@ -1,22 +1,102 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 
-function AddUsers({ userToAdd, userDataBaseEntry, handleAddUser }) {
-  const [user, setUser] = useState(userToAdd[0]);
-  const [userAPI, setUserAPI] = useState(userToAdd[0].toLowerCase());
+function AddUsers({
+  userToAdd = [],
+  userDataBaseEntry = {},
+  selectOptions = {},
+  courseSubjectMap = {},
+  handleAddUser,
+}) {
+  const [user, setUser] = useState(userToAdd?.[0] || "");
+  const [userAPI, setUserAPI] = useState((userToAdd?.[0] || "").toLowerCase());
   const [userDetails, setUserDetails] = useState({});
   const [uploadSummary, setUploadSummary] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const selectedCourses = userDetails.course || [];
 
-  const getPreviewHeaders = () => {
-    if (!userDataBaseEntry[user]) return [];
-    return userDataBaseEntry[user].map((f) => f.field);
+  // 🛡️ SAFE FIELD LIST
+  const currentFields = useMemo(() => {
+    return userDataBaseEntry?.[user] || [];
+  }, [userDataBaseEntry, user]);
+
+  const MultiSelect = ({
+    label,
+    options = [],
+    value = [],
+    onChange,
+    disabled = false,
+  }) => {
+    const toggleValue = (val) => {
+      if (disabled) return;
+
+      if (value.includes(val)) {
+        onChange(value.filter((v) => v !== val));
+      } else {
+        onChange([...value, val]);
+      }
+    };
+
+    return (
+      <div
+        className={`border rounded-xl p-3 transition
+        ${disabled ? "bg-gray-100 opacity-60" : "bg-gray-50"}
+      `}
+      >
+        <p className="font-medium text-gray-700 mb-2">
+          {label}
+          {disabled && (
+            <span className="text-xs text-red-500 ml-2">
+              (Select IT course first)
+            </span>
+          )}
+        </p>
+
+        <div className="flex flex-wrap gap-2">
+          {options.map((opt, i) => (
+            <button
+              key={i}
+              type="button"
+              disabled={disabled}
+              onClick={() => toggleValue(opt)}
+              className={`px-3 py-1 rounded-full text-sm transition
+              ${
+                value.includes(opt)
+                  ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white"
+                  : "bg-white border hover:bg-gray-100"
+              }
+              ${disabled ? "cursor-not-allowed" : ""}
+            `}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // 📊 Preview helpers
+  const getPreviewHeaders = () => currentFields.map((f) => f.field);
+
+  const getAllowedSubjects = () => {
+    if (!selectedCourses.length) return [];
+
+    const allowed = new Set();
+
+    selectedCourses.forEach((course) => {
+      const mapped = courseSubjectMap?.[course];
+      if (mapped) {
+        mapped.forEach((s) => allowed.add(s));
+      }
+    });
+
+    return Array.from(allowed);
   };
 
   const getPreviewRow = () => {
-    if (!userDataBaseEntry[user]) return {};
     const row = {};
-    userDataBaseEntry[user].forEach((f) => {
+    currentFields.forEach((f) => {
       row[f.field] = "example";
     });
     return row;
@@ -30,7 +110,7 @@ function AddUsers({ userToAdd, userDataBaseEntry, handleAddUser }) {
     return normalized;
   };
 
-  // 📂 Excel Upload with Summary
+  // 📂 Excel Upload
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -50,15 +130,22 @@ function AddUsers({ userToAdd, userDataBaseEntry, handleAddUser }) {
       let failed = [];
 
       for (let i = 0; i < rows.length; i++) {
-        const cleanRow = normalizeRow(rows[i]);
-        const result = await handleAddUser(user, userAPI, cleanRow);
+        try {
+          const cleanRow = normalizeRow(rows[i]);
+          const result = await handleAddUser(user, userAPI, cleanRow);
 
-        if (result.success) {
-          successCount++;
-        } else {
+          if (result?.success) {
+            successCount++;
+          } else {
+            failed.push({
+              row: i + 2,
+              reason: result?.message || "Unknown error",
+            });
+          }
+        } catch (err) {
           failed.push({
-            row: i + 2, // Excel row number
-            reason: result.message,
+            row: i + 2,
+            reason: "Processing error",
           });
         }
       }
@@ -77,132 +164,132 @@ function AddUsers({ userToAdd, userDataBaseEntry, handleAddUser }) {
   };
 
   return (
-    <div className="w-full">
-      <h2 className="text-2xl mb-5 mt-2 font-bold text-center text-white">
-        Add Users
+    <div className="w-full px-4">
+      {/* Header */}
+      <h2 className="text-3xl font-bold text-center text-white mb-6">
+        ✨ Add Users
       </h2>
 
-      <div className="p-4 bg-white rounded shadow-md mx-20 mb-10 flex flex-col items-center">
+      {/* Card */}
+      <div className="backdrop-blur-lg bg-white/90 border border-white/30 shadow-2xl rounded-2xl p-6 mx-auto max-w-5xl">
         {/* Tabs */}
-        <div className="mb-4">
-          <ul className="flex gap-5">
-            {userToAdd.map((u, index) => (
-              <button
-                key={index}
-                className="bg-[#0EA5E9] text-white p-2 rounded"
-                onClick={() => {
-                  setUser(u);
-                  setUserAPI(u.toLowerCase());
-                  setUserDetails({});
-                  setUploadSummary(null);
-                }}
-              >
-                {u}
-              </button>
-            ))}
-          </ul>
-        </div>
-
-        {/* Manual Form */}
-        <div className="w-full max-w-sm flex flex-col gap-3">
-          {userDataBaseEntry[user].map((field, index) => (
-            <input
+        <div className="flex flex-wrap gap-3 justify-center mb-6">
+          {userToAdd?.map((u, index) => (
+            <button
               key={index}
-              type={field.type}
-              placeholder={
-                field.field.charAt(0).toUpperCase() +
-                field.field.slice(1).replace(/([A-Z])/g, " $1")
-              }
-              className="p-2 border rounded"
-              value={userDetails[field.field] || ""}
-              onChange={(e) =>
-                setUserDetails({
-                  ...userDetails,
-                  [field.field]: e.target.value,
-                })
-              }
-            />
+              className={`px-4 py-2 rounded-xl font-medium transition-all duration-200
+                ${
+                  user === u
+                    ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg scale-105"
+                    : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                }`}
+              onClick={() => {
+                setUser(u);
+                setUserAPI(u.toLowerCase());
+                setUserDetails({});
+                setUploadSummary(null);
+              }}
+            >
+              {u}
+            </button>
           ))}
         </div>
 
-        {/* Add Single User */}
-        <button
-          className="mt-4 bg-[#0EA5E9] text-white px-4 py-2 rounded"
-          onClick={async () => {
-            const result = await handleAddUser(user, userAPI, userDetails);
-            if (result.success) {
-              alert(`${user} added successfully`);
-              setUserDetails({});
-            } else {
-              alert(result.message);
-            }
-          }}
-        >
-          Add {user}
-        </button>
+        {/* Manual Form */}
+        <div className="w-full max-w-md mx-auto flex flex-col gap-3">
+          {currentFields.length === 0 ? (
+            <p className="text-center text-red-500 font-medium">
+              ⚠ No fields configured for this user type
+            </p>
+          ) : (
+            currentFields.map((field, index) => {
+              // ✅ MULTISELECT FIELD
+              if (field.type === "multiselect") {
+                // 🎯 SUBJECT SPECIAL LOGIC
+                if (field.field === "subject") {
+                  const allowedSubjects = getAllowedSubjects();
+                  const isDisabled = !selectedCourses.includes("IT");
+
+                  return (
+                    <MultiSelect
+                      key={index}
+                      label="Subject"
+                      options={allowedSubjects}
+                      value={userDetails.subject || []}
+                      disabled={isDisabled}
+                      onChange={(val) =>
+                        setUserDetails({
+                          ...userDetails,
+                          subject: val,
+                        })
+                      }
+                    />
+                  );
+                }
+
+                // ✅ NORMAL MULTISELECT
+                return (
+                  <MultiSelect
+                    key={index}
+                    label={
+                      field.field.charAt(0).toUpperCase() + field.field.slice(1)
+                    }
+                    options={selectOptions?.[field.field] || []}
+                    value={userDetails[field.field] || []}
+                    onChange={(val) =>
+                      setUserDetails({
+                        ...userDetails,
+                        [field.field]: val,
+                      })
+                    }
+                  />
+                );
+              }
+            })
+          )}
+        </div>
+
+        {/* Add Button */}
+        <div className="flex justify-center">
+          <button
+            className="mt-5 bg-gradient-to-r from-sky-500 to-blue-600 hover:scale-105 transition text-white px-6 py-2 rounded-xl shadow-lg font-semibold"
+            onClick={async () => {
+              const result = await handleAddUser(user, userAPI, userDetails);
+              if (result?.success) {
+                alert(`${user} added successfully`);
+                setUserDetails({});
+              } else {
+                alert(result?.message || "Failed to add user");
+              }
+            }}
+          >
+            🚀 Add {user}
+          </button>
+        </div>
 
         {/* Excel Upload */}
-        <div className="mt-6 flex flex-col items-center w-full">
-          <label className="font-semibold mb-2">Or Upload Excel File:</label>
+        <div className="mt-8 text-center">
+          <label className="font-semibold text-gray-700">
+            📂 Or Upload Excel File
+          </label>
 
           <input
             type="file"
             accept=".xlsx,.xls"
             onChange={handleFileUpload}
-            className="p-2 border rounded w-full max-w-sm"
+            className="mt-3 p-2 border rounded-lg w-full max-w-sm mx-auto"
           />
 
-          {/* Excel Format Preview */}
-          {userDataBaseEntry[user] && (
-            <div className="mt-6 w-full max-w-4xl bg-gray-50 border rounded p-4">
-              <h3 className="text-lg font-semibold mb-2 text-gray-700">
-                Excel Format Preview ({user})
-              </h3>
-
-              <p className="text-sm text-gray-500 mb-3">
-                Excel headers must match these field names
-              </p>
-
-              <div className="overflow-x-auto">
-                <table className="w-full border border-gray-300 text-sm">
-                  <thead className="bg-gray-200">
-                    <tr>
-                      {getPreviewHeaders().map((key) => (
-                        <th
-                          key={key}
-                          className="border px-3 py-2 text-left font-semibold"
-                        >
-                          {key}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    <tr className="bg-white">
-                      {Object.values(getPreviewRow()).map((val, idx) => (
-                        <td
-                          key={idx}
-                          className="border px-3 py-2 text-gray-500"
-                        >
-                          {val}
-                        </td>
-                      ))}
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
           {uploading && (
-            <p className="text-blue-600 mt-2">⏳ Uploading users…</p>
+            <p className="text-blue-600 mt-2 font-medium">
+              ⏳ Uploading users…
+            </p>
           )}
 
-          {/* Upload Summary */}
+          {/* Summary */}
           {uploadSummary && (
-            <div className="mt-4 w-full max-w-md border rounded p-3">
-              <p className="font-semibold">Upload Completed</p>
+            <div className="mt-4 border rounded-xl p-4 max-w-md mx-auto bg-gray-50">
+              <p className="font-bold text-gray-800">✅ Upload Completed</p>
               <p className="text-green-700">
                 ✔ Success: {uploadSummary.success}
               </p>
@@ -211,7 +298,7 @@ function AddUsers({ userToAdd, userDataBaseEntry, handleAddUser }) {
               </p>
 
               {uploadSummary.failed.length > 0 && (
-                <ul className="mt-2 text-sm text-red-600 list-disc ml-5">
+                <ul className="mt-2 text-sm text-red-600 list-disc ml-5 text-left">
                   {uploadSummary.failed.map((f, i) => (
                     <li key={i}>
                       Row {f.row}: {f.reason}
