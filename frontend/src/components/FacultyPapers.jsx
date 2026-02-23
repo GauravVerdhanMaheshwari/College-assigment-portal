@@ -154,6 +154,13 @@ function FacultyPapers({ papers }) {
     );
   };
 
+  /*================= PAPER FILTER ==============*/
+
+  const handlePaperFilter = React.useCallback((res, grouped) => {
+    setFilteredPapers(res);
+    setIsGrouped(grouped);
+  }, []);
+
   /* ===================== RENDER PAPER ===================== */
   const renderPaper = (paper) => (
     <div key={paper._id} className="p-4 bg-white rounded-xl shadow mb-6">
@@ -288,13 +295,11 @@ function FacultyPapers({ papers }) {
   return (
     <div className="p-6">
       <Filter
-        data={localPapers}
+        data={localPapers ?? []}
         entityFields={["Title", "Student", "Class", "Course"]}
         entityKeys={["title", "studentName", "division", "course"]}
-        onFilter={(res, grouped) => {
-          setFilteredPapers(res);
-          setIsGrouped(grouped);
-        }}
+        groupableKeys={["division", "course"]} // ✅ IMPORTANT
+        onFilter={handlePaperFilter}
       />
 
       {filteredPapers.length === 0 && (
