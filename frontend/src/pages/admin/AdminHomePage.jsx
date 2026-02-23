@@ -117,7 +117,7 @@ function AdminHomePage() {
 
       return { success: true };
     } catch (err) {
-      return { success: false, message: "Network error" };
+      return { success: false, message: `Network error: ${err.message}` };
     }
   };
 
@@ -134,7 +134,7 @@ function AdminHomePage() {
       return await res.json();
     } catch (err) {
       console.error(err);
-      alert("Error updating. Try again.");
+      alert(`Error updating: ${err.message}`);
       throw err;
     }
   };
@@ -155,7 +155,7 @@ function AdminHomePage() {
       return true;
     } catch (err) {
       console.error(err);
-      alert("Error deleting. Try again.");
+      alert(`Error deleting: ${err.message}`);
       throw err;
     }
   };
@@ -204,8 +204,15 @@ function AdminHomePage() {
             entityFields={[
               ["Name", "Email"],
               ["Name", "Email"],
-              ["Enrollment No", "Name", "Email", "Course", "Division", "Year"],
-              ["Name", "Email", "Subject", "Course", "Year", "Division"],
+              [
+                "Enrollment No",
+                "Name",
+                "Email",
+                "Course",
+                "Division",
+                "Semester",
+              ],
+              ["Name", "Email", "Subject", "Course", "Semester", "Division"],
             ]}
             entityKeys={[
               ["name", "email"],
@@ -216,9 +223,9 @@ function AdminHomePage() {
                 "email",
                 "course",
                 "division",
-                "year",
+                "semester",
               ],
-              ["name", "email", "subject", "course", "year", "division"],
+              ["name", "email", "subject", "course", "semester", "division"],
             ]}
             entityEndpoints={[
               "library-managers",
