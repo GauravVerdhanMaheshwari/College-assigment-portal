@@ -1,51 +1,56 @@
 import React, { useState, useMemo } from "react";
 
 function AssignmentForm({ textCSS, buttonCSS }) {
-  const courses = ["CE", "IT", "AI/ML", "CS", "ME"];
-  const sections = ["A", "B", "C", "D"];
-  const semesters = ["1", "2", "3", "4", "5", "6"];
-
-  // ✅ safe user parsing (senior fix)
-  const facultyId = useMemo(() => {
+  // ✅ faculty info from sessionStorage
+  const faculty = useMemo(() => {
     try {
       const user = JSON.parse(sessionStorage.getItem("user"));
-      return user?.faculty?._id || "";
+      return user?.faculty || {};
     } catch {
-      return "";
+      return {};
     }
   }, []);
+
+  // ✅ allocated options
+  const allocatedCourses = faculty.course || [];
+  const allocatedSemesters = faculty.semester || [];
+  const allocatedSections = faculty.division || [];
+  const allocatedSubjects = faculty.subject || [];
 
   const [assignment, setAssignment] = useState({
     topic: "",
     subject: "",
-    facultyId,
+    facultyId: faculty._id || "",
     assignedTo: "",
     dueDate: "",
     description: "",
   });
 
   const [selectedCourse, setSelectedCourse] = useState("");
-  const [selectedSection, setSelectedSection] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
+  const [selectedSection, setSelectedSection] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("");
 
-  // ✅ today date (YYYY-MM-DD)
-  const today = useMemo(() => {
-    return new Date().toISOString().split("T")[0];
-  }, []);
+  // ✅ today's date
+  const today = useMemo(() => new Date().toISOString().split("T")[0], []);
 
+  // 🔄 update assignedTo dynamically
   const updateAssignedTo = (course, sem, sec) => {
     if (!course || !sem || !sec) return;
-    const value = `${course}-${sem}-${sec}`;
-    setAssignment((prev) => ({ ...prev, assignedTo: value }));
+    setAssignment((prev) => ({
+      ...prev,
+      assignedTo: `${course}-${sem}-${sec}`,
+    }));
   };
 
   const handleAddAssignment = async () => {
-    // 🔴 runtime past-date protection (IMPORTANT)
+    // 🔴 past-date protection
     if (assignment.dueDate && assignment.dueDate < today) {
       alert("Due date cannot be in the past");
       return;
     }
 
+    // 🔴 all fields must be filled
     if (
       !assignment.topic ||
       !assignment.subject ||
@@ -58,38 +63,29 @@ function AssignmentForm({ textCSS, buttonCSS }) {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/assignments/", {
+      const res = await fetch("http://localhost:3000/assignments/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(assignment),
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to add assignment");
-      }
-
+      if (!res.ok) throw new Error("Failed to add assignment");
       alert("Assignment added successfully!");
-
-      // ✅ reset form cleanly
+      // reset form
       setAssignment({
         topic: "",
         subject: "",
-        facultyId,
+        facultyId: faculty._id,
         assignedTo: "",
         dueDate: "",
         description: "",
       });
-
       setSelectedCourse("");
-      setSelectedSection("");
       setSelectedSemester("");
-
-      location.reload();
-    } catch (error) {
-      console.log(error);
-      alert(error.message);
+      setSelectedSection("");
+      setSelectedSubject("");
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
     }
   };
 
@@ -98,7 +94,6 @@ function AssignmentForm({ textCSS, buttonCSS }) {
       <h2 className={`text-2xl font-bold mb-4 ${textCSS}`}>
         Add New Assignment
       </h2>
-
       <div className="grid gap-4">
         {/* TOPIC */}
         <input
@@ -112,18 +107,25 @@ function AssignmentForm({ textCSS, buttonCSS }) {
         />
 
         {/* SUBJECT */}
-        <input
-          name="subject"
-          placeholder="Subject"
-          value={assignment.subject}
-          onChange={(e) =>
-            setAssignment({ ...assignment, subject: e.target.value })
-          }
+        <select
+          value={selectedSubject}
+          onChange={(e) => {
+            const val = e.target.value;
+            setSelectedSubject(val);
+            setAssignment((prev) => ({ ...prev, subject: val }));
+          }}
           className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition"
-        />
+        >
+          <option value="">Select Subject</option>
+          {allocatedSubjects.map((subj) => (
+            <option key={subj} value={subj}>
+              {subj}
+            </option>
+          ))}
+        </select>
 
+        {/* COURSE / SEM / SECTION */}
         <div className="flex gap-4">
-          {/* COURSE */}
           <select
             value={selectedCourse}
             onChange={(e) => {
@@ -134,14 +136,13 @@ function AssignmentForm({ textCSS, buttonCSS }) {
             className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition"
           >
             <option value="">Course</option>
-            {courses.map((c) => (
+            {allocatedCourses.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>
             ))}
           </select>
 
-          {/* SEMESTER */}
           <select
             value={selectedSemester}
             onChange={(e) => {
@@ -152,14 +153,13 @@ function AssignmentForm({ textCSS, buttonCSS }) {
             className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition"
           >
             <option value="">Semester</option>
-            {semesters.map((sem) => (
-              <option key={sem} value={sem}>
-                {sem}
+            {allocatedSemesters.map((s) => (
+              <option key={s} value={s}>
+                {s}
               </option>
             ))}
           </select>
 
-          {/* SECTION */}
           <select
             value={selectedSection}
             onChange={(e) => {
@@ -170,7 +170,7 @@ function AssignmentForm({ textCSS, buttonCSS }) {
             className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition"
           >
             <option value="">Section</option>
-            {sections.map((s) => (
+            {allocatedSections.map((s) => (
               <option key={s} value={s}>
                 {s}
               </option>
@@ -178,7 +178,7 @@ function AssignmentForm({ textCSS, buttonCSS }) {
           </select>
         </div>
 
-        {/* ✅ DATE (past disabled) */}
+        {/* DUE DATE */}
         <input
           type="date"
           name="dueDate"
