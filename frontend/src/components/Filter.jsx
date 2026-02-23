@@ -1,89 +1,219 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Search } from "./index";
 
-function Filter({ data, entityFields, entityKeys, onFilter }) {
+function Filter({
+  data = [],
+  entityFields = [],
+  entityKeys = [],
+  groupableKeys = [],
+  onFilter,
+  API_URL = "",
+}) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState(entityKeys[0]); // default first key
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [sortField, setSortField] = useState(entityKeys[0] || "");
   const [sortOrder, setSortOrder] = useState("asc");
-  const [groupField, setGroupField] = useState(""); // no grouping initially
+  const [groupField, setGroupField] = useState("");
+  const [collapsedGroups, setCollapsedGroups] = useState({});
 
+  // ✅ debounce search
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // ✅ memoized processing (PURE)
+  const processedData = useMemo(() => {
+    if (!Array.isArray(data)) {
+      return { grouped: false, data: [] };
+    }
+
     let filteredData = [...data];
 
     // 🔎 Search
-    if (searchTerm) {
+    if (debouncedSearch) {
+      const term = debouncedSearch.toLowerCase();
+
       filteredData = filteredData.filter((item) =>
         entityKeys.some((key) =>
-          String(item[key] || "")
+          String(item?.[key] ?? "")
             .toLowerCase()
-            .includes(searchTerm.toLowerCase())
-        )
+            .includes(term),
+        ),
       );
     }
 
     // 🔀 Sort
-    filteredData.sort((a, b) => {
-      const valA = String(a[sortField] || "").toLowerCase();
-      const valB = String(b[sortField] || "").toLowerCase();
+    if (sortField) {
+      filteredData.sort((a, b) => {
+        const valA = String(a?.[sortField] ?? "").toLowerCase();
+        const valB = String(b?.[sortField] ?? "").toLowerCase();
 
-      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    // 📂 Group (optional)
-    if (groupField) {
-      const grouped = {};
-      filteredData.forEach((item) => {
-        const groupKey = item[groupField] || "Others";
-        if (!grouped[groupKey]) grouped[groupKey] = [];
-        grouped[groupKey].push(item);
+        if (valA < valB) return sortOrder === "asc" ? -1 : 1;
+        if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+        return 0;
       });
-      onFilter(grouped, true); // grouped mode
-    } else {
-      onFilter(filteredData, false); // normal list mode
     }
-  }, [searchTerm, sortField, sortOrder, groupField, data]);
+
+    // 📂 Group
+    if (groupField) {
+      const grouped = filteredData.reduce((acc, item) => {
+        const key = item?.[groupField] || "Others";
+        (acc[key] ||= []).push(item);
+        return acc;
+      }, {});
+
+      return { grouped: true, data: grouped };
+    }
+
+    return { grouped: false, data: filteredData };
+  }, [data, debouncedSearch, sortField, sortOrder, groupField, entityKeys]);
+
+  // ✅ notify parent
+  useEffect(() => {
+    onFilter?.(processedData.data, processedData.grouped);
+  }, [processedData, onFilter]);
+
+  // 🔽 toggle collapse
+  const toggleGroup = (groupKey) => {
+    setCollapsedGroups((prev) => ({
+      ...prev,
+      [groupKey]: !prev[groupKey],
+    }));
+  };
+
+  // 🗑 delete group (safe)
+  const handleDeleteGroup = async (groupKey, items) => {
+    if (!window.confirm(`Delete all records in "${groupKey}"?`)) return;
+
+    try {
+      if (API_URL) {
+        const ids = items.map((i) => i._id).filter(Boolean);
+
+        await Promise.all(
+          ids.map((id) =>
+            fetch(`${API_URL}/users/${id}`, { method: "DELETE" }),
+          ),
+        );
+      }
+
+      // notify parent to refresh if needed
+      console.log(`Group "${groupKey}" deleted`);
+    } catch (err) {
+      console.error("Group delete failed:", err);
+      alert("Failed to delete group");
+    }
+  };
 
   return (
-    <div className="flex flex-wrap justify-center gap-4 my-4">
-      {/* 🔎 Search */}
-      <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+    <div className="bg-white rounded-2xl shadow-md p-4 mx-6 lg:mx-20 mb-6 border border-gray-200">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
-      {/* 🔀 Sort field */}
-      <select
-        className="px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#38BDF8]"
-        value={sortField}
-        onChange={(e) => setSortField(e.target.value)}
-      >
-        {entityFields.map((field, idx) => (
-          <option key={field} value={entityKeys[idx]}>
-            {field}
-          </option>
-        ))}
-      </select>
+        <div className="flex flex-wrap gap-3">
+          {/* 🔀 Sort field */}
+          <select
+            className="px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-sky-400"
+            value={sortField}
+            onChange={(e) => setSortField(e.target.value)}
+          >
+            {entityFields.map((field, idx) => (
+              <option key={field} value={entityKeys[idx]}>
+                Sort by {field}
+              </option>
+            ))}
+          </select>
 
-      {/* ⬆⬇ Sort order */}
-      <button
-        className="px-4 py-2 rounded-lg bg-[#38BDF8] text-white font-semibold hover:bg-[#0A9FE0FF] shadow-md transition-all"
-        onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-      >
-        {sortOrder === "asc" ? "↑ Asc" : "↓ Desc"}
-      </button>
+          {/* 🔀 Sort order */}
+          <button
+            className="px-4 py-2 rounded-lg bg-sky-500 text-white font-semibold hover:bg-sky-600 shadow-sm transition"
+            onClick={() =>
+              setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
+            }
+          >
+            {sortOrder === "asc" ? "↑ Asc" : "↓ Desc"}
+          </button>
 
-      {/* 📂 Group by */}
-      <select
-        className="px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#38BDF8]"
-        value={groupField}
-        onChange={(e) => setGroupField(e.target.value)}
-      >
-        <option value="">No Grouping</option>
-        {entityFields.map((field, idx) => (
-          <option key={field} value={entityKeys[idx]}>
-            Group by {field}
-          </option>
-        ))}
-      </select>
+          {/* 📂 Group */}
+          <select
+            className="px-3 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-sky-400"
+            value={groupField}
+            onChange={(e) => setGroupField(e.target.value)}
+          >
+            <option value="">No Grouping</option>
+            {entityKeys.map((key, idx) =>
+              groupableKeys.includes(key) ? (
+                <option key={key} value={key}>
+                  Group by {entityFields[idx]}
+                </option>
+              ) : null,
+            )}
+          </select>
+        </div>
+      </div>
+
+      {/* ✅ GROUPED VIEW */}
+      {processedData.grouped && (
+        <div className="p-4 space-y-4">
+          {Object.entries(processedData.data).map(([group, items]) => {
+            const isCollapsed = collapsedGroups[group];
+
+            return (
+              <div
+                key={group}
+                className="border rounded-xl overflow-hidden bg-white shadow-sm"
+              >
+                {/* 🔷 header */}
+                <div className="flex items-center justify-between bg-gray-100 px-4 py-3">
+                  <div
+                    className="flex items-center gap-3 cursor-pointer select-none"
+                    onClick={() => toggleGroup(group)}
+                  >
+                    <span className="text-lg">{isCollapsed ? "▶" : "▼"}</span>
+
+                    <h3 className="font-semibold text-gray-800">{group}</h3>
+
+                    <span className="text-sm text-gray-500">
+                      ({items.length})
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => handleDeleteGroup(group, items)}
+                    className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md"
+                  >
+                    Delete Group
+                  </button>
+                </div>
+
+                {/* 📊 rows */}
+                {!isCollapsed && (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full">
+                      <tbody>
+                        {items.map((item, idx) => (
+                          <tr
+                            key={item._id || idx}
+                            className="hover:bg-gray-50 transition"
+                          >
+                            {entityKeys.map((key) => (
+                              <td key={key} className="px-4 py-2 border">
+                                {item?.[key]}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
