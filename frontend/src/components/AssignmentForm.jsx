@@ -1,16 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 
 function AssignmentForm({ textCSS, buttonCSS }) {
   const courses = ["CE", "IT", "AI/ML", "CS", "ME"];
   const sections = ["A", "B", "C", "D"];
-  const semesters = ["1", "2", "3", "4", "5"];
+  const semesters = ["1", "2", "3", "4", "5", "6"];
+
+  // ✅ safe user parsing (senior fix)
+  const facultyId = useMemo(() => {
+    try {
+      const user = JSON.parse(sessionStorage.getItem("user"));
+      return user?.faculty?._id || "";
+    } catch {
+      return "";
+    }
+  }, []);
 
   const [assignment, setAssignment] = useState({
     topic: "",
     subject: "",
-    facultyId: sessionStorage.getItem("user")
-      ? JSON.parse(sessionStorage.getItem("user"))?.faculty._id
-      : alert("Please login as faculty to add assignments"),
+    facultyId,
     assignedTo: "",
     dueDate: "",
     description: "",
@@ -20,13 +28,24 @@ function AssignmentForm({ textCSS, buttonCSS }) {
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
 
+  // ✅ today date (YYYY-MM-DD)
+  const today = useMemo(() => {
+    return new Date().toISOString().split("T")[0];
+  }, []);
+
   const updateAssignedTo = (course, sem, sec) => {
     if (!course || !sem || !sec) return;
     const value = `${course}-${sem}-${sec}`;
-    setAssignment({ ...assignment, assignedTo: value });
+    setAssignment((prev) => ({ ...prev, assignedTo: value }));
   };
 
   const handleAddAssignment = async () => {
+    // 🔴 runtime past-date protection (IMPORTANT)
+    if (assignment.dueDate && assignment.dueDate < today) {
+      alert("Due date cannot be in the past");
+      return;
+    }
+
     if (
       !assignment.topic ||
       !assignment.subject ||
@@ -37,6 +56,7 @@ function AssignmentForm({ textCSS, buttonCSS }) {
       alert("Please fill in all fields");
       return;
     }
+
     try {
       const response = await fetch("http://localhost:3000/assignments/", {
         method: "POST",
@@ -45,24 +65,27 @@ function AssignmentForm({ textCSS, buttonCSS }) {
         },
         body: JSON.stringify(assignment),
       });
+
       if (!response.ok) {
         throw new Error("Failed to add assignment");
       }
+
       alert("Assignment added successfully!");
-      // Reset form
+
+      // ✅ reset form cleanly
       setAssignment({
         topic: "",
         subject: "",
-        facultyId: sessionStorage.getItem("user")
-          ? JSON.parse(sessionStorage.getItem("user"))?.faculty._id
-          : "",
+        facultyId,
         assignedTo: "",
         dueDate: "",
         description: "",
       });
+
       setSelectedCourse("");
       setSelectedSection("");
       setSelectedSemester("");
+
       location.reload();
     } catch (error) {
       console.log(error);
@@ -104,12 +127,9 @@ function AssignmentForm({ textCSS, buttonCSS }) {
           <select
             value={selectedCourse}
             onChange={(e) => {
-              setSelectedCourse(e.target.value);
-              updateAssignedTo(
-                e.target.value,
-                selectedSemester,
-                selectedSection
-              );
+              const val = e.target.value;
+              setSelectedCourse(val);
+              updateAssignedTo(val, selectedSemester, selectedSection);
             }}
             className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition"
           >
@@ -125,8 +145,9 @@ function AssignmentForm({ textCSS, buttonCSS }) {
           <select
             value={selectedSemester}
             onChange={(e) => {
-              setSelectedSemester(e.target.value);
-              updateAssignedTo(selectedCourse, e.target.value, selectedSection);
+              const val = e.target.value;
+              setSelectedSemester(val);
+              updateAssignedTo(selectedCourse, val, selectedSection);
             }}
             className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition"
           >
@@ -142,12 +163,9 @@ function AssignmentForm({ textCSS, buttonCSS }) {
           <select
             value={selectedSection}
             onChange={(e) => {
-              setSelectedSection(e.target.value);
-              updateAssignedTo(
-                selectedCourse,
-                selectedSemester,
-                e.target.value
-              );
+              const val = e.target.value;
+              setSelectedSection(val);
+              updateAssignedTo(selectedCourse, selectedSemester, val);
             }}
             className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition"
           >
@@ -160,10 +178,11 @@ function AssignmentForm({ textCSS, buttonCSS }) {
           </select>
         </div>
 
-        {/* DATE */}
+        {/* ✅ DATE (past disabled) */}
         <input
           type="date"
           name="dueDate"
+          min={today}
           value={assignment.dueDate}
           onChange={(e) =>
             setAssignment({ ...assignment, dueDate: e.target.value })
