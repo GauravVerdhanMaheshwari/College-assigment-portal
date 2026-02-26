@@ -152,12 +152,14 @@ function UserManagerHomePage() {
         {/* ADD USERS */}
         <div id="addUsers">
           <AddUsers
+            currentRole={"User Manager"}
             userToAdd={["Students", "Faculties"]}
             userDataBaseEntry={{
               Students: [
                 { field: "enrollmentNumber", type: "number" },
                 { field: "name", type: "text" },
                 { field: "email", type: "email" },
+                { field: "yearOfJoining", type: "text" },
                 { field: "course", type: "multiselect" },
                 { field: "division", type: "multiselect" },
                 { field: "semesters", type: "multiselect" },
@@ -170,15 +172,6 @@ function UserManagerHomePage() {
                 { field: "semesters", type: "multiselect" },
                 { field: "division", type: "multiselect" },
               ],
-            }}
-            selectOptions={{
-              course: ["BCA", "MCA", "IT"],
-              division: ["A", "B", "C"],
-              subject: ["Maths", "DBMS", "OS", "CN"],
-              semesters: [1, 2, 3, 4, 5, 6],
-            }}
-            courseSubjectMap={{
-              IT: ["Maths", "DBMS", "OS", "CN"],
             }}
             handleAddUser={handleAddUser}
           />
