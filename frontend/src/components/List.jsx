@@ -1,5 +1,12 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
 import { Filter } from "../components/index";
+import { COURSE_SEM_SUBJECT_MAP } from "./courseMap";
 
 /* ===================== HELPERS ===================== */
 
@@ -9,22 +16,54 @@ const formatValue = (val) => {
   return val;
 };
 
-/* 🔥 fields that are multi-select */
 const MULTI_FIELDS = ["course", "division", "subject", "semester"];
 
-/* 🔧 options (edit freely later) */
 const SELECT_OPTIONS = {
   course: ["BCA", "MCA", "IT"],
-  division: ["A", "B", "C"],
-  subject: ["Maths", "DBMS", "OS", "CN"],
+  division: ["A", "B", "C", "D"],
   semester: [1, 2, 3, 4, 5, 6],
+};
+
+/* ================= SUBJECT VALIDATOR ================= */
+
+const getValidSubjects = (courses = [], semesters = []) => {
+  const valid = new Set();
+
+  courses.forEach((course) => {
+    const semMap = COURSE_SEM_SUBJECT_MAP[course];
+    if (!semMap) return;
+
+    semesters.forEach((sem) => {
+      const subjects = semMap[sem];
+      if (subjects) subjects.forEach((s) => valid.add(s));
+    });
+  });
+
+  return Array.from(valid);
 };
 
 /* ===================== PREMIUM MULTISELECT ===================== */
 
-const PremiumMultiSelect = ({ value = [], options = [], onChange }) => {
+const PremiumMultiSelect = ({
+  value = [],
+  options = [],
+  onChange,
+  disabled = false,
+}) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const boxRef = useRef(null);
+
+  /* 🔥 outside click close */
+  useEffect(() => {
+    const handler = (e) => {
+      if (!boxRef.current?.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const filtered = useMemo(() => {
     return options.filter((opt) =>
@@ -33,6 +72,8 @@ const PremiumMultiSelect = ({ value = [], options = [], onChange }) => {
   }, [options, search]);
 
   const toggle = (val) => {
+    if (disabled) return;
+
     if (value.includes(val)) {
       onChange(value.filter((v) => v !== val));
     } else {
@@ -45,14 +86,20 @@ const PremiumMultiSelect = ({ value = [], options = [], onChange }) => {
   };
 
   return (
-    <div className="relative w-full">
-      {/* selected box */}
+    <div ref={boxRef} className="relative w-full">
       <div
-        onClick={() => setOpen((o) => !o)}
-        className="min-h-[38px] border rounded-xl px-2 py-1 bg-white cursor-pointer flex flex-wrap gap-1 hover:border-sky-400 transition"
+        onClick={() => !disabled && setOpen((o) => !o)}
+        className={`min-h-[38px] border rounded-xl px-2 py-1 flex flex-wrap gap-1 transition
+          ${
+            disabled
+              ? "bg-gray-100 cursor-not-allowed"
+              : "bg-white cursor-pointer hover:border-sky-400"
+          }`}
       >
         {value.length === 0 && (
-          <span className="text-gray-400 text-sm">Select...</span>
+          <span className="text-gray-400 text-sm">
+            {disabled ? "Select course & semester first" : "Select..."}
+          </span>
         )}
 
         {value.map((v, i) => (
@@ -61,22 +108,22 @@ const PremiumMultiSelect = ({ value = [], options = [], onChange }) => {
             className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1 shadow"
           >
             {v}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                removeChip(v);
-              }}
-              className="hover:text-gray-200"
-            >
-              ✕
-            </button>
+            {!disabled && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeChip(v);
+                }}
+              >
+                ✕
+              </button>
+            )}
           </span>
         ))}
       </div>
 
-      {/* dropdown */}
-      {open && (
+      {open && !disabled && (
         <div className="absolute z-50 mt-1 w-full bg-white border rounded-2xl shadow-xl p-2">
           <input
             className="w-full mb-2 px-2 py-1 border rounded-lg focus:ring-2 focus:ring-sky-400 outline-none"
@@ -100,8 +147,7 @@ const PremiumMultiSelect = ({ value = [], options = [], onChange }) => {
                     value.includes(opt)
                       ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white"
                       : "bg-gray-100 hover:bg-gray-200"
-                  }
-                `}
+                  }`}
               >
                 {opt}
               </button>
@@ -128,7 +174,6 @@ function List({
   const [isGrouped, setIsGrouped] = useState(false);
   const [activeEntity, setActiveEntity] = useState(entityEndpoints[0]);
   const [editingUser, setEditingUser] = useState(null);
-
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
@@ -137,6 +182,8 @@ function List({
     () => entityEndpoints.indexOf(activeEntity),
     [entityEndpoints, activeEntity],
   );
+
+  const isFacultyView = activeEntity === "faculties";
 
   /* ================= FETCH ================= */
 
@@ -184,6 +231,27 @@ function List({
     const start = (currentPage - 1) * pageSize;
     return filteredUsers.slice(start, start + pageSize);
   }, [filteredUsers, currentPage]);
+
+  /* ================= SMART UPDATE ================= */
+
+  const updateEditingUser = (key, val) => {
+    setEditingUser((prev) => {
+      const updated = { ...prev, [key]: val };
+
+      if (isFacultyView) {
+        const courses = updated.course || [];
+        const semesters = updated.semester || [];
+
+        const validSubjects = getValidSubjects(courses, semesters);
+
+        updated.subject = (updated.subject || []).filter((s) =>
+          validSubjects.includes(s),
+        );
+      }
+
+      return updated;
+    });
+  };
 
   /* ================= DELETE ================= */
 
@@ -236,8 +304,7 @@ function List({
                 activeEntity === entityEndpoints[index]
                   ? "bg-gradient-to-r from-sky-500 to-blue-600"
                   : "bg-gray-400 hover:bg-gray-500"
-              }
-            `}
+              }`}
             onClick={() => setActiveEntity(entityEndpoints[index])}
           >
             {name}
@@ -273,41 +340,50 @@ function List({
               {!loading &&
                 paginatedUsers.map((user) => (
                   <tr key={user._id} className="hover:bg-gray-100">
-                    {entityKeys[entityIndex].map((key) => (
-                      <td key={key} className="px-4 py-2 border">
-                        {editingUser?._id === user._id ? (
-                          MULTI_FIELDS.includes(key) ? (
-                            <PremiumMultiSelect
-                              value={
-                                Array.isArray(editingUser[key])
-                                  ? editingUser[key]
-                                  : []
-                              }
-                              options={SELECT_OPTIONS[key] || []}
-                              onChange={(val) =>
-                                setEditingUser({
-                                  ...editingUser,
-                                  [key]: val,
-                                })
-                              }
-                            />
+                    {entityKeys[entityIndex].map((key) => {
+                      const subjectOptions =
+                        isFacultyView && key === "subject"
+                          ? getValidSubjects(
+                              editingUser?.course || [],
+                              editingUser?.semester || [],
+                            )
+                          : SELECT_OPTIONS[key] || [];
+
+                      const subjectDisabled =
+                        isFacultyView &&
+                        key === "subject" &&
+                        (!editingUser?.course?.length ||
+                          !editingUser?.semester?.length);
+
+                      return (
+                        <td key={key} className="px-4 py-2 border">
+                          {editingUser?._id === user._id ? (
+                            MULTI_FIELDS.includes(key) ? (
+                              <PremiumMultiSelect
+                                value={
+                                  Array.isArray(editingUser[key])
+                                    ? editingUser[key]
+                                    : []
+                                }
+                                options={subjectOptions}
+                                disabled={subjectDisabled}
+                                onChange={(val) => updateEditingUser(key, val)}
+                              />
+                            ) : (
+                              <input
+                                value={editingUser[key] ?? ""}
+                                onChange={(e) =>
+                                  updateEditingUser(key, e.target.value)
+                                }
+                                className="border rounded px-2 py-1 w-full"
+                              />
+                            )
                           ) : (
-                            <input
-                              value={editingUser[key] ?? ""}
-                              onChange={(e) =>
-                                setEditingUser({
-                                  ...editingUser,
-                                  [key]: e.target.value,
-                                })
-                              }
-                              className="border rounded px-2 py-1 w-full"
-                            />
-                          )
-                        ) : (
-                          formatValue(user[key])
-                        )}
-                      </td>
-                    ))}
+                            formatValue(user[key])
+                          )}
+                        </td>
+                      );
+                    })}
 
                     <td className="px-4 py-2 border">
                       {editingUser?._id === user._id ? (
@@ -348,7 +424,6 @@ function List({
           </table>
         </div>
 
-        {/* PAGINATION */}
         {!isGrouped && (
           <div className="flex justify-center gap-2 py-4 flex-wrap">
             {Array.from({ length: totalPages }, (_, i) => (
