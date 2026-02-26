@@ -9,6 +9,7 @@ const studentSchema = new Schema({
   course: { type: String, required: true },
   division: { type: String, required: true },
   semester: { type: Number, required: true },
+  yearOfJoining: { type: String, required: true },
   role: { type: String, required: true },
 });
 
