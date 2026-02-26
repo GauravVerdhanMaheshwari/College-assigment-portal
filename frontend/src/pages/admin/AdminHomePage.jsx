@@ -143,14 +143,47 @@ function AdminHomePage() {
   // 📌 EDIT
   const handleEdit = async (entity, type) => {
     try {
+      if (!entity || !entity._id) {
+        alert("Invalid data. Please refresh and try again.");
+        return;
+      }
+
+      // ✅ deep clean null / undefined
+      const cleanedEntity = Object.fromEntries(
+        Object.entries(entity).filter(
+          ([_, value]) =>
+            value !== null &&
+            value !== undefined &&
+            !(typeof value === "string" && value.trim() === ""),
+        ),
+      );
+
+      // ✅ extra safety for faculties
+      if (type === "faculties") {
+        const ensureArray = (val) =>
+          Array.isArray(val) ? val.filter(Boolean) : val ? [val] : [];
+
+        cleanedEntity.course = ensureArray(cleanedEntity.course);
+        cleanedEntity.semester = ensureArray(cleanedEntity.semester);
+        cleanedEntity.subject = ensureArray(cleanedEntity.subject);
+        cleanedEntity.division = ensureArray(cleanedEntity.division);
+      }
+
       const res = await fetch(`http://localhost:3000/${type}/${entity._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(entity),
+        body: JSON.stringify(cleanedEntity),
       });
-      if (!res.ok) throw new Error("Failed to update");
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        alert(data?.message || "Failed to update");
+        throw new Error(data?.message || "Failed to update");
+      }
+
       alert(`${entity.name || entity.title} updated successfully!`);
-      return await res.json();
+      return data;
     } catch (err) {
       console.error(err);
       alert(`Error updating: ${err.message}`);
@@ -229,6 +262,7 @@ function AdminHomePage() {
                 "Email",
                 "Course",
                 "Division",
+                "Year of Joining",
                 "Semester",
               ],
               ["Name", "Email", "Subject", "Course", "Semester", "Division"],
@@ -242,6 +276,7 @@ function AdminHomePage() {
                 "email",
                 "course",
                 "division",
+                "yearOfJoining",
                 "semester",
               ],
               ["name", "email", "subject", "course", "semester", "division"],
