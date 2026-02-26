@@ -127,6 +127,7 @@ exports.getPapersByStudentId = async (req, res) => {
         submittedAt: p.submittedAt,
         dueDate: p.assignmentId?.dueDate,
         isLate: p.isLate,
+        yearOfJoining: p.studentId?.yearOfJoining || "N/A",
         comments: p.comments.map((c) => ({
           _id: c._id,
           text: c.text,
@@ -456,7 +457,10 @@ exports.getPublicPapers = async (req, res) => {
 exports.getUserManagerPapers = async (req, res) => {
   try {
     const papers = await Paper.find()
-      .populate("studentId", "name enrollmentNumber division course semester")
+      .populate(
+        "studentId",
+        "name enrollmentNumber division course semester yearOfJoining",
+      )
       .populate("assignmentId", "topic dueDate ");
     res.json(
       papers.map((p) => ({
@@ -467,6 +471,7 @@ exports.getUserManagerPapers = async (req, res) => {
         class: p.studentId?.division,
         semester: p.studentId?.semester,
         course: p.studentId?.course,
+        yearOfJoining: p.studentId?.yearOfJoining || "N/A",
         assignmentTopic: p.assignmentId?.topic || "General Submission",
         isLate: p.isLate,
         submissionDate: p.submittedAt.toDateString(),
