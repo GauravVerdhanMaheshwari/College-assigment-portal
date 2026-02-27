@@ -31,6 +31,21 @@ function AssignmentForm({ textCSS, buttonCSS }) {
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
 
+  const [pdfFile, setPdfFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      alert("Only PDF files are allowed");
+      return;
+    }
+
+    setPdfFile(file);
+  };
+
   // ✅ today's date
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
 
@@ -63,14 +78,52 @@ function AssignmentForm({ textCSS, buttonCSS }) {
     }
 
     try {
+      let fileData = null;
+
+      /* ================= UPLOAD PDF FIRST ================= */
+      if (pdfFile) {
+        setUploading(true);
+
+        const formData = new FormData();
+        formData.append("file", pdfFile);
+
+        const uploadRes = await fetch(
+          "http://localhost:3000/assignments/upload",
+          {
+            method: "POST",
+            body: formData,
+          },
+        );
+
+        const text = await uploadRes.text();
+        console.log("Upload response:", uploadRes.status, text);
+
+        if (!uploadRes.ok) {
+          throw new Error(`PDF upload failed: ${text}`);
+        }
+
+        fileData = JSON.parse(text);
+      }
+
+      /* ================= CREATE ASSIGNMENT ================= */
+      const payload = {
+        ...assignment,
+        fileId: fileData?.fileId || null,
+        fileName: fileData?.fileName || "",
+      };
+
       const res = await fetch("http://localhost:3000/assignments/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(assignment),
+        body: JSON.stringify(payload),
       });
+
       if (!res.ok) throw new Error("Failed to add assignment");
+
       alert("Assignment added successfully!");
-      // reset form
+
+      // reset
+      setPdfFile(null);
       setAssignment({
         topic: "",
         subject: "",
@@ -79,13 +132,11 @@ function AssignmentForm({ textCSS, buttonCSS }) {
         dueDate: "",
         description: "",
       });
-      setSelectedCourse("");
-      setSelectedSemester("");
-      setSelectedSection("");
-      setSelectedSubject("");
     } catch (err) {
       console.error(err);
       alert(err.message);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -200,6 +251,18 @@ function AssignmentForm({ textCSS, buttonCSS }) {
           }
           className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition"
         />
+
+        {/* PDF UPLOAD */}
+        <input
+          type="file"
+          accept="application/pdf"
+          onChange={handleFileChange}
+          className="border p-2 rounded bg-white/70 shadow-md hover:shadow-lg transition"
+        />
+
+        {pdfFile && (
+          <p className="text-sm text-green-600">📄 Selected: {pdfFile.name}</p>
+        )}
 
         {/* SUBMIT */}
         <button

@@ -1,11 +1,20 @@
 const Assignment = require("../Models/assignment");
 const express = require("express");
+const multer = require("multer");
+
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 const assignmentController = require("../Controllers/assignmentController");
 
 // Post a new assignment
 router.post("/", assignmentController.createAssignment);
+
+router.post(
+  "/upload",
+  upload.single("file"),
+  assignmentController.uploadAssignmentFile,
+);
 // Get all assignments
 router.get("/", assignmentController.getAllAssignments);
 // Get assignment by ID
