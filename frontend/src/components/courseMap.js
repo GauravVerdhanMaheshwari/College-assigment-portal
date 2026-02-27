@@ -1,4 +1,12 @@
 export const COURSE_SEM_SUBJECT_MAP = {
+  CE: {
+    1: ["Math 1", "Physics", "English", "PIC", "WPD"],
+    2: ["Maths 2", "DE", "WDT", "APC", "English 2"],
+    3: ["Python", "SE", "MIT", "DBMS", "DS", "Communication Skill"],
+    4: ["DCN", "WT", "CSO", "ADBMS", "Management Skills"],
+    5: ["ETT", "Java", "NSM", "FAI"],
+    6: ["MCAD", "IoT", "ML"],
+  },
   IT: {
     1: ["Maths", "DBMS Basics", "Digital Logic"],
     2: ["DBMS", "OS", "CN"],
