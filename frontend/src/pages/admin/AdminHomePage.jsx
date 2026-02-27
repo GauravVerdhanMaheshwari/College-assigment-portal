@@ -310,7 +310,7 @@ function AdminHomePage() {
         {/* ADD USERS */}
         <div id="addUsers">
           <AddUsers
-            currentRole={"Admin"}
+            currentUserRole={"Admin"}
             userToAdd={[
               "Library Managers",
               "User Managers",
@@ -333,14 +333,14 @@ function AdminHomePage() {
                 { field: "yearOfJoining", type: "number" },
                 { field: "course", type: "multiselect" },
                 { field: "division", type: "multiselect" },
-                { field: "semesters", type: "multiselect" },
+                { field: "semester", type: "multiselect" },
               ],
               Faculties: [
                 { field: "name", type: "text" },
                 { field: "email", type: "email" },
                 { field: "subject", type: "multiselect" },
                 { field: "course", type: "multiselect" },
-                { field: "semesters", type: "multiselect" },
+                { field: "semester", type: "multiselect" },
                 { field: "division", type: "multiselect" },
               ],
             }}

@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import * as XLSX from "xlsx";
-import { COURSE_SEM_SUBJECT_MAP, DIVISIONS, SEMESTERS } from "./courseMap";
+import { COURSE_SEM_SUBJECT_MAP, DIVISIONS, SEMESTER } from "./courseMap";
 
 /* =========================================================
    ULTRA ENTERPRISE ADD USERS (RBAC ENABLED)
@@ -105,25 +105,25 @@ function AddUsers({
         ? [formData.course]
         : [];
 
-    const semesters = Array.isArray(formData.semester)
+    const semester = Array.isArray(formData.semester)
       ? formData.semester
       : formData.semester
         ? [formData.semester]
         : [];
 
-    if (!courses.length || !semesters.length) return [];
+    if (!courses.length || !semester.length) return [];
 
     const subjectSet = new Set();
 
     courses.forEach((course) => {
-      semesters.forEach((sem) => {
+      semester.forEach((sem) => {
         const subs = COURSE_SEM_SUBJECT_MAP?.[course]?.[Number(sem)] || [];
         subs.forEach((s) => subjectSet.add(s));
       });
     });
 
     return Array.from(subjectSet);
-  }, [formData.course, formData.semesters]);
+  }, [formData.course, formData.semester]);
 
   /* auto-clean invalid subjects */
   useEffect(() => {
@@ -178,7 +178,7 @@ function AddUsers({
           : field === "division"
             ? DIVISIONS
             : field === "semester"
-              ? SEMESTERS
+              ? SEMESTER
               : selectOptions[field] || [];
 
       return (
@@ -321,9 +321,14 @@ function AddUsers({
         value = Array.isArray(value) ? value : [value];
       }
 
-      if (key === "semester" && value !== "") {
-        const num = Number(value);
-        value = [num];
+      if (key === "semester" && value) {
+        if (typeof value === "string") {
+          value = value
+            .split(",")
+            .map((v) => Number(v.trim()))
+            .filter(Boolean);
+        }
+        if (!Array.isArray(value)) value = [Number(value)];
       }
 
       /* ---------- role cleanup ---------- */
@@ -403,8 +408,8 @@ function AddUsers({
 
         const res = await handleAddUser?.(
           selectedUserType,
-          config.api, 
-          payload, 
+          config.api,
+          payload,
         );
 
         console.log("ADD USER RESPONSE:", res);
@@ -481,6 +486,8 @@ function AddUsers({
   /* ================= SUBMIT ================= */
 
   const handleSubmit = (e) => {
+    // console.log(" Submitting form with data:", formData);`
+
     e.preventDefault();
 
     if (!allowedUserTypes.includes(selectedUserType)) {
@@ -495,7 +502,13 @@ function AddUsers({
       }
     }
 
-    handleAddUser?.(selectedUserType, formData);
+    const config = USER_TYPE_CONFIG[selectedUserType];
+
+    handleAddUser?.(selectedUserType, config?.api, {
+      ...formData,
+      role: config?.role,
+    });
+
     setFormData({});
   };
 

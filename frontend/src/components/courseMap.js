@@ -34,4 +34,4 @@ export const COURSE_SEM_SUBJECT_MAP = {
 };
 
 export const DIVISIONS = ["A", "B", "C", "D"];
-export const SEMESTERS = [1, 2, 3, 4, 5, 6];
+export const SEMESTER = [1, 2, 3, 4, 5, 6];
