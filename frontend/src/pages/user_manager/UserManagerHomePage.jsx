@@ -233,7 +233,7 @@ function UserManagerHomePage() {
         {/* ADD USERS */}
         <div id="addUsers">
           <AddUsers
-            currentRole={"User Manager"}
+            currentUserRole={"User Manager"}
             userToAdd={["Students", "Faculties"]}
             userDataBaseEntry={{
               Students: [
@@ -243,14 +243,14 @@ function UserManagerHomePage() {
                 { field: "yearOfJoining", type: "text" },
                 { field: "course", type: "multiselect" },
                 { field: "division", type: "multiselect" },
-                { field: "semesters", type: "multiselect" },
+                { field: "semester", type: "multiselect" },
               ],
               Faculties: [
                 { field: "name", type: "text" },
                 { field: "email", type: "email" },
                 { field: "subject", type: "multiselect" },
                 { field: "course", type: "multiselect" },
-                { field: "semesters", type: "multiselect" },
+                { field: "semester", type: "multiselect" },
                 { field: "division", type: "multiselect" },
               ],
             }}
