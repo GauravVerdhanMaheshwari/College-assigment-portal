@@ -50,15 +50,50 @@ function AddUsers({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const USER_TYPE_CONFIG = {
+    Students: {
+      api: "students",
+      role: "student",
+    },
+    Faculties: {
+      api: "faculties",
+      role: "faculty",
+    },
+    "User Managers": {
+      api: "user-managers",
+      role: "usermanager",
+    },
+    "Library Managers": {
+      api: "library-managers",
+      role: "librarymanager",
+    },
+  };
+
   /* ================= ACADEMIC YEAR ================= */
 
   const isValidAcademicYear = (val) => {
-    if (!val) return false;
-    const ok = /^\d{4}-\d{2}$/.test(val);
-    if (!ok) return false;
+    if (!val || typeof val !== "string") return false;
 
-    const [start, end] = val.split("-");
-    return Number(end) === (Number(start) + 1) % 100;
+    const trimmed = val.trim();
+
+    // format: 2020-21
+    if (!/^\d{4}-\d{2}$/.test(trimmed)) return false;
+
+    const [startStr, endStr] = trimmed.split("-");
+    const start = Number(startStr);
+    const end = Number(endStr);
+
+    if (Number.isNaN(start) || Number.isNaN(end)) return false;
+
+    const expectedEnd = (start + 1) % 100;
+    return end === expectedEnd;
+  };
+
+  const isValidEmail = (email) => {
+    if (!email || typeof email !== "string") return false;
+
+    // strong but practical regex
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
   };
 
   /* ================= SUBJECT INFERENCE ================= */
@@ -70,10 +105,10 @@ function AddUsers({
         ? [formData.course]
         : [];
 
-    const semesters = Array.isArray(formData.semesters)
-      ? formData.semesters
-      : formData.semesters
-        ? [formData.semesters]
+    const semesters = Array.isArray(formData.semester)
+      ? formData.semester
+      : formData.semester
+        ? [formData.semester]
         : [];
 
     if (!courses.length || !semesters.length) return [];
@@ -135,14 +170,14 @@ function AddUsers({
       type === "multiselect" ||
       field === "course" ||
       field === "division" ||
-      field === "semesters"
+      field === "semester"
     ) {
       const options =
         field === "course"
           ? Object.keys(COURSE_SEM_SUBJECT_MAP)
           : field === "division"
             ? DIVISIONS
-            : field === "semesters"
+            : field === "semester"
               ? SEMESTERS
               : selectOptions[field] || [];
 
@@ -170,13 +205,17 @@ function AddUsers({
 
     /* INPUT */
 
+    const isYearField = field === "yearOfJoining";
+    const yearInvalid =
+      isYearField && formData[field] && !isValidAcademicYear(formData[field]);
+
     return (
       <input
         type={type === "string" ? "text" : type}
         value={formData[field] || ""}
-        placeholder={field === "yearOfJoining" ? "e.g. 2021-22" : field}
+        placeholder={field === "yearOfJoining" ? "e.g. 2020-21" : field}
         onChange={(e) => handleChange(field, e.target.value)}
-        className="input"
+        className={`input ${yearInvalid ? "border-red-500 bg-red-50" : ""}`}
       />
     );
   };
@@ -184,6 +223,10 @@ function AddUsers({
   /* =========================================================
      🔥 EXCEL TEMPLATE (DYNAMIC PER ROLE)
   ========================================================= */
+
+  const [excelRows, setExcelRows] = useState([]);
+  const [excelReady, setExcelReady] = useState(false);
+  const [isUploadingExcel, setIsUploadingExcel] = useState(false);
 
   const currentSchema = userDataBaseEntry[selectedUserType] || [];
 
@@ -215,7 +258,7 @@ function AddUsers({
         case "division":
           row[field] = "A";
           break;
-        case "semesters":
+        case "semester":
           row[field] = "3";
           break;
         case "subject":
@@ -247,25 +290,152 @@ function AddUsers({
 
   const normalizeRow = (row) => {
     const r = {};
+
     Object.entries(row).forEach(([k, v]) => {
-      r[k.trim().toLowerCase()] = v;
+      const key = k.trim().toLowerCase();
+
+      let value =
+        typeof v === "number"
+          ? String(v)
+          : typeof v === "string"
+            ? v.trim()
+            : v;
+
+      /* ---------- SUBJECT → array ---------- */
+      if (key === "subject") {
+        if (typeof value === "string") {
+          value = value
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+        }
+        if (!Array.isArray(value)) value = [value];
+      }
+
+      /* ---------- ALWAYS normalize faculty multi fields ---------- */
+      if (key === "course" && value) {
+        value = Array.isArray(value) ? value : [value];
+      }
+
+      if (key === "division" && value) {
+        value = Array.isArray(value) ? value : [value];
+      }
+
+      if (key === "semester" && value !== "") {
+        const num = Number(value);
+        value = [num];
+      }
+
+      /* ---------- role cleanup ---------- */
+      if (key === "role" && typeof value === "string") {
+        const vLower = value.toLowerCase();
+        if (vLower.includes("facul")) value = "Faculty";
+      }
+
+      r[key] = value;
     });
+
     return r;
   };
 
   const validateRow = (row, index) => {
     const errors = [];
+    if (isRowCompletelyEmpty(row)) {
+      return null;
+    }
 
-    if (!row.name) errors.push("Missing name");
-    if (!row.email) errors.push("Missing email");
+    const schemaFields =
+      userDataBaseEntry[selectedUserType]?.map((f) => f.field.toLowerCase()) ||
+      [];
 
-    if (isStudent) {
-      if (!isValidAcademicYear(String(row.yearofjoining))) {
-        errors.push("Invalid yearOfJoining (use 2021-22)");
+    /* ================= REQUIRED CHECK ================= */
+
+    if (schemaFields.includes("name") && !row.name) {
+      errors.push("Missing name");
+    }
+
+    if (schemaFields.includes("email")) {
+      if (!row.email) errors.push("Missing email");
+      else if (!isValidEmail(row.email)) errors.push("Invalid email format");
+    }
+
+    /* ================= STUDENT ONLY ================= */
+
+    const isStudentUpload = selectedUserType === "Students";
+
+    if (isStudentUpload && schemaFields.includes("yearofjoining")) {
+      if (!row.yearofjoining) {
+        errors.push("Missing yearOfJoining");
+      } else if (!isValidAcademicYear(String(row.yearofjoining))) {
+        errors.push("yearOfJoining must be YYYY-YY (e.g., 2020-21)");
       }
     }
 
     return errors.length ? { row: index + 2, errors } : null;
+  };
+
+  const sendExcelData = async () => {
+    if (!excelRows.length || isUploadingExcel) return;
+
+    setIsUploadingExcel(true);
+
+    let success = 0;
+    const errors = [];
+
+    for (let i = 0; i < excelRows.length; i++) {
+      try {
+        const config = USER_TYPE_CONFIG[selectedUserType];
+
+        if (!config) {
+          errors.push({
+            row: i + 2,
+            errors: ["Unknown user type"],
+          });
+          continue;
+        }
+
+        const payload = {
+          ...excelRows[i],
+          role: config.role,
+        };
+
+        console.log("SENDING:", payload);
+
+        const res = await handleAddUser?.(
+          selectedUserType,
+          config.api, 
+          payload, 
+        );
+
+        console.log("ADD USER RESPONSE:", res);
+
+        if (res?.success) success++;
+        else {
+          errors.push({
+            row: i + 2,
+            errors: [res?.message || "Failed to add"],
+          });
+        }
+      } catch (err) {
+        errors.push({
+          row: i + 2,
+          errors: ["Unexpected error"],
+          message: `Network error: ${err.message}`,
+        });
+      }
+    }
+
+    setExcelSuccess(success);
+    setExcelErrors(errors);
+    setExcelReady(false);
+    setExcelRows([]);
+    setIsUploadingExcel(false);
+  };
+
+  const isRowCompletelyEmpty = (row) => {
+    return Object.values(row).every(
+      (v) => v === null || v === undefined || String(v).trim() === "",
+    );
   };
 
   const handleExcelUpload = (e) => {
@@ -274,30 +444,35 @@ function AddUsers({
 
     setExcelErrors([]);
     setExcelSuccess(0);
+    setExcelRows([]);
+    setExcelReady(false);
 
     const reader = new FileReader();
 
     reader.onload = (evt) => {
       const wb = XLSX.read(evt.target.result, { type: "binary" });
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(ws);
+      const data = XLSX.utils.sheet_to_json(ws, {
+        defval: "", // fills empty cells
+        blankrows: false, // 🚀 VERY IMPORTANT
+        raw: false,
+      });
 
       const errors = [];
-      let success = 0;
+      const validRows = [];
 
       data.forEach((rawRow, idx) => {
         const row = normalizeRow(rawRow);
         const err = validateRow(row, idx);
 
         if (err) errors.push(err);
-        else {
-          success++;
-          handleAddUser?.(selectedUserType, row);
-        }
+        else validRows.push(row);
       });
+      console.log("Normalized Excel:", validRows);
 
       setExcelErrors(errors);
-      setExcelSuccess(success);
+      setExcelRows(validRows);
+      setExcelReady(validRows.length > 0);
     };
 
     reader.readAsBinaryString(file);
@@ -315,7 +490,7 @@ function AddUsers({
 
     if (isStudent) {
       if (!isValidAcademicYear(formData.yearOfJoining)) {
-        alert("Year of Joining must be like 2021-22");
+        alert("Year of Joining must be in format YYYY-YY (e.g., 2020-21)");
         return;
       }
     }
@@ -360,6 +535,23 @@ function AddUsers({
           onChange={handleExcelUpload}
           className="mt-3"
         />
+
+        {excelReady && (
+          <button
+            onClick={sendExcelData}
+            disabled={isUploadingExcel}
+            className={`mt-3 px-4 py-2 text-white rounded-lg transition
+      ${
+        isUploadingExcel
+          ? "bg-gray-400 cursor-not-allowed"
+          : "bg-green-600 hover:bg-green-700"
+      }`}
+          >
+            {isUploadingExcel
+              ? "⏳ Uploading..."
+              : `🚀 Send Excel Data (${excelRows.length})`}
+          </button>
+        )}
 
         {excelSuccess > 0 && (
           <p className="text-green-600 mt-2">✅ Added: {excelSuccess}</p>
