@@ -6,8 +6,38 @@ function AssignmentsList({ textCSS }) {
   const [filteredAssignments, setFilteredAssignments] = useState([]);
   const [isGrouped, setIsGrouped] = useState(false);
 
+  const [editingAssignment, setEditingAssignment] = useState(null);
+  const [newPdf, setNewPdf] = useState(null);
+  const [newTitle, setNewTitle] = useState("");
+  const [updating, setUpdating] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+
   const user = JSON.parse(sessionStorage.getItem("user"));
   const facultyId = user?.faculty?._id || null;
+
+  /* ===================== FETCH ===================== */
+  const fetchAssignments = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/assignments/");
+      if (!response.ok) throw new Error("Failed to fetch assignments");
+
+      const data = await response.json();
+
+      const formatted = data.map((a) => ({
+        ...a,
+        dueDate: a.dueDate ? new Date(a.dueDate).toLocaleDateString() : "N/A",
+      }));
+
+      setAssignments(formatted);
+      setFilteredAssignments(formatted);
+    } catch (error) {
+      console.error("Error fetching assignments:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAssignments();
+  }, []);
 
   /* ===================== DELETE GROUP ===================== */
   const handleDeleteGroup = (groupName, groupItems) => {
@@ -16,44 +46,90 @@ function AssignmentsList({ textCSS }) {
 
     const idsToDelete = new Set(groupItems.map((a) => a._id));
 
-    // remove from main list
     setAssignments((prev) => prev.filter((a) => !idsToDelete.has(a._id)));
 
-    // update filtered view
     setFilteredAssignments((prev) => {
       if (!isGrouped) return prev;
-
       const updated = { ...prev };
       delete updated[groupName];
       return updated;
     });
   };
 
-  useEffect(() => {
-    const fetchAssignments = async () => {
-      try {
-        const response = await fetch("http://localhost:3000/assignments/");
-        if (!response.ok) throw new Error("Failed to fetch assignments");
+  /* ===================== FILE HANDLERS ===================== */
+  const validatePdf = (file) => {
+    if (!file) return false;
+    if (file.type !== "application/pdf") {
+      alert("Only PDF allowed");
+      return false;
+    }
+    return true;
+  };
 
-        const data = await response.json();
+  const handleNewFile = (file) => {
+    if (!validatePdf(file)) return;
+    setNewPdf(file);
+  };
 
-        // Normalize dates
-        const formatted = data.map((a) => ({
-          ...a,
-          dueDate: a.dueDate ? new Date(a.dueDate).toLocaleDateString() : "N/A",
-        }));
+  const onInputChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) handleNewFile(file);
+  };
 
-        setAssignments(formatted);
-        setFilteredAssignments(formatted);
-      } catch (error) {
-        console.error("Error fetching assignments:", error);
-      }
-    };
+  const onDragEnter = (e) => {
+    e.preventDefault();
+    setDragActive(true);
+  };
 
-    fetchAssignments();
-  }, []);
+  const onDragLeave = (e) => {
+    e.preventDefault();
+    setDragActive(false);
+  };
 
-  // 🔥 Fields for filtering
+  const onDragOver = (e) => e.preventDefault();
+
+  const onDrop = (e) => {
+    e.preventDefault();
+    setDragActive(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleNewFile(file);
+  };
+
+  /* ===================== UPDATE PDF ===================== */
+  const handleUpdatePdf = async () => {
+    if (!editingAssignment) return;
+
+    try {
+      setUpdating(true);
+
+      const formData = new FormData();
+      if (newPdf) formData.append("file", newPdf);
+      if (newTitle.trim()) formData.append("fileName", newTitle.trim());
+
+      const res = await fetch(
+        `http://localhost:3000/assignments/${editingAssignment._id}/file`,
+        { method: "PUT", body: formData },
+      );
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      alert("PDF updated!");
+
+      setEditingAssignment(null);
+      setNewPdf(null);
+      setNewTitle("");
+
+      fetchAssignments();
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  /* ===================== FILTER CONFIG ===================== */
   const entityFields = [
     "Topic",
     "Subject",
@@ -73,7 +149,6 @@ function AssignmentsList({ textCSS }) {
     <div className="p-6 bg-white/40 rounded-2xl shadow-lg">
       <h2 className={`text-2xl font-bold mb-4 ${textCSS}`}>All Assignments</h2>
 
-      {/* 🔎 Filter */}
       <Filter
         data={assignments}
         entityFields={entityFields}
@@ -86,69 +161,108 @@ function AssignmentsList({ textCSS }) {
         onDeleteGroup={handleDeleteGroup}
       />
 
-      {/* 📄 Assignments */}
+      {/* LIST */}
       <div className="mt-6">
-        {isGrouped ? (
-          Object.entries(filteredAssignments).map(([group, items]) => (
-            <div key={group} className="mb-8">
-              {/* ✅ GROUP HEADER WITH DELETE */}
-              <div className="flex justify-between items-center mb-3 bg-gray-100 px-3 py-2 rounded">
-                <h3 className="text-xl font-semibold">
-                  {group} ({items.length})
-                </h3>
-
-                <button
-                  onClick={() => handleDeleteGroup(group, items)}
-                  className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md"
-                >
-                  Delete Group
-                </button>
-              </div>
-
-              <div className="grid gap-4">
-                {items.map((a) => (
-                  <AssignmentCard key={a._id} a={a} facultyId={facultyId} />
-                ))}
-              </div>
-            </div>
-          ))
-        ) : (
-          // 📄 RENDER NORMAL LIST
-          <div className="grid gap-4">
-            {!filteredAssignments.length && (
-              <p className="text-xl text-center text-gray-500 my-4">
-                No assignments available
-              </p>
-            )}
-            {filteredAssignments.map((a) => (
-              <AssignmentCard key={a._id} a={a} facultyId={facultyId} />
-            ))}
-          </div>
-        )}
+        <div className="grid gap-4">
+          {!filteredAssignments.length && (
+            <p className="text-xl text-center text-gray-500 my-4">
+              No assignments available
+            </p>
+          )}
+          {filteredAssignments.map((a) => (
+            <AssignmentCard
+              key={a._id}
+              a={a}
+              facultyId={facultyId}
+              setEditingAssignment={setEditingAssignment}
+              setNewTitle={setNewTitle}
+              refreshList={fetchAssignments}
+            />
+          ))}
+        </div>
       </div>
+
+      {/* ================= PREMIUM MODAL ================= */}
+      {editingAssignment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white/80 backdrop-blur-xl shadow-2xl border border-white/40 p-6">
+            <div className="flex justify-between mb-4">
+              <h3 className="text-xl font-bold text-[#4C1D95]">
+                Update Assignment PDF
+              </h3>
+
+              <button
+                onClick={() => setEditingAssignment(null)}
+                className="text-gray-500 hover:text-red-500 text-xl font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <input
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="PDF title"
+              className="w-full border rounded-xl p-2 mb-4"
+            />
+
+            <div
+              onDragEnter={onDragEnter}
+              onDragLeave={onDragLeave}
+              onDragOver={onDragOver}
+              onDrop={onDrop}
+              className={`border-2 border-dashed rounded-xl p-6 text-center ${
+                dragActive ? "border-purple-500 bg-purple-50" : ""
+              }`}
+            >
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={onInputChange}
+                className="w-full"
+              />
+              <p className="text-sm text-gray-600 mt-2">
+                Drag & drop PDF or click
+              </p>
+            </div>
+
+            {newPdf && (
+              <p className="text-sm text-green-600 mt-2">📄 {newPdf.name}</p>
+            )}
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setEditingAssignment(null)}
+                className="px-4 py-2 rounded bg-gray-400 text-white"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleUpdatePdf}
+                disabled={updating}
+                className="px-5 py-2 rounded bg-[#4C1D95] text-white"
+              >
+                {updating ? "Updating..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function AssignmentCard({ a, facultyId }) {
+/* ===================== CARD ===================== */
+function AssignmentCard({
+  a,
+  facultyId,
+  setEditingAssignment,
+  setNewTitle,
+  refreshList,
+}) {
   const [isEditing, setIsEditing] = useState(false);
   const [allowLate, setAllowLate] = useState(a.allowLateSubmission);
-
-  // Dropdown lists (same as AssignmentForm)
-  const courses = ["CE", "IT", "AI/ML", "CS", "ME"];
-  const sections = ["A", "B", "C", "D"];
-  const semesters = ["1", "2", "3", "4", "5", "6"];
-
-  // Split assignedTo into parts if possible
-  const [selectedCourse, setSelectedCourse] = useState(
-    a.assignedTo.split("-")[0] || "",
-  );
-  const [selectedSemester, setSelectedSemester] = useState(
-    a.assignedTo.split("-")[1] || "",
-  );
-  const [selectedSection, setSelectedSection] = useState(
-    a.assignedTo.split("-")[2] || "",
-  );
 
   const [editData, setEditData] = useState({
     topic: a.topic,
@@ -159,75 +273,39 @@ function AssignmentCard({ a, facultyId }) {
     gracePeriodMinutes: a.gracePeriodMinutes ?? 120,
   });
 
-  // Update assignedTo when dropdowns change
-  const updateAssignedTo = (course, sem, sec) => {
-    if (!course || !sem || !sec) return;
-    const value = `${course}-${sem}-${sec}`; // CE-5-C
-    setEditData({ ...editData, assignedTo: value });
-  };
-
-  const handleUpdateClick = () => {
-    console.log("UPDATE CLICKED for:", a._id);
-    setIsEditing(true);
-  };
-
-  const handleSave = () => {
-    console.log("SAVE CLICKED for:", a._id, editData);
-    setIsEditing(false);
-    fetch(`http://localhost:3000/assignments/${a._id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ ...editData, facultyId: a.facultyId }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        alert("Assignment updated successfully!");
-        location.reload();
-      })
-      .catch((error) => {
-        console.error("There was a problem with the fetch operation:", error);
-      });
-  };
-
-  const handleCancel = () => {
-    setEditData({
-      topic: a.topic,
-      subject: a.subject,
-      assignedTo: a.assignedTo,
-      description: a.description,
-      dueDate: a.dueDate,
-    });
-    setSelectedCourse(a.assignedTo.split("-")[0] || "");
-    setSelectedSemester(a.assignedTo.split("-")[1] || "");
-    setSelectedSection(a.assignedTo.split("-")[2] || "");
-    setIsEditing(false);
-    location.reload();
-  };
-
-  const handleDelete = () => {
-    console.log("DELETE CLICKED for:", a._id);
-
-    confirm("Are you sure you want to delete this assignment?") &&
-      fetch(`http://localhost:3000/assignments/${a._id}`, {
-        method: "DELETE",
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-          alert("Assignment deleted successfully!");
-        })
-        .catch((error) => {
-          console.error("There was a problem with the fetch operation:", error);
-        });
-    location.reload();
-  };
-
   const canEdit = a.facultyId === facultyId;
+
+  const todayISO = new Date().toISOString().split("T")[0];
+
+  const isPastDate = (dateStr) => {
+    if (!dateStr) return false;
+    const selected = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return selected < today;
+  };
+
+  const handleSave = async () => {
+    try {
+      if (isPastDate(editData.dueDate)) {
+        alert("Due date cannot be in the past");
+        return;
+      }
+      const res = await fetch(`http://localhost:3000/assignments/${a._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...editData, facultyId: a.facultyId }),
+      });
+
+      if (!res.ok) throw new Error("Update failed");
+
+      alert("Assignment updated successfully!");
+      setIsEditing(false);
+      refreshList?.();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
 
   const handleToggleLate = async () => {
     try {
@@ -235,215 +313,103 @@ function AssignmentCard({ a, facultyId }) {
         `http://localhost:3000/assignments/${a._id}/toggle-late`,
         { method: "PATCH" },
       );
-
-      if (!res.ok) throw new Error("Failed");
-
       const data = await res.json();
-
-      // ✅ correct React update
       setAllowLate(data.allowLateSubmission);
-    } catch (err) {
-      alert("Failed to update late submission setting", err);
+    } catch {
+      alert("Failed to update late submission setting");
     }
   };
 
   return (
-    <div className="p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-all">
-      <div className="flex flex-row justify-between">
-        <div className="mx-2 my-4">
-          {/* EDIT MODE */}
-          {isEditing ? (
-            <div className="space-y-3 text-sm">
-              {/* TOPIC */}
-              <input
-                value={editData.topic}
-                onChange={(e) =>
-                  setEditData({ ...editData, topic: e.target.value })
-                }
-                className="border px-2 py-1 rounded w-full"
-              />
+    <div className="p-5 bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
+      {isEditing ? (
+        <div className="space-y-3">
+          <input
+            value={editData.topic}
+            onChange={(e) =>
+              setEditData({ ...editData, topic: e.target.value })
+            }
+            className="w-full border rounded-lg p-2"
+          />
 
-              {/* SUBJECT */}
-              <input
-                value={editData.subject}
-                onChange={(e) =>
-                  setEditData({ ...editData, subject: e.target.value })
-                }
-                className="border px-2 py-1 rounded w-full"
-              />
+          <input
+            value={editData.subject}
+            onChange={(e) =>
+              setEditData({ ...editData, subject: e.target.value })
+            }
+            className="w-full border rounded-lg p-2"
+          />
 
-              {/* COURSE / SEMESTER / SECTION */}
-              <div className="flex gap-2">
-                {/* COURSE */}
-                <select
-                  value={selectedCourse}
-                  onChange={(e) => {
-                    setSelectedCourse(e.target.value);
-                    updateAssignedTo(
-                      e.target.value,
-                      selectedSemester,
-                      selectedSection,
-                    );
-                  }}
-                  className="border px-2 py-1 rounded"
-                >
-                  <option value="">Course</option>
-                  {courses.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+          <textarea
+            value={editData.description}
+            onChange={(e) =>
+              setEditData({ ...editData, description: e.target.value })
+            }
+            className="w-full border rounded-lg p-2"
+          />
 
-                {/* SEMESTER */}
-                <select
-                  value={selectedSemester}
-                  onChange={(e) => {
-                    setSelectedSemester(e.target.value);
-                    updateAssignedTo(
-                      selectedCourse,
-                      e.target.value,
-                      selectedSection,
-                    );
-                  }}
-                  className="border px-2 py-1 rounded"
-                >
-                  <option value="">Sem</option>
-                  {semesters.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
+          <input
+            type="date"
+            min={todayISO}
+            value={new Date(editData.dueDate).toISOString().split("T")[0]}
+            onChange={(e) =>
+              setEditData({ ...editData, dueDate: e.target.value })
+            }
+            className="w-full border rounded-lg p-2"
+          />
 
-                {/* SECTION */}
-                <select
-                  value={selectedSection}
-                  onChange={(e) => {
-                    setSelectedSection(e.target.value);
-                    updateAssignedTo(
-                      selectedCourse,
-                      selectedSemester,
-                      e.target.value,
-                    );
-                  }}
-                  className="border px-2 py-1 rounded"
-                >
-                  <option value="">Sec</option>
-                  {sections.map((sec) => (
-                    <option key={sec} value={sec}>
-                      {sec}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setEditingAssignment(a);
+                setNewTitle(a.fileName || "");
+              }}
+              className="px-3 py-1 bg-yellow-500 text-white rounded"
+            >
+              Change PDF
+            </button>
 
-              {/* DESCRIPTION */}
-              <textarea
-                value={editData.description}
-                onChange={(e) =>
-                  setEditData({ ...editData, description: e.target.value })
-                }
-                className="border px-2 py-1 rounded w-full"
-              />
+            <button
+              onClick={handleSave}
+              className="px-3 py-1 bg-green-600 text-white rounded"
+            >
+              Save
+            </button>
 
-              {/* DATE */}
-              <input
-                type="date"
-                value={new Date(editData.dueDate).toISOString().split("T")[0]}
-                onChange={(e) =>
-                  setEditData({ ...editData, dueDate: e.target.value })
-                }
-                className="border px-2 py-1 rounded w-full"
-              />
-              <input
-                type="number"
-                min="0"
-                value={editData.gracePeriodMinutes}
-                onChange={(e) =>
-                  setEditData({
-                    ...editData,
-                    gracePeriodMinutes: Number(e.target.value),
-                  })
-                }
-                className="border px-2 py-1 rounded w-full"
-                placeholder="Grace period (minutes)"
-              />
-            </div>
-          ) : (
-            /* VIEW MODE */
-            <>
-              <h3 className="text-lg font-bold mb-1">{a.topic}</h3>
-              <div className="text-sm space-y-1">
-                <p>
-                  <b>Subject:</b> {a.subject}
-                </p>
-                <p>
-                  <b>Assigned To:</b> {a.assignedTo}
-                </p>
-                <p>
-                  <b>Due Date:</b> {a.dueDate}
-                </p>
-                <p className="text-gray-700 mt-2">{a.description}</p>
-              </div>
-            </>
-          )}
+            <button
+              onClick={() => setIsEditing(false)}
+              className="px-3 py-1 bg-gray-400 text-white rounded"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
+      ) : (
+        <>
+          <h3 className="text-lg font-bold">{a.topic}</h3>
+          <p className="text-sm">Subject: {a.subject}</p>
+          <p className="text-sm">Assigned To: {a.assignedTo}</p>
+          <p className="text-sm">Due Date: {a.dueDate}</p>
 
-        {/* ACTION BUTTONS */}
-        {canEdit && (
-          <div className="flex flex-col my-auto space-y-2">
-            {/* 🕒 LATE SUBMISSION TOGGLE */}
-            {!isEditing && (
+          {canEdit && (
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={() => setIsEditing(true)}
+                className="text-blue-400 font-semibold bg-blue-400/10 rounded px-2 py-1"
+              >
+                Update
+              </button>
+
               <button
                 onClick={handleToggleLate}
-                className={`text-xs font-semibold rounded px-2 py-1 transition-all
-              ${
-                allowLate
-                  ? "bg-green-500/10 text-green-600 hover:bg-green-500/20"
-                  : "bg-gray-400/10 text-gray-600 hover:bg-gray-400/20"
-              }`}
+                className="text-xs bg-gray-200 px-2 py-1 rounded"
               >
-                {allowLate ? "Late Submission: ON" : "Late Submission: OFF"}
+                {allowLate ? "Late ON" : "Late OFF"}
               </button>
-            )}
-
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleSave}
-                  className="text-green-400 font-semibold bg-green-400/10 rounded px-2 py-1"
-                >
-                  Save
-                </button>
-
-                <button
-                  onClick={handleCancel}
-                  className="text-gray-500 font-semibold bg-gray-500/10 rounded px-2 py-1"
-                >
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={handleUpdateClick}
-                  className="text-blue-400 font-semibold bg-blue-400/10 rounded px-2 py-1"
-                >
-                  Update
-                </button>
-
-                <button
-                  onClick={handleDelete}
-                  className="text-red-400 font-semibold bg-red-400/10 rounded px-2 py-1"
-                >
-                  Delete
-                </button>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

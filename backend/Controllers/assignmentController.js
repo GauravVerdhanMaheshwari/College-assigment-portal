@@ -61,6 +61,75 @@ exports.uploadAssignmentFile = async (req, res) => {
   }
 };
 
+exports.updateAssignmentFile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { fileName } = req.body;
+
+    const assignment = await Assignment.findById(id);
+    if (!assignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    const bucket = getGridFSBucket();
+
+    let newFileId = assignment.fileId;
+    let newFileName = assignment.fileName;
+
+    /* ✅ if new PDF uploaded */
+    if (req.file) {
+      if (req.file.mimetype !== "application/pdf") {
+        return res.status(400).json({ message: "Only PDF allowed" });
+      }
+
+      // 🔥 delete old file
+      if (assignment.fileId) {
+        try {
+          await bucket.delete(new mongoose.Types.ObjectId(assignment.fileId));
+        } catch (err) {
+          console.warn("Old file delete failed:", err.message);
+        }
+      }
+
+      // 🔥 upload new file
+      const uploadStream = bucket.openUploadStream(req.file.originalname, {
+        contentType: req.file.mimetype,
+        metadata: { type: "assignment" },
+      });
+
+      uploadStream.end(req.file.buffer);
+
+      await new Promise((resolve, reject) => {
+        uploadStream.on("finish", resolve);
+        uploadStream.on("error", reject);
+      });
+
+      newFileId = uploadStream.id;
+      newFileName = req.file.originalname;
+    }
+
+    /* ✅ if only title changed */
+    if (fileName) {
+      newFileName = fileName;
+    }
+
+    assignment.fileId = newFileId;
+    assignment.fileName = newFileName;
+
+    await assignment.save();
+
+    res.json({
+      success: true,
+      message: "Assignment file updated",
+      fileId: newFileId,
+      fileName: newFileName,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // Get all assignments
 exports.getAllAssignments = async (req, res) => {
   try {
