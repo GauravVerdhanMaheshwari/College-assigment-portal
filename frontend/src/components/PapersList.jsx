@@ -296,10 +296,6 @@ export default function List({
 
   return (
     <div>
-      <h2 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-sky-400 to-blue-600 bg-clip-text text-transparent">
-        User Management
-      </h2>
-
       {/* ENTITY SWITCH */}
       <div className="flex justify-center my-5 gap-6 flex-wrap">
         {entityNames?.map((name, index) => (
