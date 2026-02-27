@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Header, Hero, List, AddUsers } from "../../components/index";
 import { useNavigate } from "react-router-dom";
 
@@ -8,19 +8,19 @@ function UserManagerHomePage() {
   const navigate = useNavigate();
   const user = JSON.parse(sessionStorage.getItem("user"));
 
-  const [facultySmart, setFacultySmart] = useState({
-    course: [],
-    semester: [],
-    subject: [],
-    division: [],
-  });
-
   useEffect(() => {
     if (!user?.userManager || user?.userManager.role !== "userManager") {
       sessionStorage.clear();
       navigate("/userManager/login");
     }
   }, [user, navigate]);
+
+  const isValidEmail = (email) => {
+    if (!email || typeof email !== "string") return false;
+
+    // strong but practical regex
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+  };
 
   // ✅ PREMIUM ADD USER (ARRAY SAFE)
   const handleAddUser = async (newUser, userAPI, userDetails) => {
@@ -116,6 +116,7 @@ function UserManagerHomePage() {
       const deepClean = (obj) => {
         return Object.fromEntries(
           Object.entries(obj).filter(([_, value]) => {
+            console.log(_);
             if (value === null || value === undefined) return false;
 
             if (typeof value === "string" && value.trim() === "") return false;
@@ -206,6 +207,7 @@ function UserManagerHomePage() {
                 "Email",
                 "Course",
                 "Division",
+                "Year of Joining",
                 "Semester",
               ],
               ["Name", "Email", "Subject", "Course", "Semester", "Division"],
@@ -217,6 +219,7 @@ function UserManagerHomePage() {
                 "email",
                 "course",
                 "division",
+                "yearOfJoining",
                 "semester",
               ],
               ["name", "email", "subject", "course", "semester", "division"],
