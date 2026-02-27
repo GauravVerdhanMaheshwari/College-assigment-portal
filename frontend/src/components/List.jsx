@@ -45,6 +45,24 @@ const SELECT_OPTIONS = {
   semester: [1, 2, 3, 4, 5, 6],
 };
 
+const isValidAcademicYear = (val) => {
+  if (!val || typeof val !== "string") return false;
+
+  const trimmed = val.trim();
+
+  // format: 2020-21
+  if (!/^\d{4}-\d{2}$/.test(trimmed)) return false;
+
+  const [startStr, endStr] = trimmed.split("-");
+  const start = Number(startStr);
+  const end = Number(endStr);
+
+  if (Number.isNaN(start) || Number.isNaN(end)) return false;
+
+  const expectedEnd = (start + 1) % 100;
+  return end === expectedEnd;
+};
+
 const validateUserBeforeSave = (user, keys = []) => {
   const errors = [];
 
@@ -58,6 +76,15 @@ const validateUserBeforeSave = (user, keys = []) => {
     // email validation
     if (key === "email" && !isEmptyValue(value) && !isValidEmail(value)) {
       errors.push("Invalid email format");
+    }
+
+    // 🎯 ACADEMIC YEAR VALIDATION
+    if (
+      key === "yearOfJoining" &&
+      !isEmptyValue(value) &&
+      !isValidAcademicYear(value)
+    ) {
+      errors.push("Year must be YYYY-YY (e.g., 2020-21)");
     }
 
     // semester numeric safety
@@ -344,10 +371,6 @@ function List({
 
   return (
     <div>
-      <h2 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-sky-400 to-blue-600 bg-clip-text text-transparent">
-        User Management
-      </h2>
-
       {/* ENTITY SWITCH */}
       <div className="flex justify-center my-5 gap-6 flex-wrap">
         {entityNames.map((name, index) => (
@@ -430,10 +453,13 @@ function List({
                                   updateEditingUser(key, e.target.value)
                                 }
                                 className={`border rounded px-2 py-1 w-full ${
-                                  key === "email" &&
-                                  editingUser[key] &&
-                                  !isValidEmail(editingUser[key])
-                                    ? "border-red-100 bg-red-500/70"
+                                  (key === "email" &&
+                                    editingUser[key] &&
+                                    !isValidEmail(editingUser[key])) ||
+                                  (key === "yearOfJoining" &&
+                                    editingUser[key] &&
+                                    !isValidAcademicYear(editingUser[key]))
+                                    ? "border-red-500 bg-red-50"
                                     : ""
                                 }`}
                               />
