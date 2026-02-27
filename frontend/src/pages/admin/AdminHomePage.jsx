@@ -85,8 +85,8 @@ function AdminHomePage() {
     }
 
     // Email validation
-    if (userDetails.email && !/\S+@\S+\.\S+/.test(userDetails.email)) {
-      return { success: false, message: "Invalid email" };
+    if (userDetails.email && !isValidEmail(userDetails.email)) {
+      return { success: false, message: "Invalid email format" };
     }
 
     // Semester validation
@@ -149,17 +149,24 @@ function AdminHomePage() {
       }
 
       // ✅ deep clean null / undefined
-      const cleanedEntity = Object.fromEntries(
-        Object.entries(entity).filter(
-          ([_, value]) =>
-            value !== null &&
-            value !== undefined &&
-            !(typeof value === "string" && value.trim() === ""),
-        ),
-      );
+      const deepClean = (obj) => {
+        return Object.fromEntries(
+          Object.entries(obj).filter(([_, value]) => {
+            if (value === null || value === undefined) return false;
+
+            if (typeof value === "string" && value.trim() === "") return false;
+
+            if (Array.isArray(value) && value.length === 0) return false;
+
+            return true;
+          }),
+        );
+      };
+
+      const cleanedEntity = deepClean(entity);
 
       // ✅ extra safety for faculties
-      if (type === "faculties") {
+      if (type === "Faculties") {
         const ensureArray = (val) =>
           Array.isArray(val) ? val.filter(Boolean) : val ? [val] : [];
 
