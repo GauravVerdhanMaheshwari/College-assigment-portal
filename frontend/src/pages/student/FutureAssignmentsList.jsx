@@ -65,6 +65,35 @@ function FutureAssignmentsList({
     return hrs > 0 ? ` ${hrs}h ${mins % 60}m left` : `${mins}m left`;
   }
 
+  const handleDownload = async (assignment) => {
+    try {
+      if (!assignment?.fileId) {
+        alert("No PDF available for this assignment");
+        return;
+      }
+
+      const res = await fetch(
+        `http://localhost:3000/assignments/file/${assignment.fileId}`,
+      );
+
+      if (!res.ok) throw new Error("Failed to download file");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = assignment.fileName || "assignment.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert("Download failed");
+    }
+  };
+
   return (
     <div className="p-4">
       <h2 className={`text-2xl font-bold mb-4 ${textCSS}`}>
@@ -122,23 +151,35 @@ function FutureAssignmentsList({
                 </div>
 
                 {/* RIGHT */}
-                {hasSubmitted(a._id) ? (
-                  <span className="text-green-600 font-semibold">
-                    Submitted ✔
-                  </span>
-                ) : closed ? (
-                  <span className="text-red-500 font-semibold text-sm">
-                    Closed
-                  </span>
-                ) : (
-                  <AssignmentUploadForm
-                    onUpload={onUpload}
-                    studentId={user?._id}
-                    assignmentId={a._id}
-                    buttonCSS={buttonCSS}
-                    isLate={withinGrace}
-                  />
-                )}
+                <div className="flex flex-col items-end gap-2">
+                  {/* 📥 DOWNLOAD BUTTON */}
+                  {a.fileId && (
+                    <button
+                      onClick={() => handleDownload(a)}
+                      className="text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-md shadow"
+                    >
+                      📥 Download PDF
+                    </button>
+                  )}
+
+                  {hasSubmitted(a._id) ? (
+                    <span className="text-green-600 font-semibold">
+                      Submitted ✔
+                    </span>
+                  ) : closed ? (
+                    <span className="text-red-500 font-semibold text-sm">
+                      Closed
+                    </span>
+                  ) : (
+                    <AssignmentUploadForm
+                      onUpload={onUpload}
+                      studentId={user?._id}
+                      assignmentId={a._id}
+                      buttonCSS={buttonCSS}
+                      isLate={withinGrace}
+                    />
+                  )}
+                </div>
               </li>
             );
           })}

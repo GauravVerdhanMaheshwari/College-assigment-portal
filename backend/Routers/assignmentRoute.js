@@ -15,12 +15,12 @@ router.post(
   upload.single("file"),
   assignmentController.uploadAssignmentFile,
 );
+router.get("/file/:fileId", assignmentController.downloadAssignmentFile);
 router.put(
   "/:id/file",
   upload.single("file"),
   assignmentController.updateAssignmentFile,
 );
-
 // Get all assignments
 router.get("/", assignmentController.getAllAssignments);
 // Get assignment by ID

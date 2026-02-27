@@ -1,5 +1,6 @@
 const Assignment = require("../Models/assignment");
 const { getGridFSBucket } = require("../config/gridfs");
+const mongoose = require("mongoose");
 
 // Create a new assignment
 exports.createAssignment = async (req, res) => {
@@ -127,6 +128,50 @@ exports.updateAssignmentFile = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
+  }
+};
+
+exports.downloadAssignmentFile = async (req, res) => {
+  try {
+    const bucket = getGridFSBucket();
+
+    if (!bucket) {
+      return res.status(500).json({
+        message: "GridFS bucket not initialized",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.fileId)) {
+      return res.status(400).json({
+        message: "Invalid file id",
+      });
+    }
+
+    const fileId = new mongoose.Types.ObjectId(req.params.fileId);
+
+    const files = await bucket.find({ _id: fileId }).toArray();
+
+    if (!files.length) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    /* 🔥 CRITICAL HEADERS */
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="${files[0].filename || "assignment.pdf"}"`,
+    });
+
+    const downloadStream = bucket.openDownloadStream(fileId);
+
+    downloadStream.on("error", (err) => {
+      console.error(err);
+      res.status(500).end();
+    });
+
+    downloadStream.pipe(res);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Download failed" });
   }
 };
 
