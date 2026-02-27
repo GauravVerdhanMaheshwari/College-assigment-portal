@@ -28,24 +28,56 @@ function UserManagerHomePage() {
       return { success: false, message: "Empty row" };
     }
 
+    // 🔐 AUTO ROLE
     userDetails.role = userAPI === "students" ? "student" : "faculty";
 
-    // 🔥 FACULTY ARRAY SUPPORT
     if (userAPI === "faculties") {
-      userDetails.course = facultySmart.course;
-      userDetails.semester = facultySmart.semester;
-      userDetails.subject = facultySmart.subject;
-      userDetails.division = facultySmart.division;
+      userDetails.course = Array.isArray(userDetails.course)
+        ? userDetails.course
+        : [userDetails.course].filter(Boolean);
+
+      userDetails.semester = Array.isArray(userDetails.semester)
+        ? userDetails.semester
+        : [userDetails.semester].filter(Boolean);
+
+      userDetails.subject = Array.isArray(userDetails.subject)
+        ? userDetails.subject
+        : [userDetails.subject].filter(Boolean);
+
+      userDetails.division = Array.isArray(userDetails.division)
+        ? userDetails.division
+        : [userDetails.division].filter(Boolean);
     }
 
-    if (userDetails.email && !/\S+@\S+\.\S+/.test(userDetails.email)) {
-      return { success: false, message: "Invalid email" };
+    // Email validation
+    if (userDetails.email && !isValidEmail(userDetails.email)) {
+      return { success: false, message: "Invalid email format" };
     }
 
+    // Semester validation
+    if (userDetails.semester) {
+      const sem = parseInt(userDetails.semester, 10);
+      if (isNaN(sem) || sem < 1 || sem > 8) {
+        return { success: false, message: "Invalid semester" };
+      }
+      userDetails.semester = sem;
+    }
+
+    // Enrollment number normalization
     if (userDetails.enrollmentnumber) {
       userDetails.enrollmentNumber = String(userDetails.enrollmentnumber);
       delete userDetails.enrollmentnumber;
     }
+
+    if (!userDetails.enrollmentNumber && userAPI === "students") {
+      return { success: false, message: "Missing enrollmentNumber" };
+    }
+
+    if (userDetails.course)
+      userDetails.course = String(userDetails.course).toUpperCase();
+
+    if (userDetails.division)
+      userDetails.division = String(userDetails.division).toUpperCase();
 
     userDetails.password = `${userDetails.name}@${
       userDetails.enrollmentNumber?.toString().slice(-4) || "1234"
@@ -69,19 +101,65 @@ function UserManagerHomePage() {
 
       return { success: true };
     } catch (err) {
-      return { success: false, message: "Network error: " + err.message };
+      return { success: false, message: `Network error: ${err.message}` };
     }
   };
 
-  const handleEdit = async (user, type) => {
-    const res = await fetch(`http://localhost:3000/${type}/${user._id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(user),
-    });
+  const handleEdit = async (entity, type) => {
+    try {
+      if (!entity || !entity._id) {
+        alert("Invalid data. Please refresh and try again.");
+        return;
+      }
 
-    if (!res.ok) throw new Error("Failed to update");
-    return await res.json();
+      // ✅ deep clean null / undefined
+      const deepClean = (obj) => {
+        return Object.fromEntries(
+          Object.entries(obj).filter(([_, value]) => {
+            if (value === null || value === undefined) return false;
+
+            if (typeof value === "string" && value.trim() === "") return false;
+
+            if (Array.isArray(value) && value.length === 0) return false;
+
+            return true;
+          }),
+        );
+      };
+
+      const cleanedEntity = deepClean(entity);
+
+      // ✅ extra safety for faculties
+      if (type === "Faculties") {
+        const ensureArray = (val) =>
+          Array.isArray(val) ? val.filter(Boolean) : val ? [val] : [];
+
+        cleanedEntity.course = ensureArray(cleanedEntity.course);
+        cleanedEntity.semester = ensureArray(cleanedEntity.semester);
+        cleanedEntity.subject = ensureArray(cleanedEntity.subject);
+        cleanedEntity.division = ensureArray(cleanedEntity.division);
+      }
+
+      const res = await fetch(`http://localhost:3000/${type}/${entity._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cleanedEntity),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        alert(data?.message || "Failed to update");
+        throw new Error(data?.message || "Failed to update");
+      }
+
+      alert(`${entity.name || entity.title} updated successfully!`);
+      return data;
+    } catch (err) {
+      console.error(err);
+      alert(`Error updating: ${err.message}`);
+      throw err;
+    }
   };
 
   const handleDelete = async (user, type) => {
