@@ -57,6 +57,13 @@ function AdminHomePage() {
     },
   ];
 
+  const isValidEmail = (email) => {
+    if (!email || typeof email !== "string") return false;
+
+    // strong but practical regex
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+  };
+
   // 📌 ADD USERS
   const handleAddUser = async (newUser, userAPI, userDetails) => {
     if (!userDetails || Object.keys(userDetails).length === 0) {
@@ -152,6 +159,7 @@ function AdminHomePage() {
       const deepClean = (obj) => {
         return Object.fromEntries(
           Object.entries(obj).filter(([_, value]) => {
+            console.log(_);
             if (value === null || value === undefined) return false;
 
             if (typeof value === "string" && value.trim() === "") return false;
