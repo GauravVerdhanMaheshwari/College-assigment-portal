@@ -8,6 +8,27 @@ import React, {
 import { Filter } from "../components/index";
 import { COURSE_SEM_SUBJECT_MAP } from "./courseMap";
 
+/* ===================== VALIDATION ===================== */
+
+const isEmptyValue = (val) => {
+  if (val === undefined || val === null) return true;
+
+  if (typeof val === "string" && val.trim() === "") return true;
+
+  if (Array.isArray(val) && val.length === 0) return true;
+
+  return false;
+};
+
+/* ===================== EMAIL VALIDATOR ===================== */
+
+const isValidEmail = (email) => {
+  if (!email || typeof email !== "string") return false;
+
+  // strong but practical regex
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+};
+
 /* ===================== HELPERS ===================== */
 
 const formatValue = (val) => {
@@ -19,9 +40,34 @@ const formatValue = (val) => {
 const MULTI_FIELDS = ["course", "division", "subject", "semester"];
 
 const SELECT_OPTIONS = {
-  course: ["BCA", "MCA", "IT"],
-  division: ["A", "B", "C", "D"],
+  course: ["CE", "BCA", "MCA", "IT"],
+  division: ["A", "B", "C", "D", "E", "F"],
   semester: [1, 2, 3, 4, 5, 6],
+};
+
+const validateUserBeforeSave = (user, keys = []) => {
+  const errors = [];
+
+  keys.forEach((key) => {
+    const value = user[key];
+
+    if (isEmptyValue(value)) {
+      errors.push(`${key} cannot be empty`);
+    }
+
+    // email validation
+    if (key === "email" && !isEmptyValue(value) && !isValidEmail(value)) {
+      errors.push("Invalid email format");
+    }
+
+    // semester numeric safety
+    if (key === "semester" && !isEmptyValue(value) && Array.isArray(value)) {
+      const bad = value.some((s) => Number(s) < 1 || Number(s) > 8);
+      if (bad) errors.push("Invalid semester selected");
+    }
+  });
+
+  return errors;
 };
 
 /* ================= SUBJECT VALIDATOR ================= */
@@ -184,6 +230,14 @@ function List({
   );
 
   const isFacultyView = activeEntity === "faculties";
+
+  const isEditInvalid = useMemo(() => {
+    if (!editingUser) return false;
+
+    return entityKeys[entityIndex].some((key) =>
+      isEmptyValue(editingUser[key]),
+    );
+  }, [editingUser, entityIndex, entityKeys]);
 
   /* ================= FETCH ================= */
 
@@ -375,7 +429,13 @@ function List({
                                 onChange={(e) =>
                                   updateEditingUser(key, e.target.value)
                                 }
-                                className="border rounded px-2 py-1 w-full"
+                                className={`border rounded px-2 py-1 w-full ${
+                                  key === "email" &&
+                                  editingUser[key] &&
+                                  !isValidEmail(editingUser[key])
+                                    ? "border-red-100 bg-red-500/70"
+                                    : ""
+                                }`}
                               />
                             )
                           ) : (
@@ -389,11 +449,29 @@ function List({
                       {editingUser?._id === user._id ? (
                         <div className="flex gap-2">
                           <button
-                            onClick={() => handleSaveEdit(editingUser)}
-                            className="bg-green-500 text-white px-3 py-1 rounded"
+                            disabled={isEditInvalid}
+                            onClick={() => {
+                              const errors = validateUserBeforeSave(
+                                editingUser,
+                                entityKeys[entityIndex],
+                              );
+
+                              if (errors.length > 0) {
+                                alert(errors[0]);
+                                return;
+                              }
+
+                              handleSaveEdit(editingUser);
+                            }}
+                            className={`px-3 py-1 rounded text-white ${
+                              isEditInvalid
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-green-500"
+                            }`}
                           >
                             Save
                           </button>
+
                           <button
                             onClick={() => setEditingUser(null)}
                             className="bg-gray-500 text-white px-3 py-1 rounded"
