@@ -74,7 +74,7 @@ function Filter({
   // ✅ notify parent
   useEffect(() => {
     onFilter?.(processedData.data, processedData.grouped, groupField);
-  }, [processedData, onFilter, groupField]);
+  }, [processedData.data, processedData.grouped, groupField, onFilter]);
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-4 mx-6 lg:mx-20 mb-6 border border-gray-200">

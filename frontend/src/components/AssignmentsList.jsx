@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Filter } from "./index";
 
 function AssignmentsList({ textCSS }) {
@@ -55,6 +55,13 @@ function AssignmentsList({ textCSS }) {
       return updated;
     });
   };
+
+  /* ===================== FILTER HANDLERS ===================== */
+
+  const handleFilter = useCallback((data, grouped) => {
+    setFilteredAssignments(data);
+    setIsGrouped(grouped);
+  }, []);
 
   /* ===================== FILE HANDLERS ===================== */
   const validatePdf = (file) => {
@@ -153,11 +160,8 @@ function AssignmentsList({ textCSS }) {
         data={assignments}
         entityFields={entityFields}
         entityKeys={entityKeys}
-        groupableKeys={""}
-        onFilter={(data, grouped) => {
-          setFilteredAssignments(data);
-          setIsGrouped(grouped);
-        }}
+        groupableKeys={[]}
+        onFilter={handleFilter}
         onDeleteGroup={handleDeleteGroup}
       />
 

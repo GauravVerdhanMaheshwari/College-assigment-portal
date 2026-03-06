@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Filter from "./Filter";
 import DownloadHistory from "./DownloadHistory";
 
@@ -15,7 +15,6 @@ function FacultyPapers({ papers }) {
 
   useEffect(() => {
     setLocalPapers(papers || []);
-    setFilteredPapers(papers || []);
   }, [papers]);
 
   /* ===================== GRADE ===================== */
@@ -109,6 +108,11 @@ function FacultyPapers({ papers }) {
     );
   };
 
+  const handleFilter = useCallback((data, grouped) => {
+    setFilteredPapers(data);
+    setIsGrouped(grouped);
+  }, []);
+
   /* ===================== FETCH REPORTS ===================== */
   const fetchReports = async (paperId) => {
     if (reportsMap[paperId]) return;
@@ -178,6 +182,10 @@ function FacultyPapers({ papers }) {
     setFilteredPapers(res);
     setIsGrouped(grouped);
   }, []);
+
+  const isEmpty = isGrouped
+    ? Object.keys(filteredPapers || {}).length === 0
+    : (filteredPapers || []).length === 0;
 
   /* ===================== RENDER PAPER ===================== */
   const renderPaper = (paper) => (
@@ -316,11 +324,12 @@ function FacultyPapers({ papers }) {
         data={localPapers ?? []}
         entityFields={["Title", "Student", "Class", "Course"]}
         entityKeys={["title", "studentName", "division", "course"]}
-        groupableKeys={["division", "course"]} // ✅ IMPORTANT
-        onFilter={handlePaperFilter}
+        groupableKeys={["division", "course"]}
+        onFilter={handleFilter}
+        onDeleteGroup={handleDeleteGroup}
       />
 
-      {filteredPapers.length === 0 && (
+      {isEmpty && (
         <p className="text-xl text-center text-gray-600 mt-7">
           No papers found.
         </p>

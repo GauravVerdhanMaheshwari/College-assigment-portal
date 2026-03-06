@@ -227,6 +227,8 @@ function AdminHomePage() {
     }
   };
 
+  // console.log(papers);
+
   return (
     <div className="w-full h-full bg-gradient-to-b from-[#A7F3D0] to-[#34D399]">
       <div className="flex flex-col h-full">
