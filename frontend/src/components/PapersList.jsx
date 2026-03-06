@@ -1,464 +1,282 @@
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  useRef,
-} from "react";
+import React, { useState, useEffect, useCallback } from "react";
+
 import { Filter } from "../components/index";
-import { COURSE_SEM_SUBJECT_MAP } from "./courseMap";
 
-/* ===================== HELPERS ===================== */
+/* 🔥 deep compare helper */
+const isEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
-const formatValue = (val) => {
-  if (Array.isArray(val)) return val.join(", ");
-  if (val === undefined || val === null || val === "") return "-";
-  return val;
-};
-
-const MULTI_FIELDS = ["course", "division", "subject", "semester"];
-
-const SELECT_OPTIONS = {
-  course: ["BCA", "MCA", "IT"],
-  division: ["A", "B", "C", "D"],
-  semester: [1, 2, 3, 4, 5, 6],
-};
-
-/* ===================== SUBJECT DERIVER ===================== */
-
-const getValidSubjects = (courses = [], semesters = []) => {
-  const subjectSet = new Set();
-
-  courses.forEach((course) => {
-    semesters.forEach((sem) => {
-      const subjects = COURSE_SEM_SUBJECT_MAP?.[course]?.[sem] || [];
-      subjects.forEach((s) => subjectSet.add(s));
-    });
-  });
-
-  return Array.from(subjectSet);
-};
-
-/* ===================== PREMIUM MULTISELECT ===================== */
-
-const PremiumMultiSelect = ({
-  value = [],
-  options = [],
-  onChange,
-  placeholder = "Select...",
-  disabled = false,
-}) => {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    const handleClick = (e) => {
-      if (!containerRef.current?.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  const filtered = useMemo(() => {
-    return options.filter((opt) =>
-      String(opt).toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [options, search]);
-
-  const toggle = (val) => {
-    if (value.includes(val)) {
-      onChange(value.filter((v) => v !== val));
-    } else {
-      onChange([...value, val]);
-    }
-  };
-
-  const removeChip = (val) => {
-    onChange(value.filter((v) => v !== val));
-  };
-
-  return (
-    <div ref={containerRef} className="relative w-full">
-      <div
-        onClick={() => !disabled && setOpen((o) => !o)}
-        className={`min-h-[38px] border rounded-xl px-2 py-1 flex flex-wrap gap-1 transition
-          ${disabled ? "bg-gray-100 cursor-not-allowed" : "bg-white cursor-pointer hover:border-sky-400"}`}
-      >
-        {value.length === 0 && (
-          <span className="text-gray-400 text-sm">{placeholder}</span>
-        )}
-
-        {value.slice(0, 3).map((v, i) => (
-          <span
-            key={i}
-            className="bg-gradient-to-r from-sky-500 to-blue-600 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1 shadow"
-          >
-            {v}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                removeChip(v);
-              }}
-              className="hover:text-gray-200"
-            >
-              ✕
-            </button>
-          </span>
-        ))}
-
-        {value.length > 3 && (
-          <span className="text-xs text-gray-500 px-1">
-            +{value.length - 3} more
-          </span>
-        )}
-      </div>
-
-      {open && !disabled && (
-        <div className="absolute z-50 mt-1 w-full bg-white border rounded-2xl shadow-xl p-2">
-          <input
-            className="w-full mb-2 px-2 py-1 border rounded-lg focus:ring-2 focus:ring-sky-400 outline-none"
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-
-          <div className="max-h-44 overflow-y-auto flex flex-wrap gap-1">
-            {filtered.length === 0 && (
-              <p className="text-sm text-gray-400 px-2">No options</p>
-            )}
-
-            {filtered.map((opt, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => toggle(opt)}
-                className={`px-2 py-1 rounded text-sm transition
-                  ${
-                    value.includes(opt)
-                      ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white"
-                      : "bg-gray-100 hover:bg-gray-200"
-                  }`}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-/* ===================== MAIN COMPONENT ===================== */
-
-export default function List({
-  entityNames = [],
-  entityFields = [],
-  entityKeys = [],
-  entityEndpoints = [],
-  handleDelete = async () => {},
-  handleEdit = async () => {},
-}) {
-  const safeInitialEndpoint = entityEndpoints?.[0] ?? "";
-
-  const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
+function PapersList({ papers, papersAPI, userID, textCSS }) {
+  const [filteredPapers, setFilteredPapers] = useState([]);
   const [isGrouped, setIsGrouped] = useState(false);
-  const [activeEntity, setActiveEntity] = useState(safeInitialEndpoint);
-  const [editingUser, setEditingUser] = useState(null);
+  const [reportsMap, setReportsMap] = useState({});
 
-  const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 8;
-
-  const entityIndex = useMemo(() => {
-    if (!entityEndpoints?.length) return 0;
-    const idx = entityEndpoints.indexOf(activeEntity);
-    return idx === -1 ? 0 : idx;
-  }, [entityEndpoints, activeEntity]);
-
-  const safeFields = entityFields?.[entityIndex] ?? [];
-  const safeKeys = entityKeys?.[entityIndex] ?? [];
-
-  /* ================= FETCH ================= */
-
+  /* ✅ sync only when papers actually change */
   useEffect(() => {
-    if (!activeEntity) return;
+    setFilteredPapers((prev) => {
+      if (isEqual(prev, papers)) return prev;
+      return papers;
+    });
+    setIsGrouped(false);
+  }, [papers]);
 
-    const controller = new AbortController();
-
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`http://localhost:3000/${activeEntity}`, {
-          signal: controller.signal,
-        });
-        const data = await res.json();
-        setUsers(Array.isArray(data) ? data : []);
-        setFilteredUsers(Array.isArray(data) ? data : []);
-        setCurrentPage(1);
-      } catch (err) {
-        if (err.name !== "AbortError") console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-    return () => controller.abort();
-  }, [activeEntity]);
-
-  /* ================= AUTO CLEAN SUBJECTS ================= */
-
-  useEffect(() => {
-    if (!editingUser) return;
-
-    const validSubjects = getValidSubjects(
-      editingUser.course || [],
-      editingUser.semester || [],
-    );
-
-    const currentSubjects = Array.isArray(editingUser.subject)
-      ? editingUser.subject
-      : [];
-
-    const cleanedSubjects = currentSubjects.filter((s) =>
-      validSubjects.includes(s),
-    );
-
-    if (cleanedSubjects.length !== currentSubjects.length) {
-      setEditingUser((prev) => ({
-        ...prev,
-        subject: cleanedSubjects,
-      }));
-    }
-  }, [editingUser?.course, editingUser?.semester]);
-
-  /* ================= FILTER ================= */
-
+  /* 🔥 CRITICAL — stable + guarded filter handler */
   const handleFilter = useCallback((result, grouped) => {
-    setFilteredUsers(result);
-    setIsGrouped(grouped);
-    setCurrentPage(1);
+    setFilteredPapers((prev) => {
+      if (isEqual(prev, result)) return prev;
+      return result;
+    });
+
+    setIsGrouped((prev) => {
+      if (prev === grouped) return prev;
+      return grouped;
+    });
   }, []);
 
-  /* ================= PAGINATION ================= */
+  /* 🔹 Delete comment */
+  const deleteComment = useCallback(
+    async (paperId, commentId) => {
+      try {
+        await fetch(
+          `http://localhost:3000/papers/${paperId}/comment/${commentId}`,
+          { method: "DELETE" },
+        );
 
-  const totalPages = useMemo(() => {
-    if (!Array.isArray(filteredUsers)) return 1;
-    return Math.max(1, Math.ceil(filteredUsers.length / pageSize));
-  }, [filteredUsers]);
+        setFilteredPapers((prev) => {
+          const updatePaper = (p) =>
+            p._id !== paperId
+              ? p
+              : {
+                  ...p,
+                  comments: p.comments.filter((c) => c._id !== commentId),
+                };
 
-  const paginatedUsers = useMemo(() => {
-    if (!Array.isArray(filteredUsers)) return [];
-    const start = (currentPage - 1) * pageSize;
-    return filteredUsers.slice(start, start + pageSize);
-  }, [filteredUsers, currentPage]);
+          if (isGrouped && typeof prev === "object" && !Array.isArray(prev)) {
+            const newObj = {};
+            Object.entries(prev).forEach(([g, items]) => {
+              newObj[g] = items.map(updatePaper);
+            });
+            return newObj;
+          }
 
-  /* ================= DELETE ================= */
+          return Array.isArray(prev) ? prev.map(updatePaper) : prev;
+        });
+      } catch (err) {
+        console.error(err);
+        alert("Failed to delete comment");
+      }
+    },
+    [isGrouped],
+  );
 
-  const handleSingleDelete = async (user) => {
-    const ok = window.confirm(`Delete ${user?.name || "user"}?`);
-    if (!ok) return;
+  /* 🔹 Fetch reports (with proper cache guard) */
+  const fetchReports = useCallback(
+    async (paperId) => {
+      if (reportsMap[paperId]) return; // ✅ cache hit
+      try {
+        const res = await fetch(
+          `http://localhost:3000/reports/paper/${paperId}`,
+        );
+        const data = await res.json();
+        setReportsMap((prev) => ({
+          ...prev,
+          [paperId]: data,
+        }));
+      } catch (err) {
+        console.error(err);
+      }
+    },
+    [reportsMap],
+  );
+  const deleteReport = useCallback(async (paperId, reportId) => {
+    try {
+      await fetch(`http://localhost:3000/reports/${reportId}`, {
+        method: "DELETE",
+      });
+      setReportsMap((prev) => ({
+        ...prev,
+        [paperId]: prev[paperId]?.filter((r) => r._id !== reportId) || [],
+      }));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete report");
+    }
+  }, []);
+  /* 🔹 Action Buttons */
+  const ActionButtons = ({ paper }) => (
+    <a
+      href={`http://localhost:3000/papers/${paper._id}/download?${papersAPI}Id=${userID}&role=${papersAPI}&userId=${userID}`}
+      className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600"
+    >
+      Download
+    </a>
+  );
 
-    await handleDelete(user, activeEntity);
+  const renderRows = useCallback(
+    (papersArray) =>
+      Array.isArray(papersArray)
+        ? papersArray.map((paper) => (
+            <tr key={paper._id} className="hover:bg-gray-100">
+              {[
+                "title",
+                "studentName",
+                "class",
+                "semester",
+                "course",
+                "yearOfJoining",
+                "submissionDate",
+              ].map((key) => (
+                <td key={key} className="px-4 py-2 border">
+                  {paper[key]}
+                </td>
+              ))}
 
-    setUsers((prev) => prev.filter((u) => u._id !== user._id));
-    setFilteredUsers((prev) =>
-      Array.isArray(prev) ? prev.filter((u) => u._id !== user._id) : prev,
-    );
-  };
-
-  /* ================= SAVE ================= */
-
-  const handleSaveEdit = async (updatedUser) => {
-    const serverData = await handleEdit(updatedUser, activeEntity);
-    const finalUser = serverData?._id ? serverData : updatedUser;
-
-    setUsers((prev) =>
-      prev.map((u) => (u._id === finalUser._id ? finalUser : u)),
-    );
-
-    setFilteredUsers((prev) =>
-      Array.isArray(prev)
-        ? prev.map((u) => (u._id === finalUser._id ? finalUser : u))
-        : prev,
-    );
-
-    setEditingUser(null);
-  };
-
-  /* ================= RENDER ================= */
-
-  return (
-    <div>
-      {/* ENTITY SWITCH */}
-      <div className="flex justify-center my-5 gap-6 flex-wrap">
-        {entityNames?.map((name, index) => (
-          <button
-            key={name}
-            className={`px-6 py-2 rounded-full font-semibold text-white shadow-lg transition
-              ${
-                activeEntity === entityEndpoints[index]
-                  ? "bg-gradient-to-r from-sky-500 to-blue-600"
-                  : "bg-gray-400 hover:bg-gray-500"
-              }`}
-            onClick={() => setActiveEntity(entityEndpoints[index])}
-          >
-            {name}
-          </button>
-        ))}
-      </div>
-
-      {/* FILTER */}
-      {safeFields.length > 0 && (
-        <Filter
-          data={users}
-          entityFields={safeFields}
-          entityKeys={safeKeys}
-          groupableKeys={["subject", "course", "semester", "division"]}
-          onFilter={handleFilter}
-        />
-      )}
-
-      {/* TABLE */}
-      <div className="mx-20 mb-10 bg-white rounded-2xl shadow-xl border overflow-hidden">
-        <div className="max-h-[420px] overflow-y-auto">
-          <table className="min-w-full">
-            <thead className="sticky top-0 bg-white">
-              <tr>
-                {safeFields.map((field) => (
-                  <th key={field} className="px-4 py-2 border">
-                    {field}
-                  </th>
-                ))}
-                <th className="px-4 py-2 border">Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {!loading &&
-                paginatedUsers.map((user) => (
-                  <tr key={user._id} className="hover:bg-gray-100">
-                    {safeKeys.map((key) => {
-                      const subjectDisabled =
-                        key === "subject" &&
-                        (!editingUser?.course?.length ||
-                          !editingUser?.semester?.length);
-
-                      return (
-                        <td key={key} className="px-4 py-2 border">
-                          {editingUser?._id === user._id ? (
-                            MULTI_FIELDS.includes(key) ? (
-                              <PremiumMultiSelect
-                                value={
-                                  Array.isArray(editingUser[key])
-                                    ? editingUser[key]
-                                    : []
-                                }
-                                options={
-                                  key === "subject"
-                                    ? getValidSubjects(
-                                        editingUser.course || [],
-                                        editingUser.semester || [],
-                                      )
-                                    : SELECT_OPTIONS[key] || []
-                                }
-                                disabled={subjectDisabled}
-                                placeholder={
-                                  key === "subject" && subjectDisabled
-                                    ? "Select course & semester first"
-                                    : "Select..."
-                                }
-                                onChange={(val) =>
-                                  setEditingUser({
-                                    ...editingUser,
-                                    [key]: val,
-                                  })
-                                }
-                              />
-                            ) : (
-                              <input
-                                value={editingUser[key] ?? ""}
-                                onChange={(e) =>
-                                  setEditingUser({
-                                    ...editingUser,
-                                    [key]: e.target.value,
-                                  })
-                                }
-                                className="border rounded px-2 py-1 w-full"
-                              />
-                            )
-                          ) : (
-                            formatValue(user[key])
-                          )}
-                        </td>
-                      );
-                    })}
-
-                    <td className="px-4 py-2 border">
-                      {editingUser?._id === user._id ? (
-                        <div className="flex gap-2">
+              {/* COMMENTS */}
+              <td className="px-4 py-2 border max-w-md">
+                <div className="space-y-2">
+                  {paper.comments?.length ? (
+                    paper.comments.map((c) => (
+                      <div
+                        key={c._id}
+                        className="border rounded p-2 bg-gray-50 text-sm"
+                      >
+                        <div className="flex justify-between">
+                          <span className="font-semibold">
+                            {c.facultyName || "Faculty"}
+                          </span>
                           <button
-                            onClick={() => handleSaveEdit(editingUser)}
-                            className="bg-green-500 text-white px-3 py-1 rounded"
-                          >
-                            Save
-                          </button>
-                          <button
-                            onClick={() => setEditingUser(null)}
-                            className="bg-gray-500 text-white px-3 py-1 rounded"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setEditingUser({ ...user })}
-                            className="bg-blue-500 text-white px-3 py-1 rounded"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleSingleDelete(user)}
-                            className="bg-red-500 text-white px-3 py-1 rounded"
+                            className="text-red-500 text-xs"
+                            onClick={() =>
+                              window.confirm("Delete comment?") &&
+                              deleteComment(paper._id, c._id)
+                            }
                           >
                             Delete
                           </button>
                         </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
+                        <p>{c.text}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <span className="text-gray-400 text-sm">No comments</span>
+                  )}
+                </div>
+              </td>
 
-        {/* PAGINATION */}
-        {!isGrouped && (
-          <div className="flex justify-center gap-2 py-4 flex-wrap">
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`px-3 py-1 rounded transition
-                  ${
-                    currentPage === i + 1
-                      ? "bg-sky-500 text-white"
-                      : "bg-gray-200 hover:bg-gray-300"
-                  }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
-        )}
+              {/* REPORTS */}
+              <td className="px-4 py-2 border max-w-md">
+                <button
+                  onClick={() => fetchReports(paper._id)}
+                  className="text-blue-500 text-xs mb-2"
+                >
+                  Load Reports
+                </button>
+
+                <div className="space-y-2">
+                  {reportsMap[paper._id]?.length ? (
+                    reportsMap[paper._id].map((r) => (
+                      <div
+                        key={r._id}
+                        className="border rounded p-2 bg-red-50 text-sm"
+                      >
+                        <div className="flex justify-between">
+                          <span className="font-semibold text-red-700">
+                            {r.reporterId?.name || "Student"}
+                          </span>
+                          <button
+                            className="text-red-500 text-xs"
+                            onClick={() =>
+                              window.confirm("Delete report?") &&
+                              deleteReport(paper._id, r._id)
+                            }
+                          >
+                            Delete
+                          </button>
+                        </div>
+                        <p className="text-gray-800">{r.description}</p>
+
+                        <span className="text-xs text-gray-500">
+                          {new Date(r.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <span className="text-gray-400 text-sm">No reports</span>
+                  )}
+                </div>
+              </td>
+
+              <td className="px-4 py-2 border">
+                <ActionButtons paper={paper} />
+              </td>
+            </tr>
+          ))
+        : null,
+    [deleteComment, deleteReport, fetchReports, reportsMap],
+  );
+
+  return (
+    <div id="papersList" className="mx-20 mb-10">
+      <h2 className={`text-2xl font-bold text-center mb-5 ${textCSS}`}>
+        Submitted Papers
+      </h2>
+
+      <Filter
+        data={papers}
+        entityFields={[
+          "Title",
+          "Student Name",
+          "Submission Date",
+          "Class",
+          "Semester",
+          "Year",
+          "Course",
+        ]}
+        entityKeys={[
+          "title",
+          "studentName",
+          "submissionDate",
+          "class",
+          "semester",
+          "year",
+          "course",
+        ]}
+        onFilter={handleFilter}
+      />
+
+      <div className="max-h-96 overflow-y-auto border rounded-lg p-4 bg-white shadow">
+        <table className="min-w-full border-collapse">
+          <thead className="sticky top-0 bg-gray-100">
+            <tr>
+              <th className="px-4 py-2 border">Title</th>
+              <th className="px-4 py-2 border">Student</th>
+              <th className="px-4 py-2 border">Class</th>
+              <th className="px-4 py-2 border">Semester</th>
+              <th className="px-4 py-2 border">Course</th>
+              <th className="px-4 py-2 border">Year</th>
+              <th className="px-4 py-2 border">Submitted</th>
+              <th className="px-4 py-2 border">Comments</th>
+              <th className="px-4 py-2 border">Reports</th>
+              <th className="px-4 py-2 border">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {!isGrouped
+              ? renderRows(filteredPapers)
+              : Object.entries(filteredPapers).map(([group, items]) => (
+                  <React.Fragment key={group}>
+                    <tr className="bg-gray-200 font-semibold">
+                      <td colSpan="9" className="px-4 py-2">
+                        {group} ({items.length})
+                      </td>
+                    </tr>
+                    {renderRows(items)}
+                  </React.Fragment>
+                ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 }
+
+export default PapersList;
