@@ -33,7 +33,10 @@ function Header({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleNavigate = (path) => navigate(path);
+  const handleNavigate = (path) => {
+    navigate(path);
+    window.location.reload();
+  };
 
   const handleSearchChange = (e) => {
     setSearchValue(e.target.value);
