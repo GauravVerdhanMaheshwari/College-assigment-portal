@@ -57,7 +57,6 @@ function AssignmentsList({ textCSS }) {
   };
 
   /* ===================== FILTER HANDLERS ===================== */
-
   const handleFilter = useCallback((data, grouped) => {
     setFilteredAssignments(data);
     setIsGrouped(grouped);
@@ -144,6 +143,7 @@ function AssignmentsList({ textCSS }) {
     "Assigned To",
     "Due Date",
   ];
+
   const entityKeys = [
     "topic",
     "subject",
@@ -165,7 +165,6 @@ function AssignmentsList({ textCSS }) {
         onDeleteGroup={handleDeleteGroup}
       />
 
-      {/* LIST */}
       <div className="mt-6">
         <div className="grid gap-4">
           {!filteredAssignments.length && (
@@ -173,6 +172,7 @@ function AssignmentsList({ textCSS }) {
               No assignments available
             </p>
           )}
+
           {filteredAssignments.map((a) => (
             <AssignmentCard
               key={a._id}
@@ -186,7 +186,6 @@ function AssignmentsList({ textCSS }) {
         </div>
       </div>
 
-      {/* ================= PREMIUM MODAL ================= */}
       {editingAssignment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-lg rounded-2xl bg-white/80 backdrop-blur-xl shadow-2xl border border-white/40 p-6">
@@ -295,6 +294,7 @@ function AssignmentCard({
         alert("Due date cannot be in the past");
         return;
       }
+
       const res = await fetch(`http://localhost:3000/assignments/${a._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -321,6 +321,27 @@ function AssignmentCard({
       setAllowLate(data.allowLateSubmission);
     } catch {
       alert("Failed to update late submission setting");
+    }
+  };
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${a.topic}"?`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`http://localhost:3000/assignments/${a._id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Failed to delete assignment");
+
+      alert("Assignment deleted successfully!");
+      refreshList?.();
+    } catch (err) {
+      alert(err.message);
     }
   };
 
@@ -402,6 +423,13 @@ function AssignmentCard({
                 className="text-blue-400 font-semibold bg-blue-400/10 rounded px-2 py-1"
               >
                 Update
+              </button>
+
+              <button
+                onClick={handleDelete}
+                className="text-red-500 font-semibold bg-red-500/10 rounded px-2 py-1"
+              >
+                Delete
               </button>
 
               <button
